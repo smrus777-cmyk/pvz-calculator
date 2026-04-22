@@ -68,7 +68,7 @@
       }
     }
 
-    /* ===== ЗАСТАВКА (АБСОЛЮТНОЕ ЦЕНТРИРОВАНИЕ) ===== */
+    /* ===== КНОПКА ЗАПУСКА ПОЛНОГО ЭКРАНА ===== */
     .fullscreen-prompt {
       position: fixed;
       top: 0;
@@ -77,6 +77,11 @@
       bottom: 0;
       background: rgba(10, 10, 12, 0.98);
       z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
       backdrop-filter: blur(8px);
     }
 
@@ -85,36 +90,18 @@
     }
 
     .prompt-logo {
-      position: absolute;
-      top: 15%;
-      left: 50%;
-      transform: translateX(-50%);
       font-weight: 800;
       font-size: 48px;
       letter-spacing: 4px;
       color: #FFFFFF;
-      white-space: nowrap;
+      margin-bottom: 20px;
     }
 
     .prompt-logo span {
       color: #EA580C;
     }
 
-    .prompt-subtitle {
-      position: absolute;
-      top: calc(15% + 60px);
-      left: 50%;
-      transform: translateX(-50%);
-      color: #9A9AA4;
-      font-size: 16px;
-      white-space: nowrap;
-    }
-
     .prompt-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       background: #EA580C;
       border: none;
       border-radius: 60px;
@@ -129,7 +116,6 @@
       align-items: center;
       gap: 12px;
       transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-      white-space: nowrap;
     }
 
     .prompt-btn:hover {
@@ -138,17 +124,7 @@
     }
 
     .prompt-btn:active {
-      transform: translate(-50%, -50%) scale(0.97);
-    }
-
-    .prompt-hint {
-      position: absolute;
-      bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #6A6A78;
-      font-size: 14px;
-      white-space: nowrap;
+      transform: scale(0.97);
     }
 
     /* ===== ЗАКРЕПЛЁННАЯ ВЕРХНЯЯ ШАПКА ===== */
@@ -335,7 +311,7 @@
       background: #1C1C24;
       border: 1.5px solid #2E2E38;
       border-radius: 14px;
-      padding: 14px 40px 14px 16px;
+      padding: 14px 40px 14px 16px;   /* высота как у input */
       font-family: 'Montserrat', sans-serif;
       font-size: 16px;
       font-weight: 500;
@@ -391,7 +367,7 @@
     }
 
     .select-item {
-      padding: 6px 16px;
+      padding: 8px 16px;   /* только пункты списка компактные */
       font-family: 'Montserrat', sans-serif;
       font-size: 16px;
       font-weight: 500;
@@ -465,19 +441,16 @@
       color: #D0D0D8;
       text-align: center;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      transition: all 0.15s;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
-      width: 100%;
-      flex: 1 1 0;
-      transform: translateZ(0);
-      backface-visibility: hidden;
     }
 
     .hour-btn:hover {
       background: rgba(234, 88, 12, 0.12);
       border-color: #EA580C;
       color: #FFFFFF;
+      text-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
     }
 
     .hour-btn.selected {
@@ -489,6 +462,8 @@
     .hour-btn.selected:hover {
       background: #2DB887;
       border-color: #2DB887;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
     }
 
     .reset-btn {
@@ -616,14 +591,16 @@
 
 <div class="fullscreen-prompt" id="fullscreenPrompt">
   <div class="prompt-logo">RUSS<span>.</span></div>
-  <div class="prompt-subtitle">ПВЗ Калькулятор</div>
+  <div style="color: #9A9AA4; margin-bottom: 32px; font-size: 16px;">ПВЗ Калькулятор</div>
   <button class="prompt-btn" id="launchFullscreenBtn">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
     </svg>
     Открыть в полном экране
   </button>
-  <div class="prompt-hint">Нажмите для начала работы</div>
+  <div style="margin-top: 24px; color: #6A6A78; font-size: 14px; text-align: center;">
+    Нажмите для начала работы
+  </div>
 </div>
 
 <div class="sticky-header">
@@ -717,7 +694,7 @@
         <div>Экранов: <strong id="summaryScreens" style="font-weight: 700;">20</strong></div>
         <div>Дней: <strong id="summaryDays" style="font-weight: 700;">30</strong></div>
         <div>Выходов в час: <strong id="summaryFreq" style="font-weight: 700;">15</strong></div>
-        <div>Часов в день: <strong id="summaryHours" style="font-weight: 700;">0</strong></div>
+        <div>Часов: <strong id="summaryHours" style="font-weight: 700;">0</strong></div>
       </div>
     </div>
     
