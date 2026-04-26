@@ -1,1 +1,1154 @@
 
+<!-- 
+  ================================================
+  Автор: Maxim Sorokin
+  Компания: RUSS Volgograd
+  Продукт: Pro Calculator· v7.2
+  ================================================
+-->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>RUSS · Pro Calculator · v7.2</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0A0A0C; font-family: 'Montserrat', sans-serif; color: #FFFFFF;
+      min-height: 100vh; display: flex; justify-content: center; align-items: center;
+      padding: 24px; overflow: auto;
+    }
+    .onboarding-overlay {
+      position: fixed; inset: 0; background: #0A0A0C; z-index: 1000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px; text-align: center; transition: opacity 0.4s, visibility 0.4s;
+    }
+    .onboarding-overlay.fade-out { opacity: 0; visibility: hidden; }
+    .onboard-logo { font-size: 72px; font-weight: 900; letter-spacing: -2px; margin-bottom: 16px; }
+    .onboard-logo span { color: #EA580C; }
+    .onboard-badge {
+      background: #EA580C; color: #0A0A0C; font-weight: 700; font-size: 14px; padding: 6px 20px;
+      border-radius: 30px; display: inline-block; margin-bottom: 10px; letter-spacing: 1px;
+    }
+    .onboard-version { font-size: 14px; color: #9A9AA4; margin-bottom: 28px; }
+    .onboard-features { display: flex; gap: 24px; margin-bottom: 40px; }
+    .onboard-feat {
+      background: #121218; border: 1px solid #242424; border-radius: 10px; padding: 20px 24px;
+      width: 200px; text-align: center;
+    }
+    .onboard-feat svg { width: 32px; height: 32px; stroke: #EA580C; stroke-width: 1.5; fill: none; margin-bottom: 12px; }
+    .onboard-feat h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .onboard-feat p { font-size: 13px; color: #9A9AA4; line-height: 1.4; }
+    .btn-primary {
+      background: #EA580C; border: none; border-radius: 8px; padding: 22px 48px;
+      font-weight: 700; font-size: 20px; color: #0A0A0C; cursor: pointer; transition: 0.2s;
+    }
+    .btn-primary:hover { background: #C2410C; }
+
+    .vpro-dashboard {
+      max-width: 1440px; width: 100%; background: #0C0C10; border: 1px solid #242424;
+      border-radius: 10px; padding: 28px; display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+      margin: auto;
+    }
+
+    .top-toolbar { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+    .brand-block { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .brand-title {
+      font-weight: 800; font-size: 18px; color: #FFF; letter-spacing: -0.4px; white-space: nowrap;
+    }
+    .brand-title span { color: #EA580C; }
+    .brand-version { font-size: 10px; color: #6A6A78; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    .format-switch { display: flex; gap: 4px; background: #121218; border: 1px solid #242424; border-radius: 8px; padding: 4px; flex-shrink: 0; }
+    .fmt-btn {
+      background: transparent; border: none; border-radius: 6px; padding: 10px 20px;
+      font-weight: 700; font-size: 15px; color: #7A7A82; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .fmt-btn.active { background: #EA580C; color: #000; }
+    .fmt-btn:hover:not(.active) { color: #FFF; background: rgba(234,88,12,0.12); }
+    .client-field { flex: 1; min-width: 120px; }
+    .client-field input {
+      width: 100%; background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 12px 18px;
+      font-size: 16px; font-weight: 600; color: #FFF; outline: none; transition: 0.2s;
+      line-height: 1.4; /* исправление центровки */
+    }
+    .client-field input::placeholder { color: #6A6A78; font-weight: 400; }
+    .client-field input:hover { border-color: #3A3A3A; }
+    .client-field input:focus { border-color: #EA580C; }
+
+    .dur-block { flex-shrink: 0; width: 150px; }
+    .dur-block .input-label {
+      display: block; font-size: 10px; font-weight: 500; color: #888892;
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+    }
+    .dur-switch {
+      display: flex; gap: 0; background: #121218; border: 1px solid #242424; border-radius: 8px;
+      padding: 4px; width: 100%;
+    }
+    .dur-btn {
+      background: transparent; border: none; border-radius: 6px; padding: 10px 0;
+      font-weight: 700; font-size: 15px; color: #7A7A82; cursor: pointer; transition: all 0.2s;
+      white-space: nowrap; flex: 1; text-align: center;
+    }
+    .dur-btn.active { background: #EA580C; color: #000; }
+    .dur-btn:hover:not(.active):not(.static) { color: #FFF; background: rgba(234,88,12,0.12); }
+    .dur-btn.static { cursor: default; pointer-events: none; }
+
+    .freq-field, .screens-field, .days-field { flex: 0 0 130px; }
+    .freq-field .input-label, .screens-field .input-label, .days-field .input-label {
+      display: block; font-size: 10px; font-weight: 500; color: #888892;
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+    }
+    .freq-field input, .screens-field input, .days-field input {
+      width: 100%; background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 12px 10px;
+      font-size: 16px; font-weight: 600; color: #FFF; outline: none; text-align: center; transition: 0.2s;
+      line-height: 1.4; /* центрирование */
+      -moz-appearance: textfield; appearance: textfield;
+    }
+    .freq-field input::-webkit-outer-spin-button,
+    .freq-field input::-webkit-inner-spin-button,
+    .screens-field input::-webkit-outer-spin-button,
+    .screens-field input::-webkit-inner-spin-button,
+    .days-field input::-webkit-outer-spin-button,
+    .days-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .freq-field input:hover, .screens-field input:hover, .days-field input:hover { border-color: #3A3A3A; }
+    .freq-field input:focus, .screens-field input:focus, .days-field input:focus { border-color: #EA580C; }
+
+    .grid-main { display: grid; grid-template-columns: 1fr 320px; gap: 24px; flex: 1; }
+    .preset-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .chip {
+      background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 8px 18px;
+      font-size: 13px; font-weight: 600; color: #B0B0B8; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    }
+    .chip svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .chip:hover { background: rgba(234,88,12,0.15); border-color: #EA580C; color: #FFF; }
+    .chip.active-preset { background: rgba(234,88,12,0.12); border-color: #EA580C; color: #EA580C; }
+
+    .week-summary { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .week-summary-text {
+      color: #C0C0C8; font-size: 14px; line-height: 1.6;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .day-summary-chip {
+      background: rgba(234,88,12,0.08);
+      border: 1px solid rgba(234,88,12,0.15);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-weight: 500;
+      color: #EAEAF0;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .day-summary-chip b {
+      color: #EA580C;
+      font-weight: 700;
+      margin-right: 2px;
+    }
+    .expand-btn {
+      background: transparent; border: 1px solid #242424; border-radius: 6px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; color: #B0B0B8; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+      height: 38px;
+    }
+    .expand-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .expand-btn:hover { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.08); }
+    .week-grid { display: flex; flex-direction: column; gap: 8px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, margin 0.3s ease; margin-top: 0; }
+    .week-grid.expanded { max-height: 700px; margin-top: 16px; }
+    
+    .day-row {
+      display: flex; align-items: stretch;
+      gap: 10px; border: 1px solid transparent;
+      border-radius: 6px; padding: 0; transition: 0.2s; background: transparent;
+    }
+    .day-label {
+      width: 36px; font-weight: 700; font-size: 14px; color: #C0C0C8; text-align: right;
+      flex-shrink: 0; user-select: none; background: transparent; padding: 6px 0;
+      display: flex; align-items: center; justify-content: flex-end;
+    }
+    .hours-row {
+      display: flex; gap: 6px; flex: 1; background: #121218; border-radius: 4px; padding: 6px 12px;
+      transition: background 0.2s;
+      align-items: center;
+    }
+    .day-row:hover .hours-row,
+    .day-row:hover .day-stats {
+      background: #16161C;
+    }
+    .hour-chip {
+      background: #1b1f2a; border: 1px solid #242424; border-radius: 4px; padding: 6px 0;
+      font-size: 12px; font-weight: 600; color: #8a9bb5; text-align: center; cursor: pointer;
+      transition: all 0.15s; flex: 1; user-select: none;
+    }
+    .hour-chip:hover { background: #232838; border-color: rgba(234,88,12,0.2); color: #b0c0d8; }
+    .hour-chip.night-tariff { border-color: rgba(234,88,12,0.22); background: #221a18; color: #c99e7b; }
+    .hour-chip.selected { background: #1B4332; border-color: #2D6A4F; color: #B7E4C7; }
+    .day-stats {
+      min-width: 56px;
+      text-align: right; font-size: 12px; font-weight: 600; color: #9A9AA4;
+      flex-shrink: 0;
+      padding: 6px 12px;
+      background: #121218;
+      border-radius: 4px;
+      margin-left: 8px;
+      transition: background 0.2s;
+      display: flex; align-items: center; justify-content: flex-end;
+      white-space: nowrap;
+    }
+
+    .tariff-legend {
+      font-size: 12px; color: #9A9AA4; display: flex; align-items: center;
+      padding: 8px 12px; border: 1px solid #242424; border-radius: 6px;
+      background: #121218; margin-top: 12px;
+      white-space: nowrap;
+    }
+    .tariff-legend.hidden { display: none; }
+    .tariffs-group { flex: 1; display: flex; justify-content: center; gap: 16px; }
+    .tariff-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .tariff-legend .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+    .total-hours {
+      font-weight: 700; color: #EA580C;
+      background: #0A0A10; padding: 4px 10px; border-radius: 4px;
+      border-left: 1px solid #242424; margin-left: 12px; flex-shrink: 0;
+    }
+
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+    .period-block {
+      display: flex; align-items: center; gap: 0;
+      width: 320px; background: #121218; border: 1px solid #242424; border-radius: 6px;
+      padding: 10px 16px; font-weight: 600; transition: 0.2s; cursor: pointer; position: relative;
+    }
+    .period-block:hover { border-color: #3A3A3A; background: #18181E; }
+    .period-dates { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .period-dates input[type="text"] {
+      background: transparent; border: none; color: #FFF;
+      font-weight: 600; font-size: 14px; outline: none; font-family: inherit;
+      width: 100px; text-align: center; cursor: pointer;
+      line-height: 1.4; /* центрирование текста */
+    }
+    .period-dates span { color: #9A9AA4; font-weight: 500; }
+    .calendar-icon {
+      width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none;
+      flex-shrink: 0; cursor: pointer;
+    }
+
+    .calendar-dropdown {
+      position: absolute; top: 100%; left: 0; margin-top: 6px;
+      background: #1C1C24; border: 1px solid #242424; border-radius: 8px;
+      padding: 12px; display: none; z-index: 100;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.6); width: 320px; box-sizing: border-box;
+    }
+    .calendar-dropdown.active { display: block; }
+    .calendar-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px; color: #EA580C; font-weight: 700; font-size: 14px;
+    }
+    .calendar-header button {
+      background: none; border: 1px solid #242424; border-radius: 4px;
+      color: #FFF; cursor: pointer; width: 28px; height: 28px; font-size: 16px;
+      display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .calendar-header button:hover { background: #EA580C; border-color: #EA580C; color: #000; }
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+    }
+    .calendar-day-name { font-size: 11px; color: #9A9AA4; font-weight: 600; padding: 4px 0; }
+    .calendar-day {
+      padding: 6px 0; border-radius: 4px; cursor: pointer; font-size: 13px;
+      font-weight: 500; color: #D0D0D8; transition: 0.15s; user-select: none;
+    }
+    .calendar-day:hover { background: rgba(234,88,12,0.2); color: #FFF; }
+    .calendar-day.selected-start, .calendar-day.selected-end { background: #EA580C; color: #000; font-weight: 700; }
+    .calendar-day.in-range { background: rgba(234,88,12,0.3); color: #FFF; }
+    .calendar-day.other-month { color: #4A4A52; pointer-events: none; }
+    .calendar-ok-btn {
+      display: block; width: 100%; margin-top: 10px; background: #EA580C;
+      border: none; border-radius: 6px; padding: 8px 0; font-weight: 700;
+      font-size: 14px; color: #000; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .calendar-ok-btn:hover { background: #C2410C; }
+
+    .assistant-panel {
+      background: #121218; border: 1px solid #242424; border-radius: 8px; padding: 24px;
+      width: 320px; display: flex; flex-direction: column; gap: 20px; flex: 1;
+    }
+    .assistant-title {
+      font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      color: #9A9AA4; display: flex; align-items: center; gap: 10px;
+    }
+    .assistant-title svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .assistant-message {
+      background: #1C1C24; border: 1px solid #242424; border-radius: 6px; padding: 16px;
+      font-size: 14px; line-height: 1.5; color: #B0B0B8; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .assistant-message svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; flex-shrink: 0; margin-top: 2px; }
+    .assistant-message .accent { color: #EA580C; font-weight: 600; }
+    .assistant-hint {
+      font-size: 12px; color: #6A6A78; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .assistant-hint svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; flex-shrink: 0; margin-top: 2px; }
+    .snapshot-btn {
+      background: transparent; border: 1px solid #242424; border-radius: 6px; padding: 10px;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; color: #B0B0B8; transition: 0.2s;
+      width: 320px; justify-content: center;
+    }
+    .snapshot-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.5; fill: none; }
+    .snapshot-btn:hover { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.1); }
+    .snapshot-btn:disabled { pointer-events: none; opacity: 0.4; }
+
+    .result-bar {
+      background: linear-gradient(145deg, #1A1A24 0%, #14141C 100%); border: 1px solid #242424;
+      border-radius: 8px; padding: 24px 28px; display: flex; justify-content: space-between;
+      align-items: center; margin-top: 10px;
+    }
+    .result-price-block {
+      display: flex; flex-direction: column; align-items: flex-start; flex-shrink: 0;
+    }
+    .result-vat-label {
+      font-size: 12px; color: #8A8A92; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 4px; white-space: nowrap;
+    }
+    .result-price {
+      font-size: 64px; font-weight: 900; color: #EA580C; line-height: 1; white-space: nowrap;
+    }
+    .result-meta {
+      display: flex; gap: 30px; align-items: flex-start;
+    }
+    .meta-column {
+      display: flex; flex-direction: column; gap: 8px;
+      color: #A0A0AC; font-size: 14px;
+    }
+    .meta-column strong { font-size: 16px; }
+    .meta-column > div { white-space: nowrap; }
+
+    .snapshot-toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: #121218; border: 1px solid #EA580C; border-radius: 20px; padding: 12px 24px;
+      font-size: 14px; font-weight: 600; color: #FFF; z-index: 999; opacity: 0; transition: opacity 0.25s;
+      pointer-events: none;
+    }
+    .snapshot-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="onboarding-overlay" id="onboardingOverlay">
+  <div class="onboard-logo">RUSS<span>.</span></div>
+  <div class="onboard-badge">PROFESSIONAL CALCULATOR</div>
+  <div class="onboard-version">v7.2</div>
+  <div class="onboard-features">
+    <div class="onboard-feat">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="1" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/></svg>
+      <h3>7 дней</h3><p>Индивидуальная настройка каждого дня недели</p>
+    </div>
+    <div class="onboard-feat">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <h3>Тарифы день/ночь</h3><p>Автоматический расчёт по времени суток</p>
+    </div>
+    <div class="onboard-feat">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <h3>Скриншот</h3><p>Мгновенный скриншот для клиента</p>
+    </div>
+  </div>
+  <button class="btn-primary" id="startOnboarding">Начать расчёт в полном экране</button>
+</div>
+
+<div class="vpro-dashboard" id="vproDashboard">
+  <div class="top-toolbar">
+    <div class="brand-block">
+      <div class="brand-title">RUSS<span>.</span></div>
+      <div class="brand-version">Pro Calculator · v7.2</div>
+    </div>
+    <div class="format-switch">
+      <button class="fmt-btn active" data-format="PVZ">ПВЗ</button>
+      <button class="fmt-btn" data-format="DBB">DBB</button>
+      <button class="fmt-btn" data-format="RW">RW</button>
+    </div>
+    <div class="client-field">
+      <input type="text" id="clientName" placeholder="Введите название вашей организации" value="">
+    </div>
+    <div class="dur-block">
+      <div class="input-label">Длина ролика</div>
+      <div class="dur-switch" id="durSwitch"></div>
+    </div>
+    <div class="freq-field">
+      <div class="input-label">Выходов в час</div>
+      <input type="number" id="freqInput" value="30" min="1" max="360" step="1" placeholder="30">
+    </div>
+    <div class="screens-field">
+      <div class="input-label">Кол. экранов</div>
+      <input type="number" id="screensInput" value="10" min="1" max="150" step="1" placeholder="10">
+    </div>
+    <div class="days-field">
+      <div class="input-label">Дней размещения</div>
+      <input type="number" id="daysInput" value="16" min="1" max="360" step="1" placeholder="16">
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div class="left-content">
+      <div class="preset-bar" id="presetBar">
+        <div class="chip" data-preset="weekdays"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="1" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/></svg> Будни</div>
+        <div class="chip" data-preset="weekends"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Выходные</div>
+        <div class="chip" data-preset="peak-weekdays"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Час пик будни</div>
+        <div class="chip" data-preset="peak-weekends"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Час пик вых.</div>
+        <div class="chip" data-preset="clear"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Сброс</div>
+      </div>
+      <div class="week-summary">
+        <span class="week-summary-text" id="weekSummaryText"></span>
+        <button class="expand-btn" id="expandWeekBtn"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg> Настроить дни</button>
+      </div>
+      <div class="week-grid" id="weekGrid"></div>
+      <div class="tariff-legend hidden" id="tariffLegend"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="period-block" id="periodBlock">
+        <div class="period-dates">
+          <input type="text" id="startDateDisplay" value="01.05.2026" readonly>
+          <span>–</span>
+          <input type="text" id="endDateDisplay" value="16.05.2026" readonly>
+        </div>
+        <svg class="calendar-icon" viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+        <div class="calendar-dropdown" id="calendarDropdown"></div>
+      </div>
+      <div class="assistant-panel" id="assistantPanel">
+        <div class="assistant-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Помощник и подсказки</div>
+        <div class="assistant-message" id="assistantMsg"></div>
+        <div class="assistant-hint" id="assistantHint"></div>
+      </div>
+      <button class="snapshot-btn" id="snapshotBtn" title="Скриншот просчёта (PNG, 300ppi)">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Скриншот просчёта
+      </button>
+    </div>
+  </div>
+
+  <div class="result-bar" id="resultBar">
+    <div class="result-price-block">
+      <div class="result-vat-label">Итого стоимость с НДС 22%</div>
+      <div class="result-price" id="totalPrice">0,00 ₽</div>
+    </div>
+    <div class="result-meta">
+      <div class="meta-column">
+        <div>Период: <strong id="metaPeriod">01.05.2026 – 16.05.2026</strong></div>
+        <div>Дней размещения: <strong id="metaDays">16</strong></div>
+        <div>Длина ролика: <strong id="metaDur">5 сек.</strong></div>
+      </div>
+      <div class="meta-column">
+        <div>Кол. экранов: <strong id="metaScreens">10</strong></div>
+        <div>Среднее часов в день: <strong id="metaAvgHours">0</strong></div>
+        <div>Общее часов за период: <strong id="metaTotalHours">0</strong></div>
+      </div>
+      <div class="meta-column">
+        <div>Прогноз выходов: <strong id="totalOutputs">0</strong></div>
+        <div>Дневных: <strong id="dayOutputs">0</strong></div>
+        <div id="nightBlock">Ночных: <strong id="nightOutputs">0</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="snapshot-toast" id="snapshotToast">📸 Расчёт сохранён в буфер обмена</div>
+
+<script>
+  (function() {
+    const onboarding = document.getElementById('onboardingOverlay');
+    document.getElementById('startOnboarding').addEventListener('click', () => {
+      onboarding.classList.add('fade-out');
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    });
+
+    const formatLimits = {
+      PVZ: { start: 8, end: 21, night: false, nightPrice: null, dayPrice: 0.60, maxOutputs: 360, maxScreens: 150, durFixed: true, dur: 5 },
+      DBB: { start: 0, end: 23, night: true, nightPrice: 0.40, dayPrice5: 1.40, dayPrice10: 2.40, maxOutputs5: 720, maxOutputs10: 360, maxScreens: 500, durFixed: false },
+      RW:  { start: 0, end: 23, night: true, nightPrice: 0.20, dayPrice: 0.65, maxOutputs: 720, maxScreens: 50, durFixed: true, dur: 5 },
+    };
+    let currentFormat = 'PVZ';
+    let currentDur = 5;
+    let currentPresetState = {};
+
+    const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    const NIGHT_HOURS = [0, 1, 2, 3, 4, 5];
+    const TOTAL_HOURS = 24;
+
+    const formatSchedules = {
+      PVZ: {},
+      DBB: {},
+      RW: {}
+    };
+    for (let fmt in formatSchedules) {
+      DAYS.forEach(day => { formatSchedules[fmt][day] = new Set(); });
+    }
+    let schedule = formatSchedules['PVZ'];
+
+    let startDate = new Date(2026, 4, 1);
+    let endDate = new Date(2026, 4, 16);
+    const startDisplay = document.getElementById('startDateDisplay');
+    const endDisplay = document.getElementById('endDateDisplay');
+    const daysInput = document.getElementById('daysInput');
+    const calendarDropdown = document.getElementById('calendarDropdown');
+    const periodBlock = document.getElementById('periodBlock');
+    const durSwitch = document.getElementById('durSwitch');
+
+    let calendarOpen = false;
+    let calendarViewDate = new Date(startDate);
+    let dragSelecting = false;
+    let dragStartDate = null;
+    let dragMoved = false;
+    let clickSelectStart = null;
+
+    function formatDateDMY(d) { return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+    function updateDisplayFromDates() {
+      startDisplay.value = formatDateDMY(startDate);
+      endDisplay.value = formatDateDMY(endDate);
+      const diff = Math.round((endDate - startDate) / (1000*60*60*24)) + 1;
+      daysInput.value = Math.min(diff, 360);
+    }
+    function setDatesFromDays(days) {
+      if (isNaN(days) || days < 1) return;
+      days = Math.min(days, 360);
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + days - 1);
+      updateDisplayFromDates();
+      fullUpdate();
+    }
+    function applyScreensLimit() {
+      const screensInput = document.getElementById('screensInput');
+      let val = parseInt(screensInput.value);
+      const max = formatLimits[currentFormat].maxScreens;
+      if (isNaN(val) || val < 1) val = 1;
+      else if (val > max) val = max;
+      screensInput.value = val;
+    }
+
+    function getMaxOutputs() {
+      if (currentFormat === 'PVZ') return formatLimits.PVZ.maxOutputs;
+      if (currentFormat === 'RW') return formatLimits.RW.maxOutputs;
+      if (currentFormat === 'DBB') return currentDur === 5 ? formatLimits.DBB.maxOutputs5 : formatLimits.DBB.maxOutputs10;
+      return 9999;
+    }
+    function getDayPrice() {
+      if (currentFormat === 'DBB') return currentDur === 5 ? formatLimits.DBB.dayPrice5 : formatLimits.DBB.dayPrice10;
+      return formatLimits[currentFormat].dayPrice;
+    }
+    function getNightPrice() {
+      return formatLimits[currentFormat].nightPrice || 0;
+    }
+
+    function isInRange(d) { return d >= startDate && d <= endDate; }
+    function isStart(d) { return d.getTime() === startDate.getTime(); }
+    function isEnd(d) { return d.getTime() === endDate.getTime(); }
+
+    function buildCalendar(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const today = new Date(); today.setHours(0,0,0,0);
+      let html = `<div class="calendar-header">
+        <button class="prev-month">‹</button>
+        <span>${date.toLocaleString('ru', {month:'long', year:'numeric'})}</span>
+        <button class="next-month">›</button>
+      </div><div class="calendar-grid">`;
+      const dayNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+      dayNames.forEach(d => html += `<div class="calendar-day-name">${d}</div>`);
+      for (let i = 0; i < firstDay; i++) html += '<div class="calendar-day other-month"></div>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const current = new Date(year, month, d);
+        let cls = 'calendar-day';
+        if (isStart(current)) cls += ' selected-start';
+        else if (isEnd(current)) cls += ' selected-end';
+        else if (isInRange(current)) cls += ' in-range';
+        if (current.getTime() === today.getTime()) cls += ' today';
+        html += `<div class="${cls}" data-day="${d}" data-month="${month}" data-year="${year}">${d}</div>`;
+      }
+      html += '</div><button class="calendar-ok-btn">ОК</button>';
+      calendarDropdown.innerHTML = html;
+
+      calendarDropdown.querySelector('.prev-month')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarViewDate.setMonth(calendarViewDate.getMonth()-1);
+        buildCalendar(calendarViewDate);
+      });
+      calendarDropdown.querySelector('.next-month')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarViewDate.setMonth(calendarViewDate.getMonth()+1);
+        buildCalendar(calendarViewDate);
+      });
+      calendarDropdown.querySelector('.calendar-ok-btn')?.addEventListener('click', () => closeCalendar());
+
+      const dayEls = calendarDropdown.querySelectorAll('.calendar-day:not(.other-month)');
+      dayEls.forEach(el => {
+        const d = parseInt(el.dataset.day);
+        const m = parseInt(el.dataset.month);
+        const y = parseInt(el.dataset.year);
+        const dateVal = new Date(y, m, d);
+
+        el.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          dragSelecting = true;
+          dragStartDate = dateVal;
+          dragMoved = false;
+        });
+
+        el.addEventListener('mousemove', () => {
+          if (dragSelecting && dragStartDate) {
+            dragMoved = true;
+            if (dateVal < dragStartDate) { startDate = dateVal; endDate = dragStartDate; }
+            else { startDate = dragStartDate; endDate = dateVal; }
+            updateDisplayFromDates();
+            fullUpdate();
+            buildCalendar(calendarViewDate);
+          }
+        });
+
+        el.addEventListener('click', () => {
+          if (dragMoved) return;
+          if (!clickSelectStart) {
+            clickSelectStart = dateVal;
+            startDate = dateVal;
+            endDate = dateVal;
+          } else {
+            if (dateVal < clickSelectStart) { startDate = dateVal; endDate = clickSelectStart; }
+            else { startDate = clickSelectStart; endDate = dateVal; }
+            clickSelectStart = null;
+          }
+          updateDisplayFromDates();
+          fullUpdate();
+          buildCalendar(calendarViewDate);
+        });
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (dragSelecting) {
+          dragSelecting = false;
+          dragMoved = false;
+          dragStartDate = null;
+        }
+      });
+    }
+
+    function openCalendar() {
+      if (calendarOpen) return;
+      calendarOpen = true;
+      calendarViewDate = new Date(startDate);
+      buildCalendar(calendarViewDate);
+      calendarDropdown.classList.add('active');
+    }
+    function closeCalendar() {
+      calendarOpen = false;
+      calendarDropdown.classList.remove('active');
+    }
+
+    periodBlock.addEventListener('click', (e) => {
+      if (calendarOpen) closeCalendar();
+      else openCalendar();
+      e.stopPropagation();
+    });
+    document.addEventListener('click', () => { if (calendarOpen) closeCalendar(); });
+    calendarDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+    daysInput.addEventListener('input', () => {
+      let days = parseInt(daysInput.value, 10);
+      if (isNaN(days) || days < 1) { days = 1; }
+      else if (days > 360) { days = 360; }
+      daysInput.value = days;
+      setDatesFromDays(days);
+    });
+
+    function addWheelAndValidation(inputElem, isFreq = false) {
+      inputElem.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -1 : 1;
+        let newVal = parseInt(inputElem.value) + delta;
+        if (isNaN(newVal)) newVal = 1;
+        applyLimits(inputElem, newVal, isFreq);
+      });
+      inputElem.addEventListener('blur', () => {
+        let val = parseInt(inputElem.value);
+        if (isNaN(val) || val < 1) val = 1;
+        applyLimits(inputElem, val, isFreq);
+      });
+    }
+
+    function applyLimits(inputElem, val, isFreq) {
+      if (val < 1) val = 1;
+      if (isFreq) {
+        const max = getMaxOutputs();
+        if (val > max) { val = max; }
+      } else if (inputElem === document.getElementById('screensInput')) {
+        const max = formatLimits[currentFormat].maxScreens;
+        if (val > max) { val = max; }
+      } else if (inputElem === daysInput) {
+        if (val > 360) val = 360;
+      }
+      inputElem.value = val;
+      inputElem.dispatchEvent(new Event('input', { bubbles: true }));
+      fullUpdate();
+    }
+
+    const freqInput = document.getElementById('freqInput');
+    const screensInput = document.getElementById('screensInput');
+    addWheelAndValidation(freqInput, true);
+    addWheelAndValidation(screensInput, false);
+    addWheelAndValidation(daysInput, false);
+
+    function updateDurSwitch() {
+      durSwitch.innerHTML = '';
+      if (formatLimits[currentFormat].durFixed) {
+        const staticBtn = document.createElement('button');
+        staticBtn.className = 'dur-btn active static';
+        staticBtn.textContent = formatLimits[currentFormat].dur + ' сек';
+        durSwitch.appendChild(staticBtn);
+      } else {
+        const btn5 = document.createElement('button');
+        btn5.className = 'dur-btn active';
+        btn5.dataset.dur = '5';
+        btn5.textContent = '5 сек';
+        const btn10 = document.createElement('button');
+        btn10.className = 'dur-btn';
+        btn10.dataset.dur = '10';
+        btn10.textContent = '10 сек';
+        durSwitch.appendChild(btn5);
+        durSwitch.appendChild(btn10);
+        currentDur = 5;
+        durSwitch.querySelectorAll('.dur-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            if (this.classList.contains('static')) return;
+            durSwitch.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentDur = parseInt(this.dataset.dur);
+            applyLimits(freqInput, parseInt(freqInput.value), true);
+            fullUpdate();
+          });
+        });
+      }
+    }
+
+    const weekGrid = document.getElementById('weekGrid');
+    const weekSummaryText = document.getElementById('weekSummaryText');
+    const assistantMsg = document.getElementById('assistantMsg');
+    const assistantHint = document.getElementById('assistantHint');
+    const nightBlock = document.getElementById('nightBlock');
+    const tariffLegend = document.getElementById('tariffLegend');
+    const totalOutputs = document.getElementById('totalOutputs');
+    const dayOutputs = document.getElementById('dayOutputs');
+    const nightOutputs = document.getElementById('nightOutputs');
+    const totalPrice = document.getElementById('totalPrice');
+    const metaPeriod = document.getElementById('metaPeriod');
+    const metaDays = document.getElementById('metaDays');
+    const metaDur = document.getElementById('metaDur');
+    const metaScreens = document.getElementById('metaScreens');
+    const metaAvgHours = document.getElementById('metaAvgHours');
+    const metaTotalHours = document.getElementById('metaTotalHours');
+
+    let isMouseDown = false, startDayIdx = -1, startHour = -1, currentTargetState = null;
+
+    function getDayIdx(day) { return DAYS.indexOf(day); }
+    function canSelect(day, hour) {
+      const lim = formatLimits[currentFormat];
+      return hour >= lim.start && hour <= lim.end;
+    }
+    function toggleChip(chip, forceState = null) {
+      const day = chip.dataset.day;
+      const hour = parseInt(chip.dataset.hour);
+      if (!canSelect(day, hour)) return;
+      let newState;
+      if (forceState !== null) newState = forceState;
+      else newState = !chip.classList.contains('selected');
+      if (newState) { schedule[day].add(hour); chip.classList.add('selected'); }
+      else { schedule[day].delete(hour); chip.classList.remove('selected'); }
+    }
+
+    document.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.calendar-dropdown')) return;
+      const chip = e.target.closest('.hour-chip');
+      if (!chip) return;
+      if (!canSelect(chip.dataset.day, parseInt(chip.dataset.hour))) return;
+      e.preventDefault();
+      isMouseDown = true;
+      startDayIdx = getDayIdx(chip.dataset.day);
+      startHour = parseInt(chip.dataset.hour);
+      currentTargetState = !chip.classList.contains('selected');
+      toggleChip(chip, currentTargetState);
+    });
+    document.addEventListener('mouseover', (e) => {
+      if (!isMouseDown) return;
+      const chip = e.target.closest('.hour-chip');
+      if (!chip) return;
+      if (!canSelect(chip.dataset.day, parseInt(chip.dataset.hour))) return;
+      const dayIdx = getDayIdx(chip.dataset.day);
+      const hour = parseInt(chip.dataset.hour);
+      const rowStart = Math.min(startDayIdx, dayIdx);
+      const rowEnd = Math.max(startDayIdx, dayIdx);
+      const colStart = Math.min(startHour, hour);
+      const colEnd = Math.max(startHour, hour);
+      for (let d = rowStart; d <= rowEnd; d++) {
+        const row = weekGrid.children[d];
+        if (!row) continue;
+        const chips = row.querySelectorAll('.hour-chip');
+        for (let h = colStart; h <= colEnd; h++) {
+          if (h >= 0 && h < chips.length) toggleChip(chips[h], currentTargetState);
+        }
+      }
+    });
+    document.addEventListener('mouseup', () => {
+      if (isMouseDown) {
+        isMouseDown = false;
+        startDayIdx = -1;
+        startHour = -1;
+        currentTargetState = null;
+        fullUpdate();
+      }
+    });
+
+    freqInput.addEventListener('input', () => {
+      let val = parseInt(freqInput.value);
+      if (isNaN(val) || val < 1) val = 1;
+      const max = getMaxOutputs();
+      if (val > max) val = max;
+      freqInput.value = val;
+      fullUpdate();
+    });
+    screensInput.addEventListener('input', () => {
+      applyScreensLimit();
+      fullUpdate();
+    });
+    screensInput.addEventListener('blur', () => {
+      applyScreensLimit();
+      fullUpdate();
+    });
+
+    function countWeekdayInRange(dayIndex, start, end) {
+      let count = 0;
+      let current = new Date(start);
+      while (current <= end) {
+        if (current.getDay() === dayIndex) count++;
+        current.setDate(current.getDate() + 1);
+      }
+      return count;
+    }
+
+    function checkPresets() {
+      Object.keys(currentPresetState).forEach(preset => {
+        if (!currentPresetState[preset]) return;
+        const def = getPresetDefinition(preset);
+        if (!def) { delete currentPresetState[preset]; return; }
+        let match = true;
+        def.days.forEach(day => { def.hours.forEach(h => { if (!schedule[day].has(h)) match = false; }); });
+        if (!match) {
+          delete currentPresetState[preset];
+          document.querySelector(`.chip[data-preset="${preset}"]`)?.classList.remove('active-preset');
+        }
+      });
+    }
+
+    function getPresetDefinition(preset) {
+      const lim = formatLimits[currentFormat];
+      if (preset === 'weekdays') return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: range(lim.start, lim.end) };
+      if (preset === 'weekends') return { days: ['Сб','Вс'], hours: range(lim.start, lim.end) };
+      if (preset === 'peak-weekdays') {
+        if (currentFormat === 'DBB') return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: [8,9,10,17,18,19,20] };
+        if (currentFormat === 'RW') return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: range(10, 18) };
+        return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: [16,17,18,19,20] };
+      }
+      if (preset === 'peak-weekends') {
+        if (currentFormat === 'DBB') return { days: ['Сб','Вс'], hours: [12,13,14,15,16,17] };
+        if (currentFormat === 'RW') return { days: ['Сб','Вс'], hours: range(10, 18) };
+        return { days: ['Сб','Вс'], hours: [12,13,14,15,16,17] };
+      }
+      return null;
+    }
+    function range(start, end) { const arr = []; for (let i = start; i <= end; i++) arr.push(i); return arr; }
+
+    function renderAllDays() {
+      weekGrid.innerHTML = '';
+      DAYS.forEach(day => {
+        const row = document.createElement('div');
+        row.className = 'day-row';
+        row.dataset.day = day;
+        row.innerHTML = `<div class="day-label">${day}</div><div class="hours-row"></div><div class="day-stats" id="stats-${day}">0 ч.</div>`;
+        const hoursRow = row.querySelector('.hours-row');
+        for (let h = 0; h < TOTAL_HOURS; h++) {
+          const chip = document.createElement('div');
+          chip.className = 'hour-chip';
+          chip.dataset.hour = h;
+          chip.dataset.day = day;
+          if (NIGHT_HOURS.includes(h)) chip.classList.add('night-tariff');
+          if (!canSelect(day, h)) chip.classList.add('disabled');
+          if (schedule[day].has(h)) chip.classList.add('selected');
+          chip.textContent = h.toString().padStart(2, '0');
+          hoursRow.appendChild(chip);
+        }
+        weekGrid.appendChild(row);
+      });
+      fullUpdate();
+    }
+
+    function updateDayStats() {
+      DAYS.forEach(day => {
+        const el = document.getElementById(`stats-${day}`);
+        if (el) el.textContent = `${schedule[day].size} ч.`;
+      });
+    }
+    function updateSummary() {
+      const chips = DAYS.map(day => {
+        const hours = [...schedule[day]].sort((a,b) => a - b);
+        if (hours.length === 0) {
+          return `<span class="day-summary-chip"><b>${day}</b> 0 ч.</span>`;
+        }
+        const ranges = [];
+        let start = hours[0], end = hours[0];
+        for (let i = 1; i < hours.length; i++) {
+          if (hours[i] === end + 1) { end = hours[i]; }
+          else { ranges.push(start === end ? `${start}` : `${start}-${end}`); start = hours[i]; end = hours[i]; }
+        }
+        ranges.push(start === end ? `${start}` : `${start}-${end}`);
+        return `<span class="day-summary-chip"><b>${day}</b> ${ranges.join(', ')}</span>`;
+      });
+      weekSummaryText.innerHTML = chips.join('') || '—';
+    }
+
+    function fullUpdate() {
+      updateDayStats();
+      updateSummary();
+      recalculate();
+      updateTariffLegend();
+      updateMetaParams();
+      checkPresets();
+    }
+
+    function updateMetaParams() {
+      const days = parseInt(daysInput.value, 10) || 0;
+      const screens = parseInt(screensInput.value, 10) || 0;
+      let totalPeriodHours = 0;
+      DAYS.forEach((day, index) => {
+        const jsDayIndex = (index + 1) % 7;
+        const repeats = countWeekdayInRange(jsDayIndex, startDate, endDate);
+        totalPeriodHours += schedule[day].size * repeats;
+      });
+      const avgHoursPerDay = days > 0 ? (totalPeriodHours / days) : 0;
+      metaPeriod.textContent = `${startDisplay.value} – ${endDisplay.value}`;
+      metaDays.textContent = days;
+      metaDur.textContent = (currentFormat === 'DBB') ? `${currentDur} сек.` : `${formatLimits[currentFormat].dur} сек.`;
+      metaScreens.textContent = screens;
+      metaAvgHours.textContent = formatNumber(avgHoursPerDay);
+      metaTotalHours.textContent = formatNumber(totalPeriodHours);
+    }
+
+    function formatNumber(num) {
+      if (Number.isInteger(num)) return num.toString();
+      return num.toFixed(2).replace(/\.?0+$/, '');
+    }
+
+    function recalculate() {
+      const freq = parseInt(freqInput.value, 10) || 30;
+      const screens = parseInt(screensInput.value, 10) || 1;
+      let totalDayOutputs = 0, totalNightOutputs = 0;
+      DAYS.forEach((day, index) => {
+        const jsDayIndex = (index + 1) % 7;
+        const repeats = countWeekdayInRange(jsDayIndex, startDate, endDate);
+        if (repeats === 0) return;
+        schedule[day].forEach(h => {
+          if (NIGHT_HOURS.includes(h)) totalNightOutputs += freq * repeats;
+          else totalDayOutputs += freq * repeats;
+        });
+      });
+      const totalOutputsCount = totalDayOutputs + totalNightOutputs;
+      totalOutputs.textContent = totalOutputsCount.toLocaleString('ru-RU');
+      dayOutputs.textContent = totalDayOutputs.toLocaleString('ru-RU');
+      nightOutputs.textContent = totalNightOutputs.toLocaleString('ru-RU');
+      nightBlock.style.display = currentFormat === 'PVZ' ? 'none' : 'block';
+
+      const dayPrice = getDayPrice();
+      const nightPrice = getNightPrice();
+      const baseDayCost = totalDayOutputs * dayPrice;
+      const baseNightCost = totalNightOutputs * nightPrice;
+      const baseTotal = baseDayCost + baseNightCost;
+      const totalWithVAT = baseTotal * 1.22;
+      const totalWithScreens = totalWithVAT * screens;
+      const formattedTotal = totalWithScreens.toFixed(2).replace('.', ',');
+      const parts = formattedTotal.split(',');
+      parts[0] = parseInt(parts[0], 10).toLocaleString('ru-RU');
+      totalPrice.textContent = parts.join(',') + ' ₽';
+
+      updateAssistantMessages(freq, screens);
+    }
+
+    function updateAssistantMessages(freq, screens) {
+      const maxFreq = getMaxOutputs();
+      const maxScreens = formatLimits[currentFormat].maxScreens;
+      let message = '';
+      let hint = '';
+
+      if (freq > maxFreq || freq <= 0 || screens <= 0 || screens > maxScreens) {
+        message = `<span class="accent">Внимание!</span> `;
+        if (freq > maxFreq) message += `Максимальное число выходов в час – ${maxFreq}. `;
+        if (freq <= 0) message += `Количество выходов должно быть больше нуля. `;
+        if (screens <= 0 || screens > maxScreens) message += `Допустимо экранов: 1…${maxScreens}. `;
+        hint = 'Проверьте введённые значения.';
+      } else {
+        const overfilledDays = DAYS.filter(day => schedule[day].size > 7).map(day => day);
+        if (overfilledDays.length > 0) {
+          const daysList = overfilledDays.join(', ');
+          message = `<span class="accent">Рекомендация.</span> В днях (${daysList}) выбрано более 7 часов. Для максимальной отдачи при оптимальном бюджете рекомендуется фокусироваться на часах пик (пресеты «Час пик»).`;
+          hint = 'Используйте пресеты «Час пик» для будней и выходных.';
+        } else {
+          if (currentFormat === 'PVZ') {
+            message = `<span class="accent">Формат ПВЗ.</span> Большинство ПВЗ работают с 8 до 22 часов. Обращайте внимание на детальную информацию по режиму работы выбранного ПВЗ.`;
+            hint = 'Рекомендация: используйте пресет «Будни» для быстрой настройки.';
+          } else if (currentFormat === 'DBB') {
+            message = `<span class="accent">Формат DBB (цифровые билборды 3×6).</span> Реклама может идти круглосуточно. Длительность ролика возможна на выбор — 5 или 10 сек.`;
+            hint = 'Час пик будни: 8-10 и 17-20. Выходные: 12-18.';
+          } else if (currentFormat === 'RW') {
+            message = `<span class="accent">Формат RW (вокзал, сити-экран).</span> Ролик 5 сек. Ставка за выход минимальная (без НДС) день 0.65 ₽, ночь 0.20 ₽.`;
+            hint = 'Час пик будни и выходные: 10-18.';
+          }
+        }
+      }
+
+      assistantMsg.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0"/></svg><div>${message}</div>`;
+      assistantHint.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div>${hint}</div>`;
+    }
+
+    function updateTariffLegend() {
+      const lim = formatLimits[currentFormat];
+      const dayPrice = getDayPrice();
+      let html = '';
+      if (lim.night) {
+        html = `<span class="tariffs-group">
+            <span class="tariff-item"><span class="dot" style="background:#8a9bb5;"></span> День выход min ставка (без НДС) – ${dayPrice.toFixed(2)} ₽</span>
+            <span class="tariff-item"><span class="dot" style="background:#c99e7b;"></span> Ночь выход (без НДС) – ${lim.nightPrice.toFixed(2)} ₽</span>
+          </span>
+          <span class="total-hours" id="totalWeekHours">0 ч.</span>`;
+      } else {
+        html = `<span class="tariffs-group">
+            <span class="tariff-item"><span class="dot" style="background:#8a9bb5;"></span> День выход min ставка (без НДС) – ${dayPrice.toFixed(2)} ₽</span>
+          </span>
+          <span class="total-hours" id="totalWeekHours">0 ч.</span>`;
+      }
+      tariffLegend.innerHTML = html;
+      const totalWeekHoursEl = document.getElementById('totalWeekHours');
+      if (totalWeekHoursEl) {
+        const totalWeek = [...Object.values(schedule)].reduce((acc, set) => acc + set.size, 0);
+        totalWeekHoursEl.textContent = `${totalWeek} ч.`;
+      }
+    }
+
+    document.getElementById('presetBar').addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      const preset = chip.dataset.preset;
+      if (preset === 'clear') {
+        DAYS.forEach(day => schedule[day].clear());
+        Object.keys(currentPresetState).forEach(k => delete currentPresetState[k]);
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active-preset'));
+        renderAllDays();
+        return;
+      }
+      const def = getPresetDefinition(preset);
+      if (!def) return;
+      const isActive = currentPresetState[preset];
+      def.days.forEach(day => { def.hours.forEach(h => { if (isActive) schedule[day].delete(h); else schedule[day].add(h); }); });
+      if (isActive) { delete currentPresetState[preset]; chip.classList.remove('active-preset'); }
+      else { currentPresetState[preset] = true; chip.classList.add('active-preset'); }
+      renderAllDays();
+    });
+
+    const expandBtn = document.getElementById('expandWeekBtn');
+    expandBtn.addEventListener('click', () => {
+      weekGrid.classList.toggle('expanded');
+      const isExpanded = weekGrid.classList.contains('expanded');
+      expandBtn.innerHTML = isExpanded
+        ? '<svg width="16" height="16" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> Скрыть'
+        : '<svg width="16" height="16" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg> Настроить дни';
+      if (isExpanded) {
+        tariffLegend.classList.remove('hidden');
+      } else {
+        tariffLegend.classList.add('hidden');
+      }
+    });
+
+    let snapshotThrottle = false;
+    document.getElementById('snapshotBtn').addEventListener('click', async () => {
+      if (snapshotThrottle) return;
+      snapshotThrottle = true;
+      const btn = document.getElementById('snapshotBtn');
+      btn.disabled = true;
+      setTimeout(() => { snapshotThrottle = false; btn.disabled = false; }, 2200);
+      const clientRaw = document.getElementById('clientName').value.trim();
+      const client = clientRaw.length > 0 ? clientRaw : 'просчёт';
+      const date = new Date().toISOString().slice(0,10);
+      const filename = `RUSS_pro_${client.replace(/\s+/g,'_')}_${date}.png`;
+      const canvas = await html2canvas(document.getElementById('vproDashboard'), { backgroundColor: '#0C0C10', scale: 3 });
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        try {
+          const item = new ClipboardItem({ 'image/png': blob });
+          await navigator.clipboard.write([item]);
+        } catch(e) {}
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+        const toast = document.getElementById('snapshotToast');
+        toast.textContent = `📸 ${filename} сохранён`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2200);
+      }, 'image/png');
+    });
+
+    document.querySelectorAll('.fmt-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        formatSchedules[currentFormat] = deepCloneSchedule(schedule);
+        currentPresetState = {};
+        document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentFormat = this.dataset.format;
+        schedule = formatSchedules[currentFormat];
+        if (!schedule) {
+          schedule = {};
+          DAYS.forEach(d => { schedule[d] = new Set(); });
+          formatSchedules[currentFormat] = schedule;
+        }
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active-preset'));
+        currentPresetState = {};
+        screensInput.max = formatLimits[currentFormat].maxScreens;
+        applyScreensLimit();
+        updateDurSwitch();
+        if (currentFormat === 'DBB') {
+          currentDur = 5;
+          const btn5 = durSwitch.querySelector('.dur-btn[data-dur="5"]');
+          const btn10 = durSwitch.querySelector('.dur-btn[data-dur="10"]');
+          if (btn5) btn5.classList.add('active');
+          if (btn10) btn10.classList.remove('active');
+        }
+        applyLimits(freqInput, parseInt(freqInput.value), true);
+        renderAllDays();
+      });
+    });
+
+    function deepCloneSchedule(src) {
+      const clone = {};
+      for (let day of DAYS) {
+        clone[day] = new Set(src[day] || []);
+      }
+      return clone;
+    }
+
+    updateDurSwitch();
+    updateDisplayFromDates();
+    renderAllDays();
+    tariffLegend.classList.add('hidden');
+  })();
+</script>
+</body>
+</html>
