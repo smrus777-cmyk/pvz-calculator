@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: Pro Calculator· v7.7
+  Продукт: Pro Calculator· v8.6
   ================================================
 -->
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>RUSS · Pro Calculator · v7.7</title>
+  <title>RUSS · Pro Calculator · v8.6</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,6 +55,7 @@
       border-radius: 10px; padding: 28px; display: flex; flex-direction: column; gap: 20px;
       box-shadow: 0 30px 60px rgba(0,0,0,0.5);
       margin: auto;
+      position: relative;
     }
 
     .top-toolbar { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
@@ -74,10 +75,10 @@
     .client-field { flex: 1; min-width: 120px; }
     .client-field input {
       width: 100%; background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 12px 18px;
-      font-size: 16px; font-weight: 600; color: #FFF; outline: none; transition: 0.2s;
+      font-size: 16px; font-weight: 600; color: #FFF; outline: none; transition: border-color 0.2s, background-color 0.2s;
       line-height: 1.4;
     }
-    .client-field input::placeholder { color: #6A6A78; font-weight: 400; }
+    .client-field input::placeholder { color: rgba(106,106,120,0.5); font-weight: 400; }
     .client-field input:hover { border-color: #3A3A3A; }
     .client-field input:focus { border-color: #EA580C; }
 
@@ -106,9 +107,14 @@
     }
     .freq-field input, .screens-field input, .days-field input {
       width: 100%; background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 12px 10px;
-      font-size: 16px; font-weight: 600; color: #FFF; outline: none; text-align: center; transition: 0.2s;
+      font-size: 16px; font-weight: 600; color: #FFF; outline: none; text-align: center; transition: border-color 0.2s, background-color 0.2s;
       line-height: 1.4;
       -moz-appearance: textfield; appearance: textfield;
+    }
+    .freq-field input::placeholder, .screens-field input::placeholder, .days-field input::placeholder {
+      color: rgba(106,106,120,0.4);
+      font-weight: 400;
+      font-size: 13px;
     }
     .freq-field input::-webkit-outer-spin-button,
     .freq-field input::-webkit-inner-spin-button,
@@ -118,6 +124,57 @@
     .days-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .freq-field input:hover, .screens-field input:hover, .days-field input:hover { border-color: #3A3A3A; }
     .freq-field input:focus, .screens-field input:focus, .days-field input:focus { border-color: #EA580C; }
+
+    input.invalid {
+      border-color: #D32F2F !important;
+      background-color: rgba(211, 47, 47, 0.15) !important;
+      box-shadow: 0 0 0 1px #D32F2F;
+    }
+
+    input[readonly] {
+      cursor: default;
+      opacity: 0.8;
+    }
+    input[readonly]:hover, input[readonly]:focus {
+      border-color: #242424 !important;
+    }
+
+    /* Кнопка Fullscreen – абсолютно прижата к правому верхнему углу */
+    .fullscreen-toggle {
+      position: absolute !important;
+      top: 8px;
+      right: 8px;
+      left: auto;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.25;
+      transition: opacity 0.2s, stroke 0.2s;
+      z-index: 15;
+      margin: 0;
+      padding: 0;
+    }
+    .fullscreen-toggle:hover {
+      opacity: 0.9;
+      stroke: #EA580C;
+      color: #EA580C;
+    }
+    .fullscreen-toggle svg {
+      width: 16px;
+      height: 16px;
+      stroke: #FFF;
+      stroke-width: 1.5;
+      fill: none;
+      transition: stroke 0.2s;
+    }
+    .fullscreen-toggle:hover svg {
+      stroke: #EA580C;
+    }
 
     .grid-main { display: grid; grid-template-columns: 1fr 320px; gap: 24px; flex: 1; }
     .preset-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -161,7 +218,7 @@
     .expand-btn:hover { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.08); }
     .week-grid { display: flex; flex-direction: column; gap: 8px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, margin 0.3s ease; margin-top: 0; }
     .week-grid.expanded { max-height: 700px; margin-top: 16px; }
-    
+
     .day-row {
       display: flex; align-items: stretch;
       gap: 10px; border: 1px solid transparent;
@@ -171,6 +228,7 @@
       width: 36px; font-weight: 700; font-size: 14px; color: #C0C0C8; text-align: right;
       flex-shrink: 0; user-select: none; background: transparent; padding: 6px 0;
       display: flex; align-items: center; justify-content: flex-end;
+      cursor: pointer;
     }
     .hours-row {
       display: flex; gap: 6px; flex: 1; background: #121218; border-radius: 4px; padding: 6px 12px;
@@ -211,7 +269,11 @@
     .tariff-legend.hidden { display: none; }
     .tariffs-group { flex: 1; display: flex; justify-content: center; gap: 16px; }
     .tariff-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-    .tariff-legend .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+    .tariff-legend .dot {
+      width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+      display: inline-block;
+      border: 1px solid rgba(234,88,12,0.2);
+    }
     .total-hours {
       font-weight: 700; color: #EA580C;
       background: #0A0A10; padding: 4px 10px; border-radius: 4px;
@@ -287,6 +349,12 @@
       background: #1C1C24; border: 1px solid #242424; border-radius: 6px; padding: 16px;
       font-size: 14px; line-height: 1.5; color: #B0B0B8; display: flex; gap: 12px; align-items: flex-start;
     }
+    .assistant-message.error {
+      border-color: #D32F2F !important;
+      background-color: rgba(211, 47, 47, 0.15) !important;
+      box-shadow: 0 0 0 1px #D32F2F;
+      border-radius: 6px;
+    }
     .assistant-message svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; flex-shrink: 0; margin-top: 2px; }
     .assistant-message .accent { color: #EA580C; font-weight: 600; }
     .assistant-hint {
@@ -300,8 +368,8 @@
       position: relative;
     }
     .snapshot-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.5; fill: none; }
-    .snapshot-btn:hover { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.1); }
-    .snapshot-btn:disabled { pointer-events: none; opacity: 0.4; }
+    .snapshot-btn:hover:not(:disabled) { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.1); }
+    .snapshot-btn:disabled { pointer-events: none; opacity: 0.4; cursor: not-allowed; }
 
     /* Кастомный тултип */
     [data-tooltip] {
@@ -319,7 +387,7 @@
       font-size: 12px;
       font-weight: 600;
       padding: 8px 16px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #242424;
       white-space: nowrap;
       opacity: 0;
@@ -355,8 +423,15 @@
       display: flex; flex-direction: column; gap: 8px;
       color: #A0A0AC; font-size: 14px;
     }
-    .meta-column strong { font-size: 16px; }
-    .meta-column > div { white-space: nowrap; }
+    .meta-column strong {
+      font-size: 16px;
+      color: #F19A5C; /* мягкий оранжевый */
+      opacity: 0.7;   /* приглушённый */
+    }
+    .meta-column > div {
+      white-space: nowrap;
+      text-align: right;
+    }
 
     .snapshot-toast {
       position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
@@ -372,7 +447,7 @@
 <div class="onboarding-overlay" id="onboardingOverlay">
   <div class="onboard-logo">RUSS<span>.</span></div>
   <div class="onboard-badge">PROFESSIONAL CALCULATOR</div>
-  <div class="onboard-version">v7.7</div>
+  <div class="onboard-version">v8.6</div>
   <div class="onboard-features">
     <div class="onboard-feat">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="1" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/></svg>
@@ -391,10 +466,16 @@
 </div>
 
 <div class="vpro-dashboard" id="vproDashboard">
+  <!-- Кнопка Fullscreen – абсолютно в правом верхнем углу дашборда -->
+  <div class="fullscreen-toggle" id="fullscreenToggle" data-tooltip="Полноэкранный режим">
+    <svg viewBox="0 0 24 24" id="fullscreenIconExpand"><polyline points="8 3 3 3 3 8"/><polyline points="16 3 21 3 21 8"/><polyline points="21 16 21 21 16 21"/><polyline points="3 16 3 21 8 21"/></svg>
+    <svg viewBox="0 0 24 24" id="fullscreenIconCompress" style="display:none;"><polyline points="4 8 8 8 8 4"/><polyline points="16 4 16 8 20 8"/><polyline points="20 16 16 16 16 20"/><polyline points="8 20 8 16 4 16"/></svg>
+  </div>
+
   <div class="top-toolbar">
     <div class="brand-block">
       <div class="brand-title">RUSS<span>.</span></div>
-      <div class="brand-version">Pro Calculator · v7.7</div>
+      <div class="brand-version">Pro Calculator · v8.6</div>
     </div>
     <div class="format-switch">
       <button class="fmt-btn active" data-format="PVZ">ПВЗ</button>
@@ -410,15 +491,15 @@
     </div>
     <div class="freq-field">
       <div class="input-label">Выходов в час</div>
-      <input type="number" id="freqInput" value="30" min="1" max="360" step="1" placeholder="30">
+      <input type="number" id="freqInput" value="30" min="1" max="360" step="1" placeholder="Введите значение">
     </div>
     <div class="screens-field">
       <div class="input-label">Кол. экранов</div>
-      <input type="number" id="screensInput" value="10" min="1" max="150" step="1" placeholder="10">
+      <input type="number" id="screensInput" value="10" min="1" max="150" step="1" placeholder="Введите значение">
     </div>
     <div class="days-field">
       <div class="input-label">Дней размещения</div>
-      <input type="number" id="daysInput" value="16" min="1" max="360" step="1" placeholder="16">
+      <input type="number" id="daysInput" value="16" min="1" max="360" step="1" readonly>
     </div>
   </div>
 
@@ -433,10 +514,10 @@
       </div>
       <div class="week-summary">
         <span class="week-summary-text" id="weekSummaryText"></span>
-        <button class="expand-btn" id="expandWeekBtn"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg> Настроить дни</button>
+        <button class="expand-btn" id="expandWeekBtn">Скрыть</button>
       </div>
-      <div class="week-grid" id="weekGrid"></div>
-      <div class="tariff-legend hidden" id="tariffLegend"></div>
+      <div class="week-grid expanded" id="weekGrid"></div>
+      <div class="tariff-legend" id="tariffLegend"></div>
     </div>
 
     <div class="right-panel">
@@ -493,11 +574,13 @@
     const onboarding = document.getElementById('onboardingOverlay');
     document.getElementById('startOnboarding').addEventListener('click', () => {
       onboarding.classList.add('fade-out');
-      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
     });
 
     const formatLimits = {
-      PVZ: { start: 8, end: 21, night: false, nightPrice: null, dayPrice: 0.60, maxOutputs: 360, maxScreens: 150, durFixed: true, dur: 5 },
+      PVZ: { start: 8, end: 21, night: false, nightPrice: null, dayPrice: 0.60, maxOutputs: 360, maxScreens: 150, durFixed: true, dur: 10 },
       DBB: { start: 0, end: 23, night: true, nightPrice: 0.40, dayPrice5: 1.40, dayPrice10: 2.40, maxOutputs5: 720, maxOutputs10: 360, maxScreens: 500, durFixed: false },
       RW:  { start: 0, end: 23, night: true, nightPrice: 0.20, dayPrice: 0.65, maxOutputs: 720, maxScreens: 50, durFixed: true, dur: 5 },
     };
@@ -519,6 +602,12 @@
     }
     let schedule = formatSchedules['PVZ'];
 
+    const formatPresetStates = {
+      PVZ: {},
+      DBB: {},
+      RW: {}
+    };
+
     let startDate = new Date(2026, 4, 1);
     let endDate = new Date(2026, 4, 16);
     const startDisplay = document.getElementById('startDateDisplay');
@@ -527,6 +616,37 @@
     const calendarDropdown = document.getElementById('calendarDropdown');
     const periodBlock = document.getElementById('periodBlock');
     const durSwitch = document.getElementById('durSwitch');
+    const fullscreenToggle = document.getElementById('fullscreenToggle');
+    const fullscreenIconExpand = document.getElementById('fullscreenIconExpand');
+    const fullscreenIconCompress = document.getElementById('fullscreenIconCompress');
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          fullscreenIconExpand.style.display = 'none';
+          fullscreenIconCompress.style.display = 'block';
+          fullscreenToggle.setAttribute('data-tooltip', 'Выйти из полноэкранного режима');
+        }).catch(() => {});
+      } else {
+        document.exitFullscreen().then(() => {
+          fullscreenIconExpand.style.display = 'block';
+          fullscreenIconCompress.style.display = 'none';
+          fullscreenToggle.setAttribute('data-tooltip', 'Полноэкранный режим');
+        }).catch(() => {});
+      }
+    }
+    fullscreenToggle.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        fullscreenIconExpand.style.display = 'none';
+        fullscreenIconCompress.style.display = 'block';
+        fullscreenToggle.setAttribute('data-tooltip', 'Выйти из полноэкранного режима');
+      } else {
+        fullscreenIconExpand.style.display = 'block';
+        fullscreenIconCompress.style.display = 'none';
+        fullscreenToggle.setAttribute('data-tooltip', 'Полноэкранный режим');
+      }
+    });
 
     let calendarOpen = false;
     let calendarViewDate = new Date(startDate);
@@ -534,6 +654,53 @@
     let dragStartDate = null;
     let dragMoved = false;
     let clickSelectStart = null;
+
+    function isFieldValid(input) {
+      const val = parseInt(input.value, 10);
+      const min = parseInt(input.min || 1, 10);
+      const max = parseInt(input.max || 9999, 10);
+      return !isNaN(val) && val >= min && val <= max;
+    }
+
+    function setFieldInvalid(input, isInvalid, message = '') {
+      if (isInvalid) {
+        input.classList.add('invalid');
+        if (message) {
+          input.setAttribute('data-tooltip', message);
+        }
+      } else {
+        input.classList.remove('invalid');
+        input.removeAttribute('data-tooltip');
+      }
+    }
+
+    function getInvalidFields() {
+      const inputs = [
+        { el: document.getElementById('freqInput'), name: 'Выходов в час', max: getMaxOutputs() },
+        { el: document.getElementById('screensInput'), name: 'Количество экранов', max: formatLimits[currentFormat].maxScreens },
+      ];
+      const invalid = [];
+      inputs.forEach(({ el, name, max }) => {
+        const val = parseInt(el.value, 10);
+        const min = parseInt(el.min || 1, 10);
+        if (el.value.trim() === '') {
+          setFieldInvalid(el, false);
+          return;
+        }
+        if (isNaN(val) || val < min || val > max) {
+          const message = val < min
+            ? `Минимальное значение: ${min}`
+            : val > max
+              ? `Максимальное значение: ${max}`
+              : `Введите число от ${min} до ${max}`;
+          invalid.push({ el, name, min, max, val, message });
+          setFieldInvalid(el, true, message);
+        } else {
+          setFieldInvalid(el, false);
+        }
+      });
+      return invalid;
+    }
 
     function formatDateDMY(d) { return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
     function updateDisplayFromDates() {
@@ -549,14 +716,6 @@
       endDate.setDate(startDate.getDate() + days - 1);
       updateDisplayFromDates();
       fullUpdate();
-    }
-    function applyScreensLimit() {
-      const screensInput = document.getElementById('screensInput');
-      let val = parseInt(screensInput.value);
-      const max = formatLimits[currentFormat].maxScreens;
-      if (isNaN(val) || val < 1) val = 1;
-      else if (val > max) val = max;
-      screensInput.value = val;
     }
 
     function getMaxOutputs() {
@@ -686,50 +845,70 @@
     document.addEventListener('click', () => { if (calendarOpen) closeCalendar(); });
     calendarDropdown.addEventListener('click', (e) => e.stopPropagation());
 
-    daysInput.addEventListener('input', () => {
-      let days = parseInt(daysInput.value, 10);
-      if (isNaN(days) || days < 1) { days = 1; }
-      else if (days > 360) { days = 360; }
-      daysInput.value = days;
-      setDatesFromDays(days);
-    });
-
     function addWheelAndValidation(inputElem, isFreq = false) {
       inputElem.addEventListener('wheel', (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -1 : 1;
-        let newVal = parseInt(inputElem.value) + delta;
-        if (isNaN(newVal)) newVal = 1;
-        applyLimits(inputElem, newVal, isFreq);
+        let newVal = parseInt(inputElem.value, 10);
+        if (isNaN(newVal)) newVal = parseInt(inputElem.min) || 1;
+        newVal += delta;
+        const min = parseInt(inputElem.min || 1, 10);
+        const max = parseInt(inputElem.max || 9999, 10);
+        if (newVal < min) newVal = min;
+        if (newVal > max) newVal = max;
+        inputElem.value = newVal;
+        const valid = isFieldValid(inputElem);
+        setFieldInvalid(inputElem, !valid, valid ? '' : `Допустимо: ${min}–${max}`);
+        fullUpdate();
+      });
+      inputElem.addEventListener('keydown', (e) => {
+        if (
+          (e.key >= '0' && e.key <= '9') ||
+          e.key === 'Backspace' || e.key === 'Delete' ||
+          e.key.startsWith('Arrow') ||
+          e.key === 'Tab' || e.key === 'Enter' || e.key === 'Escape'
+        ) {
+          return;
+        }
+        e.preventDefault();
+      });
+      inputElem.addEventListener('input', () => {
+        let val = inputElem.value.replace(/\D/g, '');
+        if (val === '') {
+          inputElem.value = '';
+          setFieldInvalid(inputElem, false);
+        } else {
+          const num = parseInt(val, 10);
+          const min = parseInt(inputElem.min || 1, 10);
+          const max = parseInt(inputElem.max || 9999, 10);
+          inputElem.value = val;
+          const valid = num >= min && num <= max;
+          setFieldInvalid(inputElem, !valid, valid ? '' : `Допустимо: ${min}–${max}`);
+        }
+        fullUpdate();
       });
       inputElem.addEventListener('blur', () => {
-        let val = parseInt(inputElem.value);
-        if (isNaN(val) || val < 1) val = 1;
-        applyLimits(inputElem, val, isFreq);
+        if (inputElem.value.trim() === '') {
+          setFieldInvalid(inputElem, false);
+          fullUpdate();
+          return;
+        }
+        const val = parseInt(inputElem.value, 10);
+        const min = parseInt(inputElem.min || 1, 10);
+        const max = parseInt(inputElem.max || 9999, 10);
+        if (isNaN(val) || val < min || val > max) {
+          setFieldInvalid(inputElem, true, `Допустимо: ${min}–${max}`);
+        } else {
+          setFieldInvalid(inputElem, false);
+        }
+        fullUpdate();
       });
-    }
-
-    function applyLimits(inputElem, val, isFreq) {
-      if (val < 1) val = 1;
-      if (isFreq) {
-        const max = getMaxOutputs();
-        if (val > max) { val = max; }
-      } else if (inputElem === document.getElementById('screensInput')) {
-        const max = formatLimits[currentFormat].maxScreens;
-        if (val > max) { val = max; }
-      } else if (inputElem === daysInput) {
-        if (val > 360) val = 360;
-      }
-      inputElem.value = val;
-      inputElem.dispatchEvent(new Event('input', { bubbles: true }));
-      fullUpdate();
     }
 
     const freqInput = document.getElementById('freqInput');
     const screensInput = document.getElementById('screensInput');
     addWheelAndValidation(freqInput, true);
     addWheelAndValidation(screensInput, false);
-    addWheelAndValidation(daysInput, false);
 
     function updateDurSwitch() {
       durSwitch.innerHTML = '';
@@ -756,11 +935,21 @@
             durSwitch.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentDur = parseInt(this.dataset.dur);
-            applyLimits(freqInput, parseInt(freqInput.value), true);
             fullUpdate();
           });
         });
       }
+    }
+
+    function updatePresetButtons() {
+      document.querySelectorAll('.chip').forEach(chip => {
+        const preset = chip.dataset.preset;
+        if (currentPresetState[preset]) {
+          chip.classList.add('active-preset');
+        } else {
+          chip.classList.remove('active-preset');
+        }
+      });
     }
 
     const weekGrid = document.getElementById('weekGrid');
@@ -779,6 +968,7 @@
     const metaScreens = document.getElementById('metaScreens');
     const metaAvgHours = document.getElementById('metaAvgHours');
     const metaTotalHours = document.getElementById('metaTotalHours');
+    const snapshotBtn = document.getElementById('snapshotBtn');
 
     let isMouseDown = false, startDayIdx = -1, startHour = -1, currentTargetState = null;
 
@@ -798,8 +988,26 @@
       else { schedule[day].delete(hour); chip.classList.remove('selected'); }
     }
 
+    document.addEventListener('click', (e) => {
+      const label = e.target.closest('.day-label');
+      if (!label) return;
+      const row = label.parentNode;
+      if (!row || !row.dataset.day) return;
+      const day = row.dataset.day;
+      const lim = formatLimits[currentFormat];
+      const availableHours = [];
+      for (let h = lim.start; h <= lim.end; h++) availableHours.push(h);
+      const allSelected = availableHours.every(h => schedule[day].has(h));
+      if (allSelected) {
+        availableHours.forEach(h => schedule[day].delete(h));
+      } else {
+        availableHours.forEach(h => schedule[day].add(h));
+      }
+      renderAllDays();
+    });
+
     document.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.calendar-dropdown')) return;
+      if (e.target.closest('.calendar-dropdown') || e.target.closest('.day-label')) return;
       const chip = e.target.closest('.hour-chip');
       if (!chip) return;
       if (!canSelect(chip.dataset.day, parseInt(chip.dataset.hour))) return;
@@ -838,23 +1046,6 @@
         currentTargetState = null;
         fullUpdate();
       }
-    });
-
-    freqInput.addEventListener('input', () => {
-      let val = parseInt(freqInput.value);
-      if (isNaN(val) || val < 1) val = 1;
-      const max = getMaxOutputs();
-      if (val > max) val = max;
-      freqInput.value = val;
-      fullUpdate();
-    });
-    screensInput.addEventListener('input', () => {
-      applyScreensLimit();
-      fullUpdate();
-    });
-    screensInput.addEventListener('blur', () => {
-      applyScreensLimit();
-      fullUpdate();
     });
 
     function countWeekdayInRange(dayIndex, start, end) {
@@ -921,6 +1112,7 @@
         weekGrid.appendChild(row);
       });
       fullUpdate();
+      updatePresetButtons();
     }
 
     function updateDayStats() {
@@ -948,12 +1140,32 @@
     }
 
     function fullUpdate() {
+      const invalidFields = getInvalidFields();
       updateDayStats();
       updateSummary();
+      if (invalidFields.length > 0) {
+        totalOutputs.textContent = '0';
+        dayOutputs.textContent = '0';
+        nightOutputs.textContent = '0';
+        totalPrice.textContent = '0,00 ₽';
+        snapshotBtn.disabled = true;
+        snapshotBtn.setAttribute('data-tooltip', 'Скриншот невозможен при некорректных данных');
+        const messages = invalidFields.map(f => {
+          return `Поле «${f.name}» содержит недопустимое значение (${f.val}). Укажите число от ${f.min} до ${f.max}.`;
+        }).join('<br>');
+        assistantMsg.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="16" r="1.5" fill="#EA580C" stroke="none"/><polyline points="12 2 12 12"/><line x1="12" y1="2" x2="12" y2="2"/></svg><div><span class="accent">Ошибка ввода.</span> ${messages}</div>`;
+        assistantMsg.classList.add('error');
+        assistantHint.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div>Исправьте выделенные поля, чтобы продолжить расчёт.</div>`;
+        return;
+      }
+      snapshotBtn.disabled = false;
+      snapshotBtn.setAttribute('data-tooltip', 'Скриншот просчёта · в буфере (Ctrl+V)');
+      assistantMsg.classList.remove('error');
       recalculate();
       updateTariffLegend();
       updateMetaParams();
       checkPresets();
+      updateAssistantMessages(parseInt(freqInput.value,10), parseInt(screensInput.value,10));
     }
 
     function updateMetaParams() {
@@ -980,9 +1192,16 @@
     }
 
     function recalculate() {
-      const freq = parseInt(freqInput.value, 10) || 30;
-      const screens = parseInt(screensInput.value, 10) || 1;
+      const freq = parseInt(freqInput.value, 10) || 0;
+      const screens = parseInt(screensInput.value, 10) || 0;
       let totalDayOutputs = 0, totalNightOutputs = 0;
+      if (freq <= 0 || screens <= 0) {
+        totalOutputs.textContent = '0';
+        dayOutputs.textContent = '0';
+        nightOutputs.textContent = '0';
+        totalPrice.textContent = '0,00 ₽';
+        return;
+      }
       DAYS.forEach((day, index) => {
         const jsDayIndex = (index + 1) % 7;
         const repeats = countWeekdayInRange(jsDayIndex, startDate, endDate);
@@ -1009,8 +1228,6 @@
       const parts = formattedTotal.split(',');
       parts[0] = parseInt(parts[0], 10).toLocaleString('ru-RU');
       totalPrice.textContent = parts.join(',') + ' ₽';
-
-      updateAssistantMessages(freq, screens);
     }
 
     function updateAssistantMessages(freq, screens) {
@@ -1112,10 +1329,10 @@
       const dashboard = document.getElementById('vproDashboard');
       const replacements = [];
 
-      const snapshotBtn = document.getElementById('snapshotBtn');
-      const hadTooltip = snapshotBtn.hasAttribute('data-tooltip');
-      const tooltipText = snapshotBtn.getAttribute('data-tooltip');
-      if (hadTooltip) snapshotBtn.removeAttribute('data-tooltip'); // убираем тултип на время скриншота
+      const snapshotBtnEl = document.getElementById('snapshotBtn');
+      const hadTooltip = snapshotBtnEl.hasAttribute('data-tooltip');
+      const tooltipText = snapshotBtnEl.getAttribute('data-tooltip');
+      if (hadTooltip) snapshotBtnEl.removeAttribute('data-tooltip');
 
       dashboard.querySelectorAll('input').forEach(input => {
         const div = document.createElement('div');
@@ -1146,7 +1363,6 @@
         replacements.push({ input, div });
       });
 
-      // лечим uppercase на заголовках
       dashboard.querySelectorAll('[style*="text-transform: uppercase"]').forEach(el => {
         el.style.textTransform = 'none';
         el.textContent = el.textContent.toUpperCase();
@@ -1161,13 +1377,13 @@
           div.remove();
           input.style.display = '';
         });
-        if (hadTooltip) snapshotBtn.setAttribute('data-tooltip', tooltipText); // возвращаем тултип
+        if (hadTooltip) snapshotBtnEl.setAttribute('data-tooltip', tooltipText);
       }
     }
 
     let snapshotThrottle = false;
     document.getElementById('snapshotBtn').addEventListener('click', async () => {
-      if (snapshotThrottle) return;
+      if (snapshotThrottle || snapshotBtn.disabled) return;
       snapshotThrottle = true;
       const btn = document.getElementById('snapshotBtn');
       btn.disabled = true;
@@ -1202,21 +1418,21 @@
 
     document.querySelectorAll('.fmt-btn').forEach(btn => {
       btn.addEventListener('click', function() {
+        formatPresetStates[currentFormat] = Object.assign({}, currentPresetState);
         formatSchedules[currentFormat] = deepCloneSchedule(schedule);
-        currentPresetState = {};
+
         document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         currentFormat = this.dataset.format;
-        schedule = formatSchedules[currentFormat];
-        if (!schedule) {
-          schedule = {};
+
+        schedule = formatSchedules[currentFormat] || {};
+        if (!formatSchedules[currentFormat]) {
           DAYS.forEach(d => { schedule[d] = new Set(); });
           formatSchedules[currentFormat] = schedule;
         }
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active-preset'));
-        currentPresetState = {};
+        currentPresetState = formatPresetStates[currentFormat] || {};
+
         screensInput.max = formatLimits[currentFormat].maxScreens;
-        applyScreensLimit();
         updateDurSwitch();
         if (currentFormat === 'DBB') {
           currentDur = 5;
@@ -1225,7 +1441,8 @@
           if (btn5) btn5.classList.add('active');
           if (btn10) btn10.classList.remove('active');
         }
-        applyLimits(freqInput, parseInt(freqInput.value), true);
+        getInvalidFields().forEach(f => setFieldInvalid(f.el, false));
+        fullUpdate();
         renderAllDays();
       });
     });
@@ -1238,11 +1455,20 @@
       return clone;
     }
 
+    weekGrid.classList.add('expanded');
+    tariffLegend.classList.remove('hidden');
+    expandBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> Скрыть';
     updateDurSwitch();
     updateDisplayFromDates();
     renderAllDays();
-    tariffLegend.classList.add('hidden');
   })();
 </script>
+<!-- 
+  ================================================
+  Автор: Maxim Sorokin
+  Компания: RUSS Volgograd
+  Продукт: Pro Calculator· v8.6
+  ================================================
+-->
 </body>
 </html>
