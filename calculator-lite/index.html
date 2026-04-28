@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v3.13
+  Продукт: ПВЗ Калькулятор Lite · v5.4
   ================================================
 -->
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v3.13</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v5.4</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -26,7 +26,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v3.13 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v5.4 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,6 +38,15 @@
       box-sizing: border-box;
     }
 
+    html {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    html::-webkit-scrollbar {
+      display: none;
+    }
+
     body {
       background: #0A0A0C;
       font-family: 'Montserrat', sans-serif;
@@ -47,6 +56,12 @@
       padding-bottom: 220px;
       overflow-x: hidden;
       width: 100%;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    body::-webkit-scrollbar {
+      display: none;
     }
 
     .scroll-area {
@@ -83,6 +98,12 @@
       justify-content: center;
       padding: 24px;
       backdrop-filter: blur(8px);
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .fullscreen-prompt::-webkit-scrollbar {
+      display: none;
     }
 
     .fullscreen-prompt.hidden {
@@ -180,38 +201,43 @@
       color: #EA580C;
     }
 
+    /* Премиальный стеклянный бадж */
     .badge {
-      background: #1A1A22;
-      padding: 6px 14px;
-      border-radius: 10px;
-      font-size: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 0.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 11px;
       font-weight: 500;
       color: #B0B0B8;
-      border: 1px solid #2A2A32;
       margin-left: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
-      line-height: 1.4;
-      transition: background 0.15s, color 0.15s, text-shadow 0.15s;
+      line-height: 1.3;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
       cursor: default;
     }
 
     .badge .main-text {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
+      letter-spacing: 0.3px;
     }
 
     .badge .sub-text {
-      font-size: 9px;
-      opacity: 0.6;
+      font-size: 8px;
+      opacity: 0.5;
+      font-weight: 400;
       letter-spacing: 0.5px;
     }
 
     .badge:hover {
-      background: rgba(234, 88, 12, 0.12);
+      background: rgba(234, 88, 12, 0.08);
       color: #FFFFFF;
-      text-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
+      box-shadow: 0 0 8px rgba(234, 88, 12, 0.15);
     }
 
     @media (max-width: 379px) {
@@ -223,73 +249,94 @@
       }
     }
 
+    /* Кнопки шапки – стеклянный стиль */
     .fullscreen-btn {
-      background: transparent;
-      border: 1.5px solid #3A3A46;
-      border-radius: 10px;
-      padding: 10px;
-      width: 44px;
-      height: 44px;
+      position: relative;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      padding: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.2s ease;
       flex-shrink: 0;
       color: #B0B0B8;
-      position: relative;
+    }
+
+    .fullscreen-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      background: transparent;
     }
 
     .fullscreen-btn svg {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       stroke: currentColor;
       stroke-width: 2;
       fill: none;
-      transition: stroke 0.15s, filter 0.15s;
+      transition: stroke 0.2s, filter 0.2s;
     }
 
     .fullscreen-btn:hover {
       background: rgba(234, 88, 12, 0.1);
       border-color: #EA580C;
       color: #EA580C;
+      transform: scale(1.08);
+      box-shadow: 0 0 12px rgba(234, 88, 12, 0.2);
     }
 
     .fullscreen-btn:hover svg {
       stroke: #EA580C;
-      filter: drop-shadow(0 0 4px rgba(234, 88, 12, 0.4));
+      filter: drop-shadow(0 0 4px rgba(234, 88, 12, 0.5));
     }
 
     .fullscreen-btn:active {
-      background: #1C1C24;
+      transform: scale(0.95);
+      background: rgba(234, 88, 12, 0.15);
     }
 
-    .fullscreen-btn:disabled,
-    .fullscreen-btn.disabled {
-      opacity: 0.4;
-      pointer-events: none;
-      border-color: #2E2E38;
-      color: #6A6A78;
+    .fullscreen-btn.has-errors {
+      opacity: 0.5;
+      cursor: pointer;
+    }
+
+    .fullscreen-btn.has-errors:hover {
+      background: rgba(234, 88, 12, 0.05);
     }
 
     .tooltip {
       position: absolute;
-      background: #1C1C24;
-      border: 1px solid #2E2E38;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 12px;
-      color: #FFFFFF;
+      background: rgba(18, 18, 24, 0.9);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(234, 88, 12, 0.3);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #CCCCCC;
       white-space: nowrap;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s ease;
       z-index: 11000;
       left: 50%;
       transform: translateX(-50%);
       top: auto;
-      bottom: -36px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      bottom: -34px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     .tooltip.show {
@@ -301,18 +348,20 @@
       bottom: 180px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
-      background: #121218;
-      border: 1px solid #EA580C;
-      border-radius: 14px;
-      padding: 12px 20px;
-      font-size: 14px;
+      background: rgba(18, 18, 24, 0.9);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(234, 88, 12, 0.3);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
       font-weight: 500;
-      color: #FFFFFF;
+      color: #CCCCCC;
       z-index: 10000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s, transform 0.25s;
-      box-shadow: 0 8px 24px rgba(234, 88, 12, 0.25);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       white-space: nowrap;
       max-width: calc(100% - 32px);
     }
@@ -322,21 +371,22 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* Карточки и отступы – компактнее */
     .card {
       background: #121218;
       border: 1px solid #24242C;
-      border-radius: 16px;
-      padding: 22px 18px;
+      border-radius: 13px;
+      padding: 16px 18px;
       margin-bottom: 16px;
     }
 
     .card:first-of-type {
       margin-top: 8px;
-      padding-bottom: 4px;
+      padding-bottom: 12px;
     }
 
     .card:last-of-type {
-      padding-bottom: 8px;
+      padding-bottom: 12px;
       margin-bottom: 4px;
     }
 
@@ -346,10 +396,14 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #9A9AA4;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 8px 12px;
+      border: 1.5px solid transparent;
+      border-radius: 8px;
+      transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
     }
 
     .card-title svg {
@@ -360,8 +414,30 @@
       fill: none;
     }
 
+    .card-title.hours-warning {
+      color: #FF6B8A;
+      background-color: rgba(211, 47, 47, 0.08);
+      border-color: rgba(211, 47, 47, 0.6);
+      animation: warningPulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes warningPulse {
+      0% { 
+        background-color: rgba(211, 47, 47, 0.04); 
+        border-color: rgba(211, 47, 47, 0.4); 
+      }
+      50% { 
+        background-color: rgba(211, 47, 47, 0.12); 
+        border-color: rgba(211, 47, 47, 0.9); 
+      }
+      100% { 
+        background-color: rgba(211, 47, 47, 0.04); 
+        border-color: rgba(211, 47, 47, 0.4); 
+      }
+    }
+
     .input-group {
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .input-group:last-child {
@@ -373,21 +449,21 @@
       font-size: 13px;
       font-weight: 500;
       color: #888892;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .input-field {
       width: 100%;
       background: #1C1C24;
       border: 1.5px solid #2E2E38;
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 14px 16px;
       font-family: 'Montserrat', sans-serif;
       font-size: 16px;
       font-weight: 500;
       color: #FFFFFF;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, background-color 0.2s;
       -moz-appearance: textfield;
       appearance: textfield;
     }
@@ -400,37 +476,51 @@
 
     .input-field:focus {
       border-color: #EA580C;
-      box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+      background-color: rgba(234, 88, 12, 0.05);
     }
 
     input.invalid {
       border-color: #D32F2F !important;
       background-color: rgba(211, 47, 47, 0.15) !important;
-      box-shadow: 0 0 0 1px #D32F2F;
     }
 
     input.invalid:focus {
       border-color: #D32F2F !important;
-      box-shadow: 0 0 0 1px #D32F2F;
+    }
+
+    input.validated {
+      border-color: #34D399 !important;
+      background-color: rgba(52, 211, 153, 0.1);
+      transition: border-color 0.2s, background-color 0.2s;
     }
 
     .warning-message {
       background-color: rgba(211, 47, 47, 0.15);
-      border: 1px solid #D32F2F;
-      border-radius: 10px;
+      border: 1.5px solid #D32F2F;
+      border-radius: 8px;
       padding: 14px 16px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       color: #FF6B8A;
       font-size: 14px;
       font-weight: 500;
       display: flex;
       align-items: center;
       gap: 10px;
-      transition: all 0.2s;
+      overflow: hidden;
+      transition: max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease, margin 0.35s ease, border-color 0.35s ease;
+      max-height: 300px;
+      opacity: 1;
+      border-color: #D32F2F;
     }
 
     .warning-message.hidden {
-      display: none;
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+      border-color: transparent;
     }
 
     .hours-title {
@@ -460,7 +550,7 @@
       border: 1px solid rgba(234, 88, 12, 0.4);
       color: #EA580C;
       padding: 4px 12px;
-      border-radius: 30px;
+      border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       line-height: 1;
@@ -476,7 +566,7 @@
     .hour-btn {
       background: #1C1C24;
       border: 1.5px solid #2E2E38;
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 12px 4px;
       font-family: 'Montserrat', sans-serif;
       font-size: 14px;
@@ -510,48 +600,52 @@
       border-color: #2DB887;
     }
 
-    .reset-btn {
-      background: transparent;
-      border: 1.5px solid #3A3A46;
-      border-radius: 10px;
-      padding: 12px 16px;
+    .reset-inline-btn {
+      background: rgba(234, 88, 12, 0.08);
+      border: 1.5px solid rgba(234, 88, 12, 0.3);
+      border-radius: 8px;
+      padding: 12px 4px;
       font-family: 'Montserrat', sans-serif;
       font-size: 14px;
       font-weight: 600;
-      color: #9A9AA4;
-      width: 100%;
-      margin-top: 2px;
-      cursor: pointer;
+      color: #EA580C;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
+      width: 100%;
+      cursor: pointer;
       transition: all 0.15s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
     }
 
-    .reset-btn svg {
-      width: 18px;
-      height: 18px;
-      stroke: #9A9AA4;
+    .reset-inline-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
       stroke-width: 2;
       fill: none;
-      transition: stroke 0.15s, filter 0.15s;
     }
 
-    .reset-btn:hover {
-      background: rgba(234, 88, 12, 0.1);
+    .reset-inline-btn:hover {
+      background: rgba(234, 88, 12, 0.18);
       border-color: #EA580C;
       color: #FFFFFF;
       text-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
     }
 
-    .reset-btn:hover svg {
-      stroke: #EA580C;
-      filter: drop-shadow(0 0 4px rgba(234, 88, 12, 0.4));
+    .reset-inline-btn:hover svg {
+      color: #FFFFFF;
     }
 
-    .reset-btn:active {
-      background: #1C1C24;
+    .reset-inline-btn:active {
+      background: rgba(234, 88, 12, 0.25);
+    }
+
+    .reset-inline-btn.no-hours {
+      opacity: 0.5;
     }
 
     .info-text {
@@ -565,6 +659,21 @@
     .info-text .accent {
       color: #EA580C;
       font-weight: 500;
+    }
+
+    .input-range-hint {
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(234, 88, 12, 0.5);
+      margin-top: 4px;
+      margin-bottom: 0;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    input:focus + .input-range-hint,
+    input:focus ~ .input-range-hint {
+      opacity: 1;
     }
 
     .sticky-footer {
@@ -584,7 +693,7 @@
     .result-card {
       background: linear-gradient(145deg, #1A1A24 0%, #14141C 100%);
       border: 1px solid #2E2E38;
-      border-radius: 16px;
+      border-radius: 13px;
       padding: 14px 16px 14px;
       position: relative;
     }
@@ -631,7 +740,7 @@
 
     .result-forecast strong {
       font-weight: 700;
-      color: #C8C8D0;
+      color: rgba(234, 88, 12, 0.7);
     }
 
     .result-meta {
@@ -647,7 +756,7 @@
 
     .result-meta strong {
       font-weight: 700;
-      color: #D0D0D8;
+      color: rgba(234, 88, 12, 0.7);
     }
 
     .result-divider {
@@ -678,7 +787,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version">Lite · v3.13</div>
+    <div class="prompt-version">Lite · v5.4</div>
   </div>
   
   <button class="prompt-btn" id="launchFullscreenBtn">
@@ -694,7 +803,7 @@
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge">
       <span class="main-text">ПВЗ Калькулятор</span>
-      <span class="sub-text">Lite · v3.13</span>
+      <span class="sub-text">Lite · v5.4</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Скриншот просчёта · в буфере (Ctrl+V)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -726,6 +835,7 @@
         <div class="input-group">
           <label class="input-label">Количество экранов</label>
           <input type="text" id="screens" class="input-field" value="20" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_screens">
+          <div class="input-range-hint">Допустимые значения: 1–150</div>
         </div>
         <div class="warning-message hidden" id="screensWarningMessage">
           <span>⚠️</span>
@@ -735,6 +845,7 @@
         <div class="input-group">
           <label class="input-label">Дней размещения</label>
           <input type="text" id="days" class="input-field" value="30" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_days">
+          <div class="input-range-hint">Допустимые значения: 1–360</div>
         </div>
         <div class="warning-message hidden" id="daysWarningMessage">
           <span>⚠️</span>
@@ -744,16 +855,12 @@
         <div class="input-group">
           <label class="input-label">Выходов в час</label>
           <input type="text" id="frequency" class="input-field" value="15" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_freq">
+          <div class="input-range-hint">Допустимые значения: 1–360</div>
           <div class="info-text">
             Рекламный блок — <span class="accent" style="white-space: nowrap;">120 сек</span>, ролик — <span class="accent" style="white-space: nowrap;">10 сек</span>.<br>
             Максимум <span class="accent" style="white-space: nowrap;">12 выходов в блоке</span>, до <span class="accent" style="white-space: nowrap;">360 в час</span>.
           </div>
         </div>
-      </div>
-
-      <div class="warning-message" id="warningMessage">
-        <span>⚠️</span>
-        <span>! Внимание ! Для просчёта выберите часы вещания на временной шкале</span>
       </div>
 
       <div class="warning-message hidden" id="freqWarningMessage">
@@ -762,7 +869,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">
+        <div class="card-title hours-warning" id="hoursTitle">
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
@@ -777,13 +884,6 @@
           </div>
         </div>
         <div class="hours-grid" id="hoursGrid"></div>
-        <button class="reset-btn" id="resetHours">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-          </svg>
-          Сбросить все часы
-        </button>
       </div>
     </div>
   </div>
@@ -815,16 +915,14 @@
 
 <script>
   (function() {
-    // ===== DOM-элементы =====
     const screensInput = document.getElementById('screens');
     const daysInput = document.getElementById('days');
     const frequencyInput = document.getElementById('frequency');
     const hoursGrid = document.getElementById('hoursGrid');
     const hoursCounter = document.getElementById('hoursCounter');
-    const resetBtn = document.getElementById('resetHours');
+    const hoursTitle = document.getElementById('hoursTitle');
     const totalCostEl = document.getElementById('totalCost');
     const totalOutputsEl = document.getElementById('totalOutputs');
-    const warningMessage = document.getElementById('warningMessage');
     const freqWarningMessage = document.getElementById('freqWarningMessage');
     const screensWarningMessage = document.getElementById('screensWarningMessage');
     const daysWarningMessage = document.getElementById('daysWarningMessage');
@@ -842,10 +940,9 @@
     const summaryFreq = document.getElementById('summaryFreq');
     const summaryHours = document.getElementById('summaryHours');
 
-    // ===== КОНСТАНТЫ =====
     const COST_PER_OUTPUT = 0.6;
     const VAT_RATE = 1.22;
-    const HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+    const HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
     const MAX_FREQ = 360;
     const MAX_SCREENS = 150;
     const MAX_DAYS = 360;
@@ -853,7 +950,12 @@
 
     let selectedHours = new Set();
 
-    // ===== ВРЕМЕННАЯ ШКАЛА =====
+    const prevValidState = {
+      screens: true,
+      days: true,
+      freq: true
+    };
+
     function renderHoursGrid() {
       let html = '';
       HOURS.forEach(hour => {
@@ -861,16 +963,66 @@
         const isSelected = selectedHours.has(hour);
         html += `<div class="hour-btn ${isSelected ? 'selected' : ''}" data-hour="${hour}">${displayHour}</div>`;
       });
+      html += `
+        <div class="reset-inline-btn" id="resetHoursInline">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Сброс
+          <span class="tooltip" id="resetTooltip" style="bottom: -30px;">Нет выбранных часов</span>
+        </div>
+      `;
       hoursGrid.innerHTML = html;
+
+      const resetInlineBtn = document.getElementById('resetHoursInline');
+      const resetTooltip = document.getElementById('resetTooltip');
+      if (resetInlineBtn) {
+        resetInlineBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (selectedHours.size === 0) {
+            showToast('Нет выбранных часов', 2000);
+            return;
+          }
+          resetAllHours();
+        });
+
+        resetInlineBtn.addEventListener('mouseenter', () => {
+          if (selectedHours.size === 0) {
+            resetTooltip.classList.add('show');
+          }
+        });
+        resetInlineBtn.addEventListener('mouseleave', () => {
+          resetTooltip.classList.remove('show');
+        });
+      }
+
+      updateResetButtonState();
+    }
+
+    function updateResetButtonState() {
+      const resetBtn = document.getElementById('resetHoursInline');
+      if (!resetBtn) return;
+      if (selectedHours.size === 0) {
+        resetBtn.classList.add('no-hours');
+      } else {
+        resetBtn.classList.remove('no-hours');
+      }
     }
 
     function updateHoursCounter() {
       const count = selectedHours.size;
       hoursCounter.textContent = count;
-      warningMessage.classList.toggle('hidden', count !== 0);
+
+      if (count === 0) {
+        hoursTitle.classList.add('hours-warning');
+      } else {
+        hoursTitle.classList.remove('hours-warning');
+      }
+
+      updateResetButtonState();
     }
 
-    // ===== ВАЛИДАЦИЯ =====
     function getValidNumberInput(input, max) {
       const raw = parseInt(input.value);
       if (isNaN(raw) || raw < MIN_VALUE) return 0;
@@ -878,47 +1030,48 @@
       return raw;
     }
 
-    function getValidScreens() {
-      return getValidNumberInput(screensInput, MAX_SCREENS);
+    function getValidScreens() { return getValidNumberInput(screensInput, MAX_SCREENS); }
+    function getValidDays() { return getValidNumberInput(daysInput, MAX_DAYS); }
+    function getValidFrequency() { return getValidNumberInput(frequencyInput, MAX_FREQ); }
+
+    function flashValidation(input) {
+      input.classList.add('validated');
+      setTimeout(() => {
+        input.classList.remove('validated');
+      }, 600);
     }
 
-    function getValidDays() {
-      return getValidNumberInput(daysInput, MAX_DAYS);
-    }
-
-    function getValidFrequency() {
-      return getValidNumberInput(frequencyInput, MAX_FREQ);
-    }
-
-    function updateFieldWarning(input, warningDiv, rawValue, max) {
+    function updateFieldWarning(input, warningDiv, rawValue, max, fieldKey) {
       const overLimit = !isNaN(rawValue) && rawValue > max;
-      warningDiv.classList.toggle('hidden', !overLimit);
+      const nowValid = !overLimit && rawValue >= MIN_VALUE && rawValue <= max;
+      
+      if (overLimit) {
+        warningDiv.classList.remove('hidden');
+      } else {
+        warningDiv.classList.add('hidden');
+      }
       input.classList.toggle('invalid', overLimit);
+
+      if (prevValidState[fieldKey] === false && nowValid) {
+        flashValidation(input);
+      }
+      prevValidState[fieldKey] = !overLimit && rawValue >= MIN_VALUE;
     }
 
     function hasAnyError() {
-      if (!screensWarningMessage.classList.contains('hidden') ||
-          !daysWarningMessage.classList.contains('hidden') ||
-          !freqWarningMessage.classList.contains('hidden')) {
-        return true;
-      }
-      if (selectedHours.size === 0) return true;
-      const s = getValidScreens();
-      const d = getValidDays();
-      const f = getValidFrequency();
-      if (s <= 0 || d <= 0 || f <= 0) return true;
-      return false;
+      return !screensWarningMessage.classList.contains('hidden') ||
+             !daysWarningMessage.classList.contains('hidden') ||
+             !freqWarningMessage.classList.contains('hidden');
     }
 
     function updateSnapshotButtonState() {
       if (hasAnyError()) {
-        snapshotBtn.classList.add('disabled');
+        snapshotBtn.classList.add('has-errors');
       } else {
-        snapshotBtn.classList.remove('disabled');
+        snapshotBtn.classList.remove('has-errors');
       }
     }
 
-    // ===== ПЛАВНЫЙ АВТОПОДБОР ШРИФТА ИТОГА =====
     function adjustResultFontSize() {
       const el = totalCostEl;
       const parent = el.parentElement;
@@ -926,13 +1079,11 @@
       const maxWidth = parent.clientWidth - 8;
       el.style.fontSize = '52px';
       if (el.scrollWidth <= maxWidth) return;
-      
       let idealSize = 52 * (maxWidth / el.scrollWidth);
       if (idealSize < 20) idealSize = 20;
       el.style.fontSize = idealSize + 'px';
     }
 
-    // ===== ОСНОВНОЙ РАСЧЁТ =====
     function calculateTotal() {
       const screensVal = getValidScreens();
       const daysVal = getValidDays();
@@ -952,9 +1103,9 @@
       const screensRaw = parseInt(screensInput.value);
       const daysRaw = parseInt(daysInput.value);
       const freqRaw = parseInt(frequencyInput.value);
-      updateFieldWarning(screensInput, screensWarningMessage, screensRaw, MAX_SCREENS);
-      updateFieldWarning(daysInput, daysWarningMessage, daysRaw, MAX_DAYS);
-      updateFieldWarning(frequencyInput, freqWarningMessage, freqRaw, MAX_FREQ);
+      updateFieldWarning(screensInput, screensWarningMessage, screensRaw, MAX_SCREENS, 'screens');
+      updateFieldWarning(daysInput, daysWarningMessage, daysRaw, MAX_DAYS, 'days');
+      updateFieldWarning(frequencyInput, freqWarningMessage, freqRaw, MAX_FREQ, 'freq');
 
       if (!valid || hours === 0) {
         totalCostEl.textContent = '0 ₽';
@@ -963,7 +1114,6 @@
       } else {
         const totalOutputs = days * screens * freq * hours;
         const total = totalOutputs * COST_PER_OUTPUT * VAT_RATE;
-        
         totalCostEl.textContent = Math.round(total).toLocaleString('ru-RU') + ' ₽';
         totalOutputsEl.textContent = totalOutputs.toLocaleString('ru-RU');
         adjustResultFontSize();
@@ -975,15 +1125,12 @@
     function handleHourClick(e) {
       const hourBtn = e.target.closest('.hour-btn');
       if (!hourBtn) return;
-      
       const hour = parseInt(hourBtn.dataset.hour);
-      
       if (selectedHours.has(hour)) {
         selectedHours.delete(hour);
       } else {
         selectedHours.add(hour);
       }
-      
       hourBtn.classList.toggle('selected');
       updateHoursCounter();
       calculateTotal();
@@ -996,7 +1143,6 @@
       calculateTotal();
     }
 
-    // ===== ИНКРЕМЕНТ / ДЕКРЕМЕНТ =====
     function adjustFieldValue(input, delta) {
       const max = input === screensInput ? MAX_SCREENS : 
                   input === daysInput ? MAX_DAYS : MAX_FREQ;
@@ -1014,7 +1160,6 @@
         e.preventDefault();
         adjustFieldValue(input, e.deltaY > 0 ? -1 : 1);
       }, { passive: false });
-      
       input.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowUp') {
           e.preventDefault();
@@ -1036,7 +1181,6 @@
       calculateTotal();
     }
 
-    // ===== ПОЛНОЭКРАННЫЙ РЕЖИМ =====
     function requestFullscreen() {
       const doc = document.documentElement;
       if (doc.requestFullscreen) {
@@ -1067,7 +1211,6 @@
       fullscreenIcon.innerHTML = isFullscreen 
         ? '<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
         : '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
-
       fullscreenTooltip.textContent = isFullscreen ? 'Выйти из режима полного экрана' : 'Войти в полноэкранный режим';
     }
 
@@ -1076,9 +1219,8 @@
       requestFullscreen();
     }
 
-    // ===== ТУЛТИПЫ =====
     function showTooltip(tooltip) {
-      if (tooltip === snapshotTooltip && snapshotBtn.classList.contains('disabled')) return;
+      if (tooltip === snapshotTooltip && snapshotBtn.classList.contains('has-errors')) return;
       tooltip.classList.add('show');
     }
 
@@ -1086,7 +1228,6 @@
       tooltip.classList.remove('show');
     }
 
-    // ===== СНИМОК PNG =====
     function showToast(message, durationMs = 4000) {
       snapshotToast.textContent = message;
       snapshotToast.classList.add('show');
@@ -1094,12 +1235,18 @@
     }
 
     async function takeSnapshot() {
-      if (snapshotBtn.classList.contains('disabled') || snapshotBtn.dataset.busy === '1') {
-        if (snapshotBtn.classList.contains('disabled')) {
-          showToast('Исправьте ошибки перед созданием снимка');
-        }
+      if (snapshotBtn.dataset.busy === '1') return;
+
+      if (hasAnyError()) {
+        showToast('Исправьте ошибки перед созданием снимка', 5000);
         return;
       }
+
+      if (selectedHours.size === 0) {
+        showToast('Выберите часы для создания снимка', 5000);
+        return;
+      }
+
       snapshotBtn.dataset.busy = '1';
       snapshotBtn.style.opacity = '0.5';
       hideTooltip(snapshotTooltip);
@@ -1280,7 +1427,6 @@
       }
     }
 
-    // ===== ПОДЪЁМ ПЛАШКИ НАД КЛАВИАТУРОЙ =====
     function setupKeyboardLift() {
       if (!window.visualViewport) return;
 
@@ -1309,14 +1455,16 @@
       window.visualViewport.addEventListener('scroll', updateOffset);
     }
 
-    // ===== ИНИЦИАЛИЗАЦИЯ =====
     function init() {
+      prevValidState.screens = getValidScreens() > 0;
+      prevValidState.days = getValidDays() > 0;
+      prevValidState.freq = getValidFrequency() > 0;
+
       renderHoursGrid();
       updateHoursCounter();
       calculateTotal();
       
       hoursGrid.addEventListener('click', handleHourClick);
-      resetBtn.addEventListener('click', resetAllHours);
       screensInput.addEventListener('input', handleInputChange);
       daysInput.addEventListener('input', handleInputChange);
       frequencyInput.addEventListener('input', handleInputChange);
@@ -1360,6 +1508,6 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v3.13
+  Продукт: ПВЗ Калькулятор Lite · v5.4
   ================================================
 -->
