@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v5.7
+  Продукт: ПВЗ Калькулятор Lite · v5.7.1
   ================================================
 -->
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v5.7</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v5.7.1</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -26,7 +26,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v5.7 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v5.7.1 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -739,6 +739,17 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      transition: text-shadow 0.4s ease, color 0.3s ease;
+    }
+
+    .result-value.pulse-changed {
+      animation: priceChanged 0.85s ease;
+    }
+
+    @keyframes priceChanged {
+      0%   { text-shadow: 0 0 0 rgba(234, 88, 12, 0); }
+      30%  { text-shadow: 0 0 22px rgba(234, 88, 12, 0.55); }
+      100% { text-shadow: 0 0 0 rgba(234, 88, 12, 0); }
     }
 
     .result-forecast {
@@ -935,7 +946,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version">Lite · v5.7</div>
+    <div class="prompt-version">Lite · v5.7.1</div>
   </div>
   
   <button class="prompt-btn" id="launchFullscreenBtn">
@@ -951,7 +962,7 @@
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge">
       <span class="main-text">ПВЗ Калькулятор</span>
-      <span class="sub-text">Lite · v5.7</span>
+      <span class="sub-text">Lite · v5.7.1</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Скриншот просчёта · в буфере (Ctrl+V)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1285,6 +1296,18 @@
       counterState.set(el, requestAnimationFrame(tick));
     }
 
+    // ===== PULSE НА ИТОГО (при изменении >15%) =====
+    function maybePulse(newCost) {
+      if (lastTotalCost <= 0 || newCost <= 0) return;
+      const diff = Math.abs(newCost - lastTotalCost) / lastTotalCost;
+      if (diff > 0.15) {
+        totalCostEl.classList.remove('pulse-changed');
+        void totalCostEl.offsetWidth;
+        totalCostEl.classList.add('pulse-changed');
+        setTimeout(() => totalCostEl.classList.remove('pulse-changed'), 900);
+      }
+    }
+
     // ===== SKELETON-ИНДИКАЦИЯ =====
     let skeletonTimer = null;
     function applySkeleton() {
@@ -1329,6 +1352,8 @@
       } else {
         const totalOutputs = days * screens * freq * hours;
         const total = Math.round(totalOutputs * COST_PER_OUTPUT * VAT_RATE);
+
+        maybePulse(total);
 
         animateCounter(totalCostEl, lastTotalCost, total, ' ₽', 600);
         animateCounter(totalOutputsEl, lastTotalOutputs, totalOutputs, '', 600);
@@ -1883,6 +1908,6 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v5.7
+  Продукт: ПВЗ Калькулятор Lite · v5.7.1
   ================================================
 -->
