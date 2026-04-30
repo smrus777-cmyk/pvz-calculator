@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v6.4.4
+  Продукт: ПВЗ Калькулятор Lite · v6.5.0
   ================================================
 -->
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v6.4.4</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v6.5.0</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -26,7 +26,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v6.4.4 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v6.5.0 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,7 +55,7 @@
       color: #FFFFFF;
       -webkit-font-smoothing: antialiased;
       padding-top: calc(72px + env(safe-area-inset-top));
-      padding-bottom: 190px;
+      padding-bottom: 200px;
       overflow-x: hidden;
       width: 100%;
       scrollbar-width: none;
@@ -94,16 +94,13 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(10, 10, 12, 0.98);
+      background: #0A0A0C;
       z-index: 1000;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 24px;
-      backdrop-filter: blur(8px);
-      scrollbar-width: none;
-      -ms-overflow-style: none;
       overflow: hidden;
     }
 
@@ -125,11 +122,6 @@
       0% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); }
       50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
       100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); }
-    }
-
-    .fullscreen-prompt::-webkit-scrollbar {
-      width: 0;
-      height: 0;
     }
 
     .fullscreen-prompt.hidden {
@@ -156,7 +148,7 @@
       align-items: center;
       margin-bottom: 12px;
       position: relative;
-      left: -10px;
+      left: -5px;
       z-index: 1;
     }
 
@@ -184,33 +176,39 @@
       z-index: 1;
     }
 
-    .prompt-btn {
-      margin: 0 auto 24px;
-      background: #EA580C;
-      border: none;
-      border-radius: 60px;
-      padding: 18px 36px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: #0A0A0C;
+    .prompt-continue-link {
+      color: #EA580C;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(234, 88, 12, 0.3);
+      padding-bottom: 4px;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(234, 88, 12, 0.2);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      transition: border-color 0.2s;
       position: relative;
       z-index: 1;
     }
 
-    .prompt-btn:hover {
-      background: #C2410C;
-      box-shadow: 0 8px 20px rgba(234, 88, 12, 0.35);
+    .prompt-continue-link:hover {
+      border-color: #EA580C;
     }
 
-    .prompt-btn:active {
-      transform: scale(0.97);
+    .prompt-swipe-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 3px;
+      opacity: 0;
+      animation: fadeInSwipe 0.8s ease-out forwards;
+    }
+
+    @keyframes fadeInSwipe {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
     }
 
     /* === ШАПКА === */
@@ -246,7 +244,6 @@
       color: #EA580C;
     }
 
-    /* === БЕЙДЖ ВЕРСИИ === */
     .badge {
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(6px);
@@ -442,17 +439,15 @@
       border: 1px solid #24242C;
       border-radius: 13px;
       padding: 16px 18px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .card:first-of-type {
-      margin-top: 8px;
-      padding-bottom: 12px;
+      margin-top: 3px;
     }
 
     .card:last-of-type {
-      padding-bottom: 12px;
-      margin-bottom: 4px;
+      margin-bottom: 12px;
     }
 
     .card-title {
@@ -478,7 +473,6 @@
       fill: none;
     }
 
-    /* Новый статичный индикатор "часы не выбраны" */
     .card-title.hours-warning {
       color: #D4956B;
       background-color: rgba(212, 149, 107, 0.06);
@@ -493,12 +487,27 @@
       margin-bottom: 0;
     }
 
-    .input-label {
-      display: block;
+    .compact-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-left: 6px;
+      padding-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .label-text {
       font-size: 13px;
       font-weight: 500;
       color: #888892;
-      margin-bottom: 4px;
+    }
+
+    .hint-inline {
+      font-size: 11px;
+      font-weight: 500;
+      color: #9A9AA4;
+      opacity: 0.8;
+      white-space: nowrap;
     }
 
     .input-field {
@@ -538,8 +547,8 @@
     }
 
     input.validated {
-      border-color: #34D399 !important;
-      background-color: rgba(52, 211, 153, 0.1);
+      border-color: #6BBF8A !important;
+      background-color: rgba(107, 191, 138, 0.1);
       transition: border-color 0.2s, background-color 0.2s;
     }
 
@@ -649,6 +658,13 @@
       border-color: #2DB887;
     }
 
+    /* Hover-preview пресетов (Pro‑стиль) */
+    .hour-btn.preset-preview {
+      border-color: rgba(234, 88, 12, 0.5);
+      background: rgba(234, 88, 12, 0.10);
+      color: #d8b89a;
+    }
+
     .reset-inline-btn {
       background: rgba(234, 88, 12, 0.08);
       border: 1.5px solid rgba(234, 88, 12, 0.3);
@@ -703,7 +719,6 @@
       color: rgba(234, 88, 12, 0.5);
     }
 
-    /* Обновлённый информационный блок с разделителем */
     .info-text {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding-top: 10px;
@@ -716,21 +731,6 @@
     .info-text .accent {
       color: #D0D0D8;
       font-weight: 500;
-    }
-
-    .input-range-hint {
-      font-size: 11px;
-      font-weight: 400;
-      color: rgba(234, 88, 12, 0.5);
-      margin-top: 4px;
-      margin-bottom: 0;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-
-    input:focus + .input-range-hint,
-    input:focus ~ .input-range-hint {
-      opacity: 1;
     }
 
     .sticky-footer {
@@ -806,7 +806,7 @@
 
     @keyframes priceChanged {
       0%   { text-shadow: 0 0 0 rgba(234, 88, 12, 0); }
-      30%  { text-shadow: 0 0 22px rgba(234, 88, 12, 0.55); }
+      30%  { text-shadow: 0 0 22px rgba(234, 88, 12, 0.4); }
       100% { text-shadow: 0 0 0 rgba(234, 88, 12, 0); }
     }
 
@@ -1072,23 +1072,19 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version">Lite · v6.4.4</div>
+    <div class="prompt-version">Lite · v6.5.0</div>
   </div>
-  <div class="prompt-promise">Расчёт стоимости рекламной кампании в ПВЗ за 30 секунд</div>
-  <button class="prompt-btn" id="launchFullscreenBtn">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-    </svg>
-    Открыть калькулятор
-  </button>
+  <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
+  <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
+  <div class="prompt-swipe-indicator" id="promptSwipeIndicator"></div>
 </div>
 
 <div class="sticky-header">
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge">
-      <span class="badge-full">ПВЗ Калькулятор · Lite v6.4.4</span>
-      <span class="badge-short">ПВЗ Кальк. · v6.4.4</span>
+      <span class="badge-full">ПВЗ Калькулятор · Lite v6.5.0</span>
+      <span class="badge-short">ПВЗ Кальк. · v6.5.0</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Скриншот просчёта · в буфере (Ctrl+V)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1118,9 +1114,11 @@
           Параметры кампании
         </div>
         <div class="input-group">
-          <label class="input-label">Количество экранов</label>
+          <div class="compact-label">
+            <span class="label-text">Количество экранов</span>
+            <span class="hint-inline">1 – 150</span>
+          </div>
           <input type="text" id="screens" class="input-field" value="20" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_screens">
-          <div class="input-range-hint">Допустимые значения: 1–150</div>
         </div>
         <div class="warning-message hidden" id="screensWarningMessage">
           <span>⚠️</span>
@@ -1128,9 +1126,11 @@
         </div>
 
         <div class="input-group">
-          <label class="input-label">Дней размещения</label>
+          <div class="compact-label">
+            <span class="label-text">Дней размещения</span>
+            <span class="hint-inline">1 – 360</span>
+          </div>
           <input type="text" id="days" class="input-field" value="30" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_days">
-          <div class="input-range-hint">Допустимые значения: 1–360</div>
         </div>
         <div class="warning-message hidden" id="daysWarningMessage">
           <span>⚠️</span>
@@ -1138,9 +1138,11 @@
         </div>
 
         <div class="input-group">
-          <label class="input-label">Выходов в час</label>
+          <div class="compact-label">
+            <span class="label-text">Выходов в час</span>
+            <span class="hint-inline">1 – 360</span>
+          </div>
           <input type="text" id="frequency" class="input-field" value="15" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_freq">
-          <div class="input-range-hint">Допустимые значения: 1–360</div>
           <div class="info-text">
             Рекламный блок — <span class="accent" style="white-space: nowrap;">120 сек</span>, ролик — <span class="accent" style="white-space: nowrap;">10 сек</span>.<br>
             Максимум <span class="accent" style="white-space: nowrap;">12 выходов в блоке</span>, до <span class="accent" style="white-space: nowrap;">360 в час</span>.
@@ -1203,7 +1205,9 @@
         <div>Часов в день: <strong id="summaryHours">0</strong></div>
       </div>
     </div>
+
     <div class="result-divider"></div>
+
     <div class="disclaimer-text">
       Просчёт носит ознакомительный характер, учитывается базовая min ставка за выход <span class="accent" style="white-space: nowrap;">0,60 ₽ (без НДС)</span>. При полной загрузке эфира ставка может быть выше.<i class="info-tooltip-trigger" id="infoTrigger">i<span class="info-popover" id="infoPopover">Мы работаем по <span class="accent">минимальной ставке 0,60 ₽ (без НДС)</span> за выход. В редких случаях, когда время перегружено, аукцион уходит к тем, кто назначил цену выше. Вы просто пропускаете этот показ — деньги остаются на счёте. Как только время освобождается, вещание возобновляется. Никаких переплат. Финальные условия фиксируются в коммерческом предложении.</span></i>
     </div>
@@ -1226,7 +1230,6 @@
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     const fullscreenIcon = document.getElementById('fullscreenIcon');
     const fullscreenPrompt = document.getElementById('fullscreenPrompt');
-    const launchBtn = document.getElementById('launchFullscreenBtn');
     const snapshotBtn = document.getElementById('snapshotBtn');
     const snapshotToast = document.getElementById('snapshotToast');
     const snapshotTooltip = document.getElementById('snapshotTooltip');
@@ -1327,7 +1330,6 @@
         resetInlineBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           if (selectedHours.size === 0) {
-            showToast('Нет выбранных часов', 2000);
             return;
           }
           resetAllHours();
@@ -1416,7 +1418,7 @@
     let lastTotalCost = 0;
     let lastTotalOutputs = 0;
 
-    function animateCounter(el, fromVal, toVal, suffix = '', duration = 600) {
+    function animateCounter(el, fromVal, toVal, suffix = '', duration = 800) {
       const prev = counterState.get(el);
       if (prev) cancelAnimationFrame(prev);
       const startTime = performance.now();
@@ -1481,8 +1483,8 @@
 
       if (!valid || hours === 0) {
         if (lastTotalCost > 0 || lastTotalOutputs > 0) {
-          animateCounter(totalCostEl, lastTotalCost, 0, ' ₽', 600);
-          animateCounter(totalOutputsEl, lastTotalOutputs, 0, '', 600);
+          animateCounter(totalCostEl, lastTotalCost, 0, ' ₽', 800);
+          animateCounter(totalOutputsEl, lastTotalOutputs, 0, '', 800);
         } else {
           totalCostEl.textContent = '0 ₽';
           totalOutputsEl.textContent = '0';
@@ -1497,8 +1499,8 @@
       const total = Math.round(totalOutputs * COST_PER_OUTPUT * VAT_RATE);
 
       maybePulse(total);
-      animateCounter(totalCostEl, lastTotalCost, total, ' ₽', 600);
-      animateCounter(totalOutputsEl, lastTotalOutputs, totalOutputs, '', 600);
+      animateCounter(totalCostEl, lastTotalCost, total, ' ₽', 800);
+      animateCounter(totalOutputsEl, lastTotalOutputs, totalOutputs, '', 800);
 
       lastTotalCost = total;
       lastTotalOutputs = totalOutputs;
@@ -1669,10 +1671,6 @@
     }
 
     function attachNumericAdjustment(input) {
-      input.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        adjustFieldValue(input, e.deltaY > 0 ? -1 : 1);
-      }, { passive: false });
       input.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowUp') {
           e.preventDefault();
@@ -1727,7 +1725,7 @@
       fullscreenTooltip.textContent = isFullscreen ? 'Выйти из режима полного экрана' : 'Войти в полноэкранный режим';
     }
 
-    function launchFullscreen() {
+    function dismissPrompt() {
       fullscreenPrompt.classList.add('hidden');
     }
 
@@ -1748,14 +1746,36 @@
       setTimeout(() => snapshotToast.classList.remove('show'), durationMs);
     }
 
+    // ===== HOVER-PREVIEW ПРЕСЕТОВ =====
+    function clearPresetPreview() {
+      document.querySelectorAll('.hour-btn.preset-preview').forEach(btn => {
+        btn.classList.remove('preset-preview');
+      });
+    }
+
+    function applyPresetPreview(preset) {
+      clearPresetPreview();
+      const presetHours = getPresetHours(preset);
+      if (!presetHours.length) return;
+      const isActive = presetHours.every(h => selectedHours.has(h));
+      if (isActive) return;
+
+      presetHours.forEach(h => {
+        const cell = document.querySelector(`.hour-btn[data-hour="${h}"]`);
+        if (cell && !cell.classList.contains('selected')) {
+          cell.classList.add('preset-preview');
+        }
+      });
+    }
+
     async function takeSnapshot() {
       if (snapshotBtn.dataset.busy === '1') return;
       if (hasAnyError()) {
-        showToast('Исправьте ошибки перед созданием снимка', 5000);
+        showToast('Снимок не создан: сначала исправьте ошибки в данных', 5000);
         return;
       }
       if (selectedHours.size === 0) {
-        showToast('Выберите часы для создания снимка', 5000);
+        showToast('Снимок не создан: выберите хотя бы один час', 5000);
         return;
       }
       snapshotBtn.dataset.busy = '1';
@@ -1949,17 +1969,57 @@
       frequencyInput.addEventListener('input', handleInputChange);
       [screensInput, daysInput, frequencyInput].forEach(attachNumericAdjustment);
       fullscreenBtn.addEventListener('click', toggleFullscreen);
-      launchBtn.addEventListener('click', launchFullscreen);
       snapshotBtn.addEventListener('click', takeSnapshot);
+
+      // Переход со стартового экрана
+      const promptContinueLink = document.getElementById('promptContinueLink');
+      if (promptContinueLink) {
+        promptContinueLink.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dismissPrompt();
+        });
+      }
+
+      // Тап по экрану (мобильные)
+      fullscreenPrompt.addEventListener('click', dismissPrompt);
+
+      // Свайп вверх (мобильные)
+      let touchStartY = 0;
+      fullscreenPrompt.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      });
+      fullscreenPrompt.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        if (touchStartY - endY > 50) {
+          // Свайп вверх
+          dismissPrompt();
+        }
+      });
+
       const quickPresets = document.getElementById('quickPresets');
       if (quickPresets) {
         quickPresets.addEventListener('click', (e) => {
           const btn = e.target.closest('.preset-chip');
           if (!btn) return;
           const preset = btn.dataset.preset;
+          clearPresetPreview();
           if (preset) applyHoursPreset(preset);
         });
+        quickPresets.addEventListener('mouseover', (e) => {
+          const chip = e.target.closest('.preset-chip');
+          if (!chip) return;
+          const preset = chip.dataset.preset;
+          applyPresetPreview(preset);
+        });
+        quickPresets.addEventListener('mouseout', (e) => {
+          const related = e.relatedTarget;
+          if (!related || !related.closest('.preset-chip')) {
+            clearPresetPreview();
+          }
+        });
+        quickPresets.addEventListener('mouseleave', clearPresetPreview);
       }
+
       const infoTrigger = document.getElementById('infoTrigger');
       const infoPopover = document.getElementById('infoPopover');
       if (infoTrigger && infoPopover) {
@@ -2003,6 +2063,6 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v6.4.4
+  Продукт: ПВЗ Калькулятор Lite · v6.5.0
   ================================================
 -->
