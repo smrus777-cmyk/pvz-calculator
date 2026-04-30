@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v6.5.0
+  Продукт: ПВЗ Калькулятор Lite · v6.5.1
   ================================================
 -->
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v6.5.0</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v6.5.1</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -26,7 +26,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v6.5.0 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v6.5.1 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,6 +102,14 @@
       justify-content: center;
       padding: 24px;
       overflow: hidden;
+      transition: opacity 0.5s ease;
+      opacity: 1;
+    }
+
+    .fullscreen-prompt.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
     }
 
     .fullscreen-prompt::before {
@@ -122,10 +130,6 @@
       0% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); }
       50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
       100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); }
-    }
-
-    .fullscreen-prompt.hidden {
-      display: none;
     }
 
     .prompt-logo {
@@ -202,7 +206,7 @@
       height: 5px;
       background: rgba(255, 255, 255, 0.25);
       border-radius: 3px;
-      opacity: 0;
+      opacity: 1;
       animation: fadeInSwipe 0.8s ease-out forwards;
     }
 
@@ -355,6 +359,18 @@
       background: rgba(234, 88, 12, 0.05);
     }
 
+    .fullscreen-btn.shake {
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+
     /* ============================================================
        СИСТЕМА ВСПЛЫВАЮЩИХ ЭЛЕМЕНТОВ (единый мягкий стиль)
        ============================================================ */
@@ -432,6 +448,20 @@
     .snapshot-toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
+    }
+
+    /* Mini-сообщение у кнопки скриншота при ошибке */
+    .snapshot-error-hint {
+      text-align: center;
+      font-size: 12px;
+      color: #E06C6C;
+      margin-top: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .snapshot-error-hint.show {
+      opacity: 1;
     }
 
     .card {
@@ -753,7 +783,7 @@
       border-radius: 13px;
       padding: 14px 16px 14px;
       position: relative;
-      transition: box-shadow 0.3s ease, transform 0.2s ease;
+      transition: box-shadow 0.3s ease, transform 0.2s ease, filter 0.1s;
     }
 
     .result-card:hover {
@@ -762,6 +792,16 @@
 
     .result-card:active {
       transform: scale(0.99);
+    }
+
+    .result-card.shutter-flash {
+      animation: shutterFlash 0.3s ease-out;
+    }
+
+    @keyframes shutterFlash {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(1.9); }
+      100% { filter: brightness(1); }
     }
 
     .result-main {
@@ -1072,7 +1112,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version">Lite · v6.5.0</div>
+    <div class="prompt-version">Lite · v6.5.1</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -1083,8 +1123,8 @@
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge">
-      <span class="badge-full">ПВЗ Калькулятор · Lite v6.5.0</span>
-      <span class="badge-short">ПВЗ Кальк. · v6.5.0</span>
+      <span class="badge-full">ПВЗ Калькулятор · Lite v6.5.1</span>
+      <span class="badge-short">ПВЗ Кальк. · v6.5.1</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Скриншот просчёта · в буфере (Ctrl+V)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1191,7 +1231,7 @@
 </div>
 
 <div class="sticky-footer">
-  <div class="result-card">
+  <div class="result-card" id="resultCard">
     <div class="result-main">
       <div class="result-left">
         <div class="result-label">ИТОГО стоимость с НДС 22%</div>
@@ -1212,6 +1252,7 @@
       Просчёт носит ознакомительный характер, учитывается базовая min ставка за выход <span class="accent" style="white-space: nowrap;">0,60 ₽ (без НДС)</span>. При полной загрузке эфира ставка может быть выше.<i class="info-tooltip-trigger" id="infoTrigger">i<span class="info-popover" id="infoPopover">Мы работаем по <span class="accent">минимальной ставке 0,60 ₽ (без НДС)</span> за выход. В редких случаях, когда время перегружено, аукцион уходит к тем, кто назначил цену выше. Вы просто пропускаете этот показ — деньги остаются на счёте. Как только время освобождается, вещание возобновляется. Никаких переплат. Финальные условия фиксируются в коммерческом предложении.</span></i>
     </div>
   </div>
+  <div class="snapshot-error-hint" id="snapshotErrorHint"></div>
 </div>
 
 <script>
@@ -1234,6 +1275,8 @@
     const snapshotToast = document.getElementById('snapshotToast');
     const snapshotTooltip = document.getElementById('snapshotTooltip');
     const fullscreenTooltip = document.getElementById('fullscreenTooltip');
+    const resultCard = document.getElementById('resultCard');
+    const snapshotErrorHint = document.getElementById('snapshotErrorHint');
     
     const summaryScreens = document.getElementById('summaryScreens');
     const summaryDays = document.getElementById('summaryDays');
@@ -1404,6 +1447,17 @@
       return !screensWarningMessage.classList.contains('hidden') ||
              !daysWarningMessage.classList.contains('hidden') ||
              !freqWarningMessage.classList.contains('hidden');
+    }
+
+    function triggerShakeAndHint() {
+      snapshotBtn.classList.add('shake');
+      snapshotErrorHint.classList.add('show');
+      snapshotErrorHint.textContent = 'Сначала исправьте ошибки в данных';
+      if (navigator.vibrate) navigator.vibrate(25);
+      setTimeout(() => {
+        snapshotBtn.classList.remove('shake');
+        snapshotErrorHint.classList.remove('show');
+      }, 2500);
     }
 
     function updateSnapshotButtonState() {
@@ -1770,17 +1824,28 @@
 
     async function takeSnapshot() {
       if (snapshotBtn.dataset.busy === '1') return;
+
       if (hasAnyError()) {
+        triggerShakeAndHint();
         showToast('Снимок не создан: сначала исправьте ошибки в данных', 5000);
         return;
       }
       if (selectedHours.size === 0) {
+        triggerShakeAndHint();
+        snapshotErrorHint.textContent = 'Выберите хотя бы один час';
         showToast('Снимок не создан: выберите хотя бы один час', 5000);
         return;
       }
+
+      // Мгновенная обратная связь: shutter flash + haptic
+      resultCard.classList.add('shutter-flash');
+      if (navigator.vibrate) navigator.vibrate(10);
+      setTimeout(() => resultCard.classList.remove('shutter-flash'), 300);
+
       snapshotBtn.dataset.busy = '1';
       snapshotBtn.style.opacity = '0.5';
       hideTooltip(snapshotTooltip);
+
       if (typeof html2canvas === 'undefined') {
         showToast('Не удалось загрузить модуль снимка');
         snapshotBtn.dataset.busy = '0';
@@ -1991,7 +2056,6 @@
       fullscreenPrompt.addEventListener('touchend', (e) => {
         const endY = e.changedTouches[0].clientY;
         if (touchStartY - endY > 50) {
-          // Свайп вверх
           dismissPrompt();
         }
       });
@@ -2063,6 +2127,6 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v6.5.0
+  Продукт: ПВЗ Калькулятор Lite · v6.5.1
   ================================================
 -->
