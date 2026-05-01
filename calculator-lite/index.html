@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v6.5.2
+  Продукт: ПВЗ Калькулятор Lite · v6.5.4
   ================================================
 -->
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v6.5.2</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v6.5.4</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -26,7 +26,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v6.5.2 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v6.5.4 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -992,7 +992,6 @@
     }
     .info-popover {
       position: absolute;
-      bottom: calc(100% + 10px);
       left: 50%;
       transform: translateX(-50%);
       width: 240px;
@@ -1017,21 +1016,36 @@
       text-transform: none;
       cursor: default;
       max-width: calc(100vw - 32px);
+      bottom: auto; /* Будет задано в JS */
+      top: auto;
     }
     .info-popover::after {
       content: '';
       position: absolute;
+      border: 5px solid transparent;
+    }
+    /* Стрелка вниз (когда поповер сверху) */
+    .info-popover[data-direction="up"]::after {
       top: 100%;
       left: 50%;
       transform: translateX(-50%);
-      border: 5px solid transparent;
       border-top-color: rgba(255, 255, 255, 0.2);
+      border-bottom: none;
+    }
+    /* Стрелка вверх (когда поповер снизу) */
+    .info-popover[data-direction="down"]::after {
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-bottom-color: rgba(255, 255, 255, 0.2);
+      border-top: none;
     }
     .info-tooltip-trigger:hover .info-popover,
     .info-popover.popover-visible {
       opacity: 1;
       visibility: visible;
     }
+
     .info-popover .accent {
       color: #EA580C;
       font-weight: 600;
@@ -1112,7 +1126,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version">Lite · v6.5.2</div>
+    <div class="prompt-version">Lite · v6.5.4</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -1123,8 +1137,8 @@
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge">
-      <span class="badge-full">ПВЗ Калькулятор · Lite v6.5.2</span>
-      <span class="badge-short">ПВЗ Кальк. · v6.5.2</span>
+      <span class="badge-full">ПВЗ Калькулятор · Lite v6.5.4</span>
+      <span class="badge-short">ПВЗ Кальк. · v6.5.4</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Скриншот просчёта · в буфере (Ctrl+V)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1751,9 +1765,9 @@
       const doc = document.documentElement;
       if (doc.requestFullscreen) {
         doc.requestFullscreen().catch(() => {});
-      } else if (doc.webkitRequestFullscreen) { /* Safari */
+      } else if (doc.webkitRequestFullscreen) {
         doc.webkitRequestFullscreen();
-      } else if (doc.msRequestFullscreen) { /* IE/Edge */
+      } else if (doc.msRequestFullscreen) {
         doc.msRequestFullscreen();
       }
     }
@@ -1761,9 +1775,9 @@
     function exitFullscreen() {
       if (document.exitFullscreen) {
         document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) { /* Safari */
+      } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { /* IE/Edge */
+      } else if (document.msExitFullscreen) {
         document.msExitFullscreen();
       }
     }
@@ -1784,7 +1798,6 @@
     function tryAutoFullscreen() {
       if (window.matchMedia('(display-mode: standalone)').matches) return;
       if (isFullscreenActive()) return;
-      // Пытаемся без жеста (может не сработать, но мы пытаемся)
       requestFullscreen();
     }
 
@@ -1821,7 +1834,59 @@
       });
     }
 
-    // ===== ВСПЛЫВАЮЩИЕ ПОДСКАЗКИ =====
+    // ===== АДАПТИВНЫЙ ПОПОВЕР «i» (ПРИОРИТЕТ СВЕРХУ) =====
+    function adjustInfoPopover(popover, trigger) {
+      // Сбрасываем инлайн-стили и устанавливаем положение по умолчанию – сверху
+      popover.style.top = '';
+      popover.style.bottom = '';
+      // Принудительно задаём direction up (стрелка вниз)
+      popover.setAttribute('data-direction', 'up');
+      
+      // Даём браузеру применить размеры
+      requestAnimationFrame(() => {
+        const popupRect = popover.getBoundingClientRect();
+        const triggerRect = trigger.getBoundingClientRect();
+        const viewHeight = window.innerHeight;
+        const viewWidth = window.innerWidth;
+
+        // 1. Проверяем, помещается ли сверху
+        if (popupRect.top < 10) {
+          // Не помещается сверху – пробуем снизу
+          popover.style.top = (triggerRect.bottom + 10) + 'px';
+          popover.style.bottom = 'auto';
+          popover.setAttribute('data-direction', 'down');
+          
+          // Повторно получаем размеры после изменения положения
+          const newRect = popover.getBoundingClientRect();
+          // Если снизу тоже вылезает за нижнюю границу, возвращаем наверх и сдвигаем
+          if (newRect.bottom > viewHeight - 10) {
+            popover.style.top = '10px'; // прижимаем к верху
+            popover.style.bottom = 'auto';
+            popover.setAttribute('data-direction', 'up');
+          }
+        } else {
+          // Всё хорошо, оставляем сверху (стандартно)
+          popover.style.top = '';
+          popover.style.bottom = 'calc(100% + 10px)';
+          popover.setAttribute('data-direction', 'up');
+        }
+
+        // 2. Горизонтальная коррекция (чтобы не вылезал за края)
+        const finalRect = popover.getBoundingClientRect();
+        let shiftX = 0;
+        const overflowLeft = -finalRect.left;
+        const overflowRight = finalRect.right - viewWidth;
+        if (overflowLeft > 0) {
+          shiftX = overflowLeft + 10;
+        } else if (overflowRight > 0) {
+          shiftX = -overflowRight - 10;
+        }
+        if (shiftX !== 0) {
+          popover.style.transform = `translateX(calc(-50% + ${shiftX}px))`;
+        }
+      });
+    }
+
     function showTooltip(tooltip) {
       if (tooltip === snapshotTooltip && snapshotBtn.classList.contains('has-errors')) return;
       tooltip.classList.add('show');
@@ -2124,6 +2189,7 @@
         quickPresets.addEventListener('mouseleave', clearPresetPreview);
       }
 
+      // Адаптивный поповер «i»
       const infoTrigger = document.getElementById('infoTrigger');
       const infoPopover = document.getElementById('infoPopover');
       if (infoTrigger && infoPopover) {
@@ -2131,7 +2197,9 @@
           e.stopPropagation();
           const isVisible = infoPopover.classList.toggle('popover-visible');
           infoTrigger.classList.toggle('popover-visible', isVisible);
-          if (isVisible) adjustPopup(infoPopover, infoTrigger);
+          if (isVisible) {
+            adjustInfoPopover(infoPopover, infoTrigger);
+          }
         });
         document.addEventListener('click', (e) => {
           if (!infoTrigger.contains(e.target) && !infoPopover.contains(e.target)) {
@@ -2140,6 +2208,7 @@
           }
         });
       }
+
       snapshotBtn.addEventListener('mouseenter', () => showTooltip(snapshotTooltip));
       snapshotBtn.addEventListener('mouseleave', () => hideTooltip(snapshotTooltip));
       snapshotBtn.addEventListener('mousedown', () => hideTooltip(snapshotTooltip));
@@ -2152,7 +2221,6 @@
       if (window.matchMedia('(display-mode: standalone)').matches) {
         fullscreenPrompt.classList.add('hidden');
       } else {
-        // Попытка автоматического фуллскрина при загрузке
         tryAutoFullscreen();
       }
       document.addEventListener('keydown', (e) => {
@@ -2170,6 +2238,6 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v6.5.2
+  Продукт: ПВЗ Калькулятор Lite · v6.5.4
   ================================================
 -->
