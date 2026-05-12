@@ -1,1 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Акция 3+1 · Russ</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
+:root[data-theme="dark"] {
+  --bg-page: #0A0A0C; --bg-card: #121214; --bg-pill: #1A1A1E;
+  --bg-excluded: #18181C; --bg-conf: #101012;
+  --border-card: #222228; --border-pill: #2E2E34; --border-pill-2: #2A2A30;
+  --border-conf: #1E1E24; --divider: #222228; --dashed: #2A2A30;
+  --text-primary: #FFFFFF; --text-secondary: #D1D1D6; --text-period: #98989E;
+  --text-label: #8E8E93; --text-note: #86868B; --text-muted: #8E8E93;
+  --orange: #FFA500; --orange-bright: #FF7700; --orange-btn-text: #0B0B0E;
+  --logo-fill: #FFFFFF;
+  --app-bg: #0A0A0C; --app-surface: #141416; --app-surface-2: #1C1C20;
+  --app-border: #242428; --app-text: #F5F5F7; --app-text-muted: #8E8E93;
+  --app-accent: #FFA500; --card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+:root[data-theme="light"] {
+  --bg-page: #F0F0F5; --bg-card: #FFFFFF; --bg-pill: #F5F5F9;
+  --bg-excluded: #F8F8FC; --bg-conf: #FAFAFC;
+  --border-card: #D1D1D6; --border-pill: #D1D1D6; --border-pill-2: #C8C8CE;
+  --border-conf: #D1D1D6; --divider: #D1D1D6; --dashed: #C8C8CE;
+  --text-primary: #1D1D1F; --text-secondary: #2C2C2E; --text-period: #6E6E73;
+  --text-label: #6E6E73; --text-note: #7C7C82; --text-muted: #86868B;
+  --orange: #E56317; --orange-bright: #D15410; --orange-btn-text: #FFFFFF;
+  --logo-fill: #1D1D1F;
+  --app-bg: #F0F0F5; --app-surface: #FFFFFF; --app-surface-2: #F5F5F9;
+  --app-border: #D1D1D6; --app-text: #1D1D1F; --app-text-muted: #6E6E73;
+  --app-accent: #E56317; --card-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+:root {
+  --preview-scale: 0.42;
+  --preview-w: calc(1080px * var(--preview-scale));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+.export-mode .toast,
+.export-mode .modal-overlay,
+.export-mode .export-overlay {
+  display: none !important;
+}
+.export-mode * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html, body {
+  width: 100%; min-height: 100vh;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--app-bg); color: var(--app-text);
+  transition: background 0.2s, color 0.2s;
+}
+.app-shell {
+  width: 100%; max-width: 90rem; margin: 0 auto;
+  padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;
+}
+.workspace { display: flex; gap: 1.25rem; align-items: flex-start; }
+.preview-frame {
+  background: var(--app-surface); border: 1px solid var(--app-border);
+  border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; justify-content: center;
+  min-width: calc(var(--preview-w) + 2.5rem); flex-shrink: 0;
+  box-shadow: var(--card-shadow); transition: background 0.2s, border-color 0.2s; position: relative;
+}
+.preview-stage {
+  width: var(--preview-w); position: relative; overflow: hidden; border-radius: 8px;
+}
+.brochure-mount {
+  width: 1080px; transform: scale(var(--preview-scale)); transform-origin: top left;
+  background: var(--bg-page); transition: background 0.2s;
+}
+.page {
+  width: 1080px; padding: 40px 36px; display: flex; flex-direction: column; gap: 28px;
+  background: var(--bg-page);
+}
+.fl-header {
+  background: var(--bg-card); border: 1px solid var(--border-card);
+  border-radius: 12px; padding: 32px 36px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: var(--card-shadow);
+}
+.date-block { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.date-pill {
+  background: var(--bg-pill); border: 1px solid var(--border-pill);
+  border-radius: 8px; padding: 16px 32px; font-size: 32px; font-weight: 700; color: var(--text-primary);
+}
+.period-label { color: var(--text-period); font-size: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+.logo-wrap svg { width: 280px; height: auto; display: block; margin-left: auto; }
+.logo-wrap svg path { fill: var(--logo-fill); transition: fill 0.2s; }
+
+.title-card {
+  background: var(--bg-card); border: 1px solid var(--border-card);
+  border-radius: 16px; padding: 40px 42px 36px; box-shadow: var(--card-shadow);
+}
+.main-title { font-size: 140px; font-weight: 900; line-height: 0.88; letter-spacing: -3px; color: var(--text-primary); margin-bottom: 24px; }
+.main-title .accent-word { color: var(--orange); }
+.sub-main { font-size: 34px; font-weight: 600; color: var(--text-secondary); line-height: 1.35; margin-bottom: 20px; }
+.kratnost { font-size: 18px; font-weight: 500; color: var(--text-muted); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-card);
+  border-radius: 12px; padding: 32px 32px 28px; box-shadow: var(--card-shadow);
+}
+.label { display: flex; align-items: center; gap: 12px; color: var(--text-label); font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 18px; }
+.icon { width: 26px; height: 26px; stroke: var(--orange); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.value-lg { font-size: 48px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; line-height: 1.15; }
+.note { color: var(--text-note); font-size: 17px; line-height: 1.6; }
+.excluded-box { background: var(--bg-excluded); border-radius: 8px; padding: 18px 22px; margin: 18px 0 14px; }
+.excluded-label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-label); margin-bottom: 8px; }
+.excluded-formats { font-size: 26px; font-weight: 800; color: var(--text-muted); }
+.divider { height: 1px; background: var(--divider); margin: 20px 0; }
+.bonus-highlight { font-size: 30px; font-weight: 700; color: var(--text-secondary); }
+.percent-highlight { color: var(--orange-bright); font-weight: 900; font-size: 42px; }
+.manager-note { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--dashed); color: var(--text-muted); font-size: 16px; line-height: 1.5; }
+
+.contacts-card {
+  background: var(--bg-card); border: 1px solid var(--border-card);
+  border-radius: 12px; padding: 36px 40px 32px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+  box-shadow: var(--card-shadow);
+}
+.contacts-heading { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-label); margin-bottom: 2px; }
+.manager-signature { font-size: 20px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.phone { font-size: 52px; font-weight: 800; line-height: 1.1; color: var(--text-primary); }
+.email { color: var(--text-muted); font-size: 22px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.cta-button {
+  display: block; width: 100%; background: var(--orange); color: var(--orange-btn-text);
+  font-weight: 700; font-size: 24px; padding: 22px 28px; border-radius: 8px;
+  text-align: center; letter-spacing: 0.3px; margin-top: 6px; transition: background 0.2s;
+}
+.cta-button:hover { background: var(--orange-bright); }
+
+.conf { padding-left: 8px; }
+.conf-inner { display: flex; gap: 10px; align-items: flex-start; }
+.conf-icon { width: 16px; height: 16px; stroke: var(--text-muted); stroke-width: 1.5; fill: none; flex-shrink: 0; margin-top: 1px; }
+.conf-text { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+.panel {
+  width: 380px; flex-shrink: 0; align-self: stretch;
+  background: var(--app-surface); border: 1px solid var(--app-border);
+  border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 18px;
+  position: sticky; top: 1.5rem; box-shadow: var(--card-shadow);
+}
+.panel-section { display: flex; flex-direction: column; gap: 10px; }
+.section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--app-text-muted); }
+.theme-switch { display: grid; grid-template-columns: 1fr 1fr; background: var(--app-surface-2); border: 1px solid var(--app-border); border-radius: 8px; padding: 3px; gap: 3px; }
+.theme-switch button {
+  font-family: inherit; font-size: 12px; font-weight: 600; color: var(--app-text-muted);
+  background: transparent; border: none; border-radius: 6px; padding: 8px 10px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;
+}
+.theme-switch button.active { background: var(--app-surface); color: var(--app-text); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--app-text-muted); }
+.field input {
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  background: var(--app-surface-2); border: 1px solid var(--app-border);
+  border-radius: 8px; padding: 0 12px; height: 40px; width: 100%; outline: none; transition: border-color 0.2s, background 0.2s;
+}
+:root[data-theme="light"] .field input { color: #5C5C60; }
+:root[data-theme="dark"] .field input { color: #B0B0B8; }
+.field input:focus { border-color: var(--app-accent); background: var(--app-surface); color: var(--app-text); }
+.field.has-error input { border-color: #FF3B30; }
+.helper { font-size: 10px; color: var(--app-text-muted); min-height: 12px; }
+.field.has-error .helper { color: #FF3B30; }
+.actions { display: flex; flex-direction: column; gap: 8px; }
+.btn {
+  font-family: inherit; font-size: 13px; font-weight: 600; height: 42px; border-radius: 8px;
+  border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 6px; transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.btn-download { background: var(--app-surface-2); border: 1px solid var(--app-border); color: var(--app-text-muted); }
+.btn-download:hover { color: var(--app-accent); border-color: var(--app-accent); background: var(--app-surface); }
+.btn-ghost { background: transparent; color: var(--app-text-muted); border-color: var(--app-border); }
+.btn-ghost:hover { color: var(--app-text); background: var(--app-surface-2); }
+.export-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.export-overlay.show { opacity: 1; }
+.export-spinner {
+  background: var(--app-surface); border: 1px solid var(--app-border);
+  border-radius: 14px; padding: 16px 24px; font-size: 14px; font-weight: 600;
+  color: var(--app-text); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center; z-index: 10001;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: auto; }
+.modal-dialog {
+  background: var(--app-surface); border: 1px solid var(--app-border);
+  border-radius: 16px; padding: 24px; width: 360px; max-width: 90%;
+  display: flex; flex-direction: column; gap: 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+.modal-dialog h4 { font-size: 16px; font-weight: 700; color: var(--app-text); }
+.modal-dialog p { font-size: 13px; color: var(--app-text-muted); line-height: 1.5; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-actions .btn { padding: 0 16px; height: 36px; font-size: 12px; border-radius: 8px; }
+.btn-danger { background: transparent; color: #FF3B30; border-color: #FF3B30; }
+.btn-danger:hover { background: #FF3B30; color: #FFFFFF; }
+.toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(20,20,26,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  color: #F5F5F7; border-radius: 14px; padding: 14px 28px; font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; gap: 10px; z-index: 10000; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.toast .toast-icon { font-size: 18px; }
+.toast .toast-message { margin-right: 4px; }
+@media (max-width: 1000px) {
+  .workspace { flex-direction: column; }
+  .preview-frame { min-width: auto; width: 100%; justify-content: center; }
+  .panel { width: 100%; position: static; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <main class="workspace">
+    <section class="preview-frame" id="previewFrame">
+      <div class="export-overlay" id="exportOverlay">
+        <div class="export-spinner">⏳ Подготовка PNG…</div>
+      </div>
+      <div class="preview-stage" id="previewStage">
+        <div class="brochure-mount" id="brochure">
+          <div class="page" id="page">
+            <div class="fl-header">
+              <div class="date-block">
+                <div class="date-pill">01.04.2026 – 31.08.2026</div>
+                <div class="period-label">Период акции</div>
+              </div>
+              <div class="logo-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15863.41 7050.41" fill="none">
+                  <path fill="#ffffff" d="M5999.61 3602.66c-38.14,749.81 -655.33,1366.82 -1405.14,1404.72 -25.03,1.23 -50.09,1.9 -75.02,1.9 -393.27,0 -772.94,-156.13 -1051.5,-434.69 -296.25,-296.29 -453.98,-706.9 -432.71,-1126.58 37.96,-749.67 654.98,-1366.86 1404.75,-1405.01 419.71,-21.46 830.54,136.36 1126.87,432.72 296.36,296.32 454.12,707.08 432.75,1126.94zm133.78 -161.88c-41.53,-817.49 -714.38,-1490.24 -1531.84,-1531.59 -27.32,-1.41 -54.68,-2.08 -81.93,-2.08 -428.73,0 -842.62,170.16 -1146.35,473.82 -323.01,322.97 -495.01,770.72 -471.89,1228.28 41.35,817.49 714.1,1490.39 1531.59,1531.95 457.79,23.54 905.56,-148.69 1228.64,-471.82 323.08,-323.08 495.04,-770.89 471.78,-1228.57zm1777.12 -11.06l-506.11 0 0 -539.01 506.11 0c149.12,0 301.55,30.6 301.55,257.51 0,197.35 -90.21,281.49 -301.55,281.49zm685.16 605.98c-33.42,-247.5 -151.12,-392.03 -349.87,-429.69l-36.69 -6.94 35.91 -10.18c257.52,-72.98 382.7,-232.91 382.7,-488.84 0,-360.67 -240.63,-528.6 -757.25,-528.6l-827.41 0c-14.42,0 -26.15,11.74 -26.15,26.15l0 1855.17c0,14.42 11.73,26.16 26.15,26.16l335.18 0c14.42,0 26.16,-11.74 26.16,-26.16l0 -703.88 405.78 0c251.67,0 357.32,84.71 389.79,312.54l63.45 395.46c2.05,12.76 12.9,22.03 25.8,22.03l339.02 0c7.57,0 14.81,-3.32 19.74,-9.02 5.01,-5.72 7.23,-13.29 6.18,-20.8l-58.49 -413.4zm-3217.13 125.89c3.81,2.22 8.07,3.81 17.98,3.81 8.98,0 23.58,-6.32 30.18,-15.37 90.8,-146.15 211.97,-372.16 211.48,-639.93 -0.71,-391.4 -228.26,-773.99 -583.35,-986.88 102.65,137.13 160.82,298.58 160.82,449.32 0,220.89 -126.31,443.76 -337.85,596.14 -5.44,3.95 -8.99,10.19 -9.73,17.07 -0.74,6.94 1.38,13.6 6,18.72l504.49 557.12zm-1015.72 -1762.32c-44.6,0 -92.61,6.91 -146.82,21.11 -491.27,132.12 -834.42,580.15 -834.42,1089.64 0,622.17 506.15,1128.32 1128.28,1128.32 170.98,0 335.35,-37.33 488.59,-111.05 10.82,-6.03 18.16,-18.72 18.16,-32.15 0,-8 -2.5,-15.52 -7.4,-22.35 -176.5,-240.87 -352.41,-482.07 -528.32,-723.26l-104.16 -142.88c-13.86,-16.33 -22.03,-39.13 -22.03,-61.97 0,-34.03 17.24,-65.08 46.11,-82.99l192.27 -123.13c183.45,-111.15 276.02,-309.97 241.79,-518.95 -33.99,-207.53 -184.45,-365.38 -392.64,-411.92 -25.13,-5.68 -51.11,-8.42 -79.38,-8.42zm6475.2 695.91c-339.58,0 -511.76,145.2 -511.76,431.59 0,264 174.18,403.57 503.75,403.57l184.16 0c134.2,0 188.95,38.53 188.95,133.03 0,84.47 -51.33,132.94 -140.87,132.94l-631.72 0.88c-14.38,0 -26.09,11.74 -26.09,26.16l0 229.41c0,14.42 11.74,26.16 26.16,26.16l623.6 0c339.48,0 511.62,-145.2 511.62,-431.59 0,-261.5 -176.89,-399.72 -511.62,-399.72l-176.18 0c-134.21,0 -188.99,-39.62 -188.99,-136.78 0,-84.54 51.4,-133.04 140.98,-133.04l641.41 -4.58c14.35,-0.11 26.01,-11.81 26.01,-26.12l0 -225.76c0,-14.42 -11.74,-26.16 -26.19,-26.16l-633.23 0zm1398.27 0c-339.58,0 -511.79,145.2 -511.79,431.59 0,264 174.21,403.57 503.75,403.57l184.16 0c134.23,0 188.98,38.53 188.98,133.03 0,84.47 -51.36,132.94 -140.9,132.94l-631.58 0.88c-14.38,0 -26.09,11.74 -26.09,26.16l0 229.41c0,14.42 11.74,26.16 26.16,26.16l623.53 0c339.48,0 511.58,-145.2 511.58,-431.59 0,-261.5 -176.89,-399.72 -511.58,-399.72l-176.22 0c-134.24,0 -189.02,-39.62 -189.02,-136.78 0,-84.54 51.4,-133.04 140.98,-133.04l641.44 -4.58c14.31,-0.11 25.98,-11.81 25.98,-26.12l0 -225.76c0,-14.42 -11.74,-26.16 -26.16,-26.16l-633.23 0zm-3050 9.83l-320.1 0.07c-14.41,0 -26.15,11.74 -26.15,26.16l0 823.77c0,295.59 240.48,536.12 536.11,536.12l221.67 0c295.58,0 536.11,-240.52 536.11,-536.12l0 -823.77c0,-14.42 -11.73,-26.16 -26.15,-26.16l-320.1 0c-14.41,0 -26.15,11.74 -26.15,26.16l0 836.18c0,132.65 -107.87,240.52 -240.52,240.52l-68.07 0c-132.58,0 -240.49,-107.87 -240.49,-240.52l0 -836.22c0,-14.45 -11.74,-26.19 -26.15,-26.19z"/>
+      </svg>
+              </div>
+            </div>
+            <div class="title-card">
+              <div class="main-title">АКЦИЯ <span class="accent-word">3+1</span></div>
+              <div class="sub-main">Заключи договор на 3 стороны —<br>получи 1 в подарок</div>
+              <div class="kratnost">Кратность: 6+2 и 9+3</div>
+            </div>
+            <div class="grid2">
+              <div class="card">
+                <div class="label"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/><circle cx="15" cy="15" r="1.2"/></svg>Участвуют</div>
+                <div class="value-lg">Все форматы*</div>
+                <div class="note" style="margin-bottom:6px">*кроме исключений</div>
+                <div class="excluded-box">
+                  <div class="excluded-label">Не учитываются бонусом</div>
+                  <div class="excluded-formats">DSS · SS · MF</div>
+                </div>
+                <div class="note">DSS — цифровой суперсайт<br>SS — статичный суперсайт<br>MF — медиафасад</div>
+                <div class="manager-note">Подробности уточняйте<br>у своего менеджера</div>
+              </div>
+              <div class="card">
+                <div class="label"><svg class="icon" viewBox="0 0 24 24"><path d="M20 12v8H4v-8M12 3v12m-4-4l4 4 4-4"/></svg>В подарок</div>
+                <div class="value-lg">BB или DBB</div>
+                <div style="font-size:22px;font-weight:700;margin:8px 0 10px;color:var(--text-secondary)">(½ или ¼ выходов)*</div>
+                <div class="note">BB — статика 3×6<br>DBB — экран 3×6</div>
+                <div class="divider"></div>
+                <div class="bonus-highlight"><span class="percent-highlight">+25%</span> охвата<br>за те же деньги</div>
+                <div class="note" style="margin-top:18px">*За коммерцию 1 728 выходов — бонус ½ (864 выхода),<br>за 864 выхода — бонус ¼ (432 выхода)</div>
+              </div>
+            </div>
+            <div class="contacts-card">
+              <div class="contacts-heading">Свяжитесь с менеджером</div>
+              <div class="manager-signature" id="brochureManager">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--orange);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Максим Сорокин
+              </div>
+              <div class="phone" id="brochurePhone">+7 905 333-55-22</div>
+              <div class="email">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="brochureEmail">msorokin@rwb.ru</span>
+              </div>
+              <div class="cta-button">+ 1 БОНУСНАЯ СТОРОНА В ПОДАРОК</div>
+            </div>
+            <div class="conf">
+              <div class="conf-inner">
+                <svg class="conf-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div class="conf-text">Коммерческая информация является частной и конфиденциальной. Не предназначена для публикации в СМИ и социальных сетях.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <aside class="panel">
+      <div class="panel-section">
+        <div class="section-title">Оформление</div>
+        <div class="theme-switch">
+          <button type="button" id="themeLight" class="active">☀️ Светлая</button>
+          <button type="button" id="themeDark">🌙 Тёмная</button>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-title">Контакты менеджера</div>
+        <div class="field" id="fieldManager">
+          <label for="inputManager">ФИО менеджера</label>
+          <input type="text" id="inputManager" value="Максим Сорокин" placeholder="Максим Сорокин" autocomplete="off">
+          <div class="helper">Только русские буквы, пробел, дефис</div>
+        </div>
+        <div class="field" id="fieldPhone">
+          <label for="inputPhone">Телефон</label>
+          <input type="tel" id="inputPhone" value="+7 905 333-55-22" placeholder="+7 905 333-55-22" autocomplete="off">
+          <div class="helper">+7 XXX XXX-XX-XX, только цифры</div>
+        </div>
+        <div class="field" id="fieldEmail">
+          <label for="inputEmail">E-mail</label>
+          <input type="email" id="inputEmail" value="msorokin@rwb.ru" placeholder="msorokin@rwb.ru" autocomplete="off">
+          <div class="helper">Латинские буквы, цифры, @ . _ - +</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-title">Действия</div>
+        <div class="actions">
+          <button type="button" class="btn btn-download" id="btnDownload">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Скачать PNG
+          </button>
+          <button type="button" class="btn btn-ghost" id="btnReset">↺ Сброс к умолчаниям</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+<div class="modal-overlay" id="resetModal">
+  <div class="modal-dialog">
+    <h4>Сбросить контактные данные?</h4>
+    <p>Это действие нельзя отменить. Контактные данные будут сброшены.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelReset">Отмена</button>
+      <button class="btn btn-danger" id="confirmReset">Сбросить</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"><span class="toast-icon">⚠️</span><span class="toast-message"></span></div>
+
+<script>
+(function(){
+  const DEFAULTS = { manager: 'Максим Сорокин', phone: '+7 905 333-55-22', email: 'msorokin@rwb.ru', theme: 'light' };
+  const STORAGE_KEY = 'constructor_3plus1_v3';
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const RUSSIAN_NAMES_RE = /^[А-Яа-яЁё\s-]+$/;
+  const AUTOSAVE_DELAY = 600;
+
+  const $ = id => document.getElementById(id);
+  const inputManager = $('inputManager'), inputPhone = $('inputPhone'), inputEmail = $('inputEmail');
+  const fieldManager = $('fieldManager'), fieldPhone = $('fieldPhone'), fieldEmail = $('fieldEmail');
+  const outManager = $('brochureManager'), outPhone = $('brochurePhone'), outEmail = $('brochureEmail');
+  const themeLightBtn = $('themeLight'), themeDarkBtn = $('themeDark'), btnDownload = $('btnDownload'), btnReset = $('btnReset');
+  const toastEl = document.getElementById('toast'), resetModal = $('resetModal'), cancelResetBtn = $('cancelReset'), confirmResetBtn = $('confirmReset');
+  const brochureMount = $('brochure'), page = $('page'), previewStage = $('previewStage'), exportOverlay = $('exportOverlay');
+  let lastSavedState = {}, saveTimeout = null;
+
+  function transliterate(name) {
+    const map = {
+      'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+      'А':'A','Б':'B','В':'V','Г':'G','Д':'D','Е':'E','Ё':'Yo','Ж':'Zh','З':'Z','И':'I','Й':'Y','К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P','Р':'R','С':'S','Т':'T','У':'U','Ф':'F','Х':'Kh','Ц':'Ts','Ч':'Ch','Ш':'Sh','Щ':'Shch','Ъ':'','Ы':'Y','Ь':'','Э':'E','Ю':'Yu','Я':'Ya'
+    };
+    return name.split('').map(c => map[c] || c).join('');
+  }
+  function getLastName() {
+    const val = inputManager.value.trim() || DEFAULTS.manager;
+    const parts = val.split(/\s+/);
+    return transliterate(parts[parts.length - 1]) || 'Sorokin';
+  }
+
+  function updatePreviewHeight() {
+    const t = brochureMount.style.transform; brochureMount.style.transform = 'none';
+    const h = page.scrollHeight; brochureMount.style.transform = t;
+    brochureMount.style.height = h + 'px';
+    previewStage.style.height = (h * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--preview-scale'))) + 'px';
+  }
+  window.addEventListener('load', updatePreviewHeight);
+  new ResizeObserver(() => updatePreviewHeight()).observe(page);
+
+  function showToast(msg) {
+    toastEl.querySelector('.toast-message').textContent = msg;
+    toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 3000);
+  }
+  function markInvalid(el) { el.classList.add('has-error'); setTimeout(() => el.classList.remove('has-error'), 500); }
+  function vManager() { return inputManager.value.trim() !== '' && RUSSIAN_NAMES_RE.test(inputManager.value.trim()); }
+  function vPhone() { const d = inputPhone.value.replace(/\D/g, ''); return d.length === 11 && d.startsWith('7'); }
+  function vEmail() { return EMAIL_RE.test(inputEmail.value.trim()); }
+  function applyDefault(field, def, fn) { if (field.value.trim() === '') { field.value = def; fn(); scheduleAutoSave(); } }
+  function runValidation() {
+    let ok = true;
+    if (!vManager()) { markInvalid(fieldManager); ok = false; }
+    if (!vPhone()) { markInvalid(fieldPhone); ok = false; }
+    if (!vEmail()) { markInvalid(fieldEmail); ok = false; }
+    if (!ok) showToast('Проверьте контактные данные');
+    return ok;
+  }
+  function fmtPhone(d) {
+    d = d.replace(/\D/g, ''); if (d.startsWith('8')) d = '7' + d.slice(1);
+    d = d.startsWith('7') ? d.slice(0, 11) : '7' + d.slice(0, 10);
+    if (d.length < 2) return '+7';
+    let p1 = d.slice(1,4), p2 = d.slice(4,7), p3 = d.slice(7,9), p4 = d.slice(9,11);
+    return `+7${p1?' '+p1:''}${p2?' '+p2:''}${p3?'-'+p3:''}${p4?'-'+p4:''}`.trim();
+  }
+  function phoneInput(e) {
+    let inp = e.target, cp = inp.selectionStart, raw = inp.value, digits = raw.replace(/\D/g, '');
+    let f = fmtPhone(digits); inp.value = f;
+    inp.setSelectionRange(cp + (f.length - raw.length), cp + (f.length - raw.length));
+    renderPhone(); scheduleAutoSave();
+  }
+  function managerInput(e) { let v = e.target.value, f = v.replace(/[^А-Яа-яЁё\s-]/g, ''); if (f !== v) e.target.value = f; renderManager(); scheduleAutoSave(); }
+  function emailInput(e) { let v = e.target.value, f = v.replace(/[^A-Za-z0-9@._\-+]/g, ''); if (f !== v) e.target.value = f; renderEmail(); scheduleAutoSave(); }
+  function esc(s) { return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+  function renderManager() {
+    let n = inputManager.value.trim() || DEFAULTS.manager;
+    outManager.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--orange);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${esc(n)}`;
+  }
+  function renderPhone() { outPhone.textContent = inputPhone.value.trim() || DEFAULTS.phone; }
+  function renderEmail() { outEmail.textContent = inputEmail.value.trim() || DEFAULTS.email; }
+  function renderAll() { renderManager(); renderPhone(); renderEmail(); }
+  function getFields() { return { manager: inputManager.value, phone: inputPhone.value, email: inputEmail.value }; }
+  function saveNow() { const d = getFields(); localStorage.setItem(STORAGE_KEY + '_fields', JSON.stringify(d)); lastSavedState = { ...d }; }
+  function scheduleAutoSave() { if (saveTimeout) clearTimeout(saveTimeout); saveTimeout = setTimeout(saveNow, AUTOSAVE_DELAY); }
+  window.addEventListener('beforeunload', () => { if (saveTimeout) clearTimeout(saveTimeout); saveNow(); });
+  function loadFields() {
+    let s = localStorage.getItem(STORAGE_KEY + '_fields');
+    if (s) { try { let d = JSON.parse(s); inputManager.value = d.manager || DEFAULTS.manager; inputPhone.value = d.phone || DEFAULTS.phone; inputEmail.value = d.email || DEFAULTS.email; } catch(e){} }
+    else { inputManager.value = DEFAULTS.manager; inputPhone.value = DEFAULTS.phone; inputEmail.value = DEFAULTS.email; }
+    lastSavedState = getFields(); renderAll();
+  }
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeLightBtn.classList.toggle('active', t === 'light'); themeDarkBtn.classList.toggle('active', t === 'dark');
+    localStorage.setItem(STORAGE_KEY + '_theme', t);
+  }
+  themeLightBtn.addEventListener('click', () => applyTheme('light'));
+  themeDarkBtn.addEventListener('click', () => applyTheme('dark'));
+  function showModal() { resetModal.classList.add('show'); }
+  function hideModal() { resetModal.classList.remove('show'); }
+  cancelResetBtn.addEventListener('click', hideModal);
+  resetModal.addEventListener('click', e => { if (e.target === resetModal) hideModal(); });
+  btnReset.addEventListener('click', showModal);
+  confirmResetBtn.addEventListener('click', () => {
+    inputManager.value = DEFAULTS.manager; inputPhone.value = DEFAULTS.phone; inputEmail.value = DEFAULTS.email;
+    renderAll(); applyTheme(DEFAULTS.theme); localStorage.removeItem(STORAGE_KEY + '_fields');
+    lastSavedState = getFields(); hideModal(); showToast('Данные сброшены');
+  });
+
+  async function downloadPNG() {
+    if (btnDownload.disabled) return;
+    if (!runValidation()) return;
+    btnDownload.disabled = true;
+    exportOverlay.classList.add('show');
+    document.body.classList.add('export-mode');
+    const origTransform = brochureMount.style.transform;
+    const origOverflow = previewStage.style.overflow;
+    brochureMount.style.transform = 'none';
+    previewStage.style.overflow = 'visible';
+    void page.offsetHeight;
+    try {
+      const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-page').trim() || '#FFFFFF';
+      const canvas = await html2canvas(page, {
+        width: 1080,
+        height: page.scrollHeight,
+        scale: window.devicePixelRatio > 1 ? 2 : 1,
+        backgroundColor: bgColor,
+        useCORS: true,
+        logging: false
+      });
+      const lastName = getLastName();
+      canvas.toBlob(b => {
+        const u = URL.createObjectURL(b);
+        const l = document.createElement('a');
+        l.href = u;
+        l.download = `aktsiya-3plus1_${lastName}.png`;
+        document.body.appendChild(l);
+        l.click();
+        document.body.removeChild(l);
+        URL.revokeObjectURL(u);
+      });
+    } catch(e) {
+      console.error(e);
+      showToast('Ошибка экспорта');
+    } finally {
+      brochureMount.style.transform = origTransform;
+      previewStage.style.overflow = origOverflow;
+      document.body.classList.remove('export-mode');
+      exportOverlay.classList.remove('show');
+      btnDownload.disabled = false;
+    }
+  }
+  btnDownload.addEventListener('click', downloadPNG);
+  document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); downloadPNG(); } });
+
+  inputManager.addEventListener('input', managerInput);
+  inputPhone.addEventListener('input', phoneInput);
+  inputEmail.addEventListener('input', emailInput);
+  inputManager.addEventListener('blur', () => { if (!vManager()) markInvalid(fieldManager); applyDefault(inputManager, DEFAULTS.manager, renderManager); });
+  inputPhone.addEventListener('blur', () => { if (!vPhone()) markInvalid(fieldPhone); applyDefault(inputPhone, DEFAULTS.phone, renderPhone); });
+  inputEmail.addEventListener('blur', () => { if (!vEmail()) markInvalid(fieldEmail); applyDefault(inputEmail, DEFAULTS.email, renderEmail); });
+
+  let savedTheme = localStorage.getItem(STORAGE_KEY + '_theme');
+  applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  loadFields(); renderAll(); updatePreviewHeight();
+})();
+</script>
+</body>
+</html>
