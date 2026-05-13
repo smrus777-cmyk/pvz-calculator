@@ -1,1 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Страница не найдена | RUSS · Волгоград</title>
+  <meta name="theme-color" content="#0A0A0C">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      background: #0A0A0C;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #FFFFFF;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 32px;
+    }
+
+    .logo span {
+      color: #EA580C;
+    }
+
+    .code {
+      font-size: 140px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #EA580C 0%, #FF8A4C 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .desc {
+      font-size: 16px;
+      color: #9A9AA4;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(234, 88, 12, 0.12);
+      border: 1px solid rgba(234, 88, 12, 0.3);
+      border-radius: 40px;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #EA580C;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .home-btn:hover {
+      background: rgba(234, 88, 12, 0.25);
+      border-color: #EA580C;
+      transform: translateY(-2px);
+    }
+
+    .home-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    @media (max-width: 768px) {
+      .code { font-size: 100px; }
+      .title { font-size: 24px; }
+      .desc { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">RUSS<span>.</span></div>
+  <div class="code">404</div>
+  <div class="title">Страница не найдена</div>
+  <div class="desc">
+    Возможно, страница была удалена,<br>
+    перемещена или вы перешли по неверной ссылке.
+  </div>
+  <a href="/" class="home-btn">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Вернуться на главную
+  </a>
+</div>
+</body>
+</html>
