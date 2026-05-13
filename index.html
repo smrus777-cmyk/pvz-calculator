@@ -3,239 +3,321 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор</title>
-  <meta name="description" content="Инструменты для расчёта стоимости рекламы в ПВЗ. Калькуляторы Lite, Pro и специальные акции.">
+  <title>RUSS — профессиональный инструментарий для расчёта рекламы</title>
+  <meta name="description" content="RUSS предлагает три специализированных инструмента: профессиональный калькулятор Pro, лёгкую версию Lite и конструктор акций. Рассчитайте стоимость размещения за секунды.">
   <meta name="theme-color" content="#0A0A0C">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
       background: #0A0A0C;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #FFFFFF;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px 20px;
+      padding: 40px 24px;
     }
+
     .container {
-      max-width: 640px;
+      max-width: 1280px;
       width: 100%;
       margin: 0 auto;
     }
-    /* Шапка */
+
+    /* Header */
     .header {
       text-align: center;
-      margin-bottom: 48px;
+      margin-bottom: 64px;
     }
+
     .logo {
-      font-size: 48px;
+      font-size: 64px;
       font-weight: 800;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
     }
+
     .logo span {
       color: #EA580C;
     }
+
     .badge {
       display: inline-block;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 30px;
-      padding: 6px 16px;
-      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 40px;
+      padding: 8px 24px;
+      font-size: 14px;
       font-weight: 500;
       color: #9A9AA4;
+      margin-bottom: 32px;
+    }
+
+    .title {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
       margin-bottom: 24px;
     }
-    .title {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      letter-spacing: -0.3px;
-    }
+
     .subtitle {
-      font-size: 16px;
+      font-size: 18px;
       color: #9A9AA4;
-      line-height: 1.5;
-      max-width: 480px;
+      line-height: 1.6;
+      max-width: 640px;
       margin: 0 auto;
     }
-    /* Карточки */
-    .cards {
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-bottom: 80px;
+    }
+
+    .card {
+      background: rgba(18, 18, 24, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 32px;
+      padding: 40px 32px;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      text-decoration: none;
       display: flex;
       flex-direction: column;
       gap: 20px;
-      margin-bottom: 48px;
     }
-    .card {
-      background: rgba(18, 18, 24, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 24px;
-      padding: 24px;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-      text-decoration: none;
-      display: block;
-    }
+
     .card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(234,88,12,0.3);
+      transform: translateY(-6px);
+      border-color: rgba(234, 88, 12, 0.3);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
     }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
+
     .card-icon {
-      width: 44px;
-      height: 44px;
-      background: rgba(234,88,12,0.12);
-      border-radius: 14px;
+      width: 64px;
+      height: 64px;
+      background: rgba(234, 88, 12, 0.12);
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .card-icon svg {
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       stroke: #EA580C;
       stroke-width: 1.8;
       fill: none;
     }
+
     .card-title {
-      font-size: 20px;
+      font-size: 28px;
       font-weight: 700;
       color: #FFFFFF;
+      letter-spacing: -0.5px;
     }
+
     .card-desc {
-      font-size: 14px;
+      font-size: 16px;
       color: #9A9AA4;
-      line-height: 1.5;
-      margin-bottom: 12px;
+      line-height: 1.6;
     }
+
     .card-meta {
-      font-size: 12px;
-      color: #EA580C;
-      font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #EA580C;
+      margin-top: 8px;
     }
+
     .card-meta svg {
-      width: 14px;
-      height: 14px;
+      width: 18px;
+      height: 18px;
       stroke: currentColor;
+      stroke-width: 2;
     }
-    /* Футер */
+
+    /* Footer */
     .footer {
       text-align: center;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 48px;
       margin-top: 20px;
     }
-    .status {
+
+    .footer-text {
       font-size: 13px;
       color: #6A6A78;
-      margin-bottom: 16px;
+      line-height: 1.6;
     }
-    .status a {
+
+    .footer-text a {
       color: #EA580C;
       text-decoration: none;
-      border-bottom: 1px dotted rgba(234,88,12,0.4);
+      border-bottom: 1px dotted rgba(234, 88, 12, 0.4);
     }
+
     .copyright {
       font-size: 11px;
       color: #4A4A52;
+      margin-top: 16px;
     }
-    @media (max-width: 480px) {
-      body { padding: 24px 16px; }
-      .logo { font-size: 36px; }
-      .title { font-size: 24px; }
-      .card { padding: 20px; }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 24px 16px;
+      }
+      .logo {
+        font-size: 48px;
+      }
+      .title {
+        font-size: 36px;
+      }
+      .subtitle {
+        font-size: 16px;
+      }
+      .cards-grid {
+        gap: 20px;
+      }
+      .card {
+        padding: 28px 24px;
+      }
+      .card-title {
+        font-size: 24px;
+      }
     }
   </style>
+  
+  <!-- Schema.org микроразметка для главной страницы (чтобы ИИ и поисковики понимали структуру) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "RUSS Professional Tools",
+    "url": "https://russ-volgograd.ru",
+    "description": "Инструменты для профессионального расчёта стоимости рекламы: Pro-калькулятор, Lite-версия и конструктор акций.",
+    "creator": {
+      "@type": "Person",
+      "name": "Maxim Sorokin",
+      "email": "smrus@yandex.ru"
+    },
+    "hasPart": [
+      {
+        "@type": "WebPage",
+        "name": "Pro Calculator",
+        "url": "https://russ-volgograd.ru/calculator-pro/",
+        "description": "Расширенный калькулятор с настройкой по дням и тарифам день/ночь."
+      },
+      {
+        "@type": "WebPage",
+        "name": "Lite Calculator",
+        "url": "https://russ-volgograd.ru/calculator-lite/",
+        "description": "Быстрый расчёт стоимости по базовым параметрам."
+      },
+      {
+        "@type": "WebPage",
+        "name": "Акция 3+1",
+        "url": "https://russ-volgograd.ru/promotions/3plus1/",
+        "description": "Специальные условия: 3 стороны + 1 в подарок."
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <div class="logo">RUSS<span>.</span></div>
-    <div class="badge">ПВЗ Калькулятор · Beta</div>
-    <div class="title">Инструменты для расчёта<br>стоимости рекламы</div>
+    <div class="badge">Professional Toolkit</div>
+    <div class="title">Инструменты для<br>расчёта рекламы</div>
     <div class="subtitle">
-      Прозрачные формулы, реальные ставки.<br>
-      Сейчас доступны три рабочих инструмента.
+      Три специализированных инструмента для точного планирования бюджета.<br>
+      Выберите подходящий.
     </div>
   </div>
 
-  <div class="cards">
-    <!-- Lite -->
-    <a href="/calculator-lite/" class="card">
-      <div class="card-header">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-        </div>
-        <div class="card-title">Lite · Калькулятор</div>
+  <div class="cards-grid">
+    <!-- Pro Calculator -->
+    <a href="/calculator-pro/" class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="9" y1="1" x2="9" y2="23"/>
+          <line x1="15" y1="1" x2="15" y2="23"/>
+        </svg>
       </div>
+      <div class="card-title">Pro</div>
       <div class="card-desc">
-        Базовая версия. Часы вещания, частота выходов, мгновенный расчёт цены с НДС.
+        Расширенный калькулятор. Выбор часов по дням недели, отдельные тарифы день/ночь, детальная статистика.
       </div>
       <div class="card-meta">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        Перейти к калькулятору
+        Открыть калькулятор
       </div>
     </a>
 
-    <!-- Pro -->
-    <a href="/calculator-pro/" class="card">
-      <div class="card-header">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="card-title">Pro · Расширенный</div>
+    <!-- Lite Calculator -->
+    <a href="/calculator-lite/" class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+        </svg>
       </div>
+      <div class="card-title">Lite</div>
       <div class="card-desc">
-        Дополнительные параметры, гибкие настройки. Для детального планирования бюджета.
+        Быстрый расчёт. Выберите часы вещания, частоту выходов — получите стоимость с НДС за секунды.
       </div>
       <div class="card-meta">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        Перейти к расширенной версии
+        Открыть калькулятор
       </div>
     </a>
 
     <!-- Акция 3+1 -->
     <a href="/promotions/3plus1/" class="card">
-      <div class="card-header">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
-        </div>
-        <div class="card-title">Акция 3+1</div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
       </div>
+      <div class="card-title">Акция 3+1</div>
       <div class="card-desc">
-        Специальное предложение: условия размещения, бонусные выходы.
+        Специальное предложение. Заключи договор на 3 стороны — получи 1 в подарок. Условия и бонусы.
       </div>
       <div class="card-meta">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        Подробнее об акции
+        Подробнее
       </div>
     </a>
   </div>
 
   <div class="footer">
-    <div class="status">
-      Сайт в развитии · Основная страница будет оформлена позже.
-      <br>Разработка — <a href="mailto:smrus@yandex.ru">Максим Сорокин</a>, RUSS Volgograd
+    <div class="footer-text">
+      Разработка — <a href="mailto:smrus@yandex.ru">Максим Сорокин</a>, RUSS Volgograd
     </div>
     <div class="copyright">
-      ПВЗ Калькулятор Lite · v8.28
+      Pro Calculator · Lite Calculator · Акция 3+1
     </div>
   </div>
 </div>
