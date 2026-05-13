@@ -23,6 +23,25 @@
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  .section-title-main {
+  font-size: 13px;
+  color: var(--app-text);
+}
+
+.panel-intro {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--app-accent);
+
+  background: var(--app-surface-2);
+  border: 1px solid var(--app-border);
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  margin-top: -2px;
+}
 
   /* ========== ТЕМЫ (Apple‑calm) ========== */
   :root[data-theme="dark"] {
@@ -469,7 +488,14 @@ overflow: hidden;
     <!-- Панель управления -->
     <aside class="panel">
       <div class="panel-section">
-        <div class="section-title">Оформление</div>
+        <div class="section-title section-title-main">
+  ⚙️ Настройка флаера
+</div>
+
+<div class="panel-intro">
+  Заполните поля ниже,<br>
+  чтобы изменить флаер
+</div>
         <div class="theme-switch">
           <button type="button" id="themeLight" class="active">☀️ Светлая</button>
           <button type="button" id="themeDark">🌙 Тёмная</button>
