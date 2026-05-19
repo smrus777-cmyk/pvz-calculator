@@ -81,6 +81,48 @@
              DEV: оранжевая полоса скрыта (display:none, код сохранён).
              Reset через 5 быстрых тапов на бейдж версии (Apple HIG паттерн).
              Body padding-top: 112px→72px (без DEV-полосы).
+             v9.2.1 — Motion Tokens Foundation:
+             Добавлены 6 CSS-переменных дизайн-системы анимаций:
+             --ease-standard (Material iOS, 90% случаев),
+             --ease-emphasis (Apple Wallet, важные движения),
+             --ease-decel (decelerated, collapse-анимации),
+             --dur-fast/medium/slow (150/280/500ms).
+             Никуда не применены — только фундамент.
+             Применение в v9.2.2 («Унификация Easing+Duration»).
+             Памятка дизайн-системы расширена до 3 разделов
+             (Radius · Border · Motion). Визуально идентично v9.1.6.
+             v9.2.2 — Motion Unification (применение токенов):
+             ~44 точки CSS переведены на var(--ease-*) + var(--dur-*).
+             5 разных easing-кривых → 2 системных (standard + emphasis + decel).
+             8+ длительностей → 3 (fast 150ms / medium 280ms / slow 500ms).
+             Спец-анимации (keyframes, slider bounce, demoShake, expand 2100ms,
+             collapse 700ms, animateCounter, autoScrollReveal) НЕ тронуты —
+             у них собственный смысл (микро-haptic / wow-эффект).
+             Apple HIG 2024: «Use system motion tokens consistently».
+             Визуально: некоторые анимации чуть быстрее/медленнее на 20-30ms —
+             это норма, направление Apple-стандарта.
+             JS не тронут совсем. Памятка дизайн-системы синхронизирована.
+             v9.2.3 — Bug Fixes:
+             PNG: нормализация пробелов в .card-title клоне — устранён двойной
+             пробел «📷 Часы  вещания» на мобиле (Nubia RedMagic). Причина:
+             JS ставит ' Часы вещания' (ведущий пробел) + HTML пробел между
+             SVG и текстом → flex/gap в live UI съедает, html2canvas — нет.
+             Light mode preset-chip hover: усилен контраст 0.05→0.08,
+             border 0.10→0.16 — Apple HIG light mode hover норма.
+             v9.2.4 — PNG Fix Definitive:
+             ОТКАТ v9.2.3 пробел-фикса (был мёртвый код — DevTools подтвердил
+             один пробел в DOM). Истинная причина разрыва: letter-spacing:0.2px
+             в cssText hoursTitleEl. fixLetterSpacing не успевал — конкуренция
+             cssText vs style.letterSpacing при inline-приоритете.
+             Решение: убрать источник — letter-spacing:0.2px → normal в cssText.
+             v9.2.5 — Mobile Price Auto-Fit (Google Fonts race condition fix):
+             Проблема: prepareMobileFontSizeForFinalValue вызывается синхронно
+             до загрузки Montserrat → замер с системным шрифтом → font-size
+             зафиксирован → Montserrat загружается (он уже system) → ellipsis.
+             Fix A: document.fonts.ready в init() — пересчёт mobile font-size
+             после гарантированной загрузки шрифта. try/catch для старых Android.
+             Fix B: SAFETY_PX=6 в _runMobileFontFit — запас 6px (Montserrat
+             шире system на ~4-6%). Десктоп adjustResultFontSize не тронут.
   ================================================
 -->
 <!DOCTYPE html>
@@ -88,7 +130,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v9.1.6</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v9.2.5</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -200,6 +242,67 @@
       --border-thin:   1px;     /* дефолт — нейтральное состояние */
       --border-medium: 1.5px;   /* акцент — selected, error, active */
       --border-thick:  2px;     /* фокус — focus-ring (резерв) */
+
+      /* ============================================
+         RUSS MOTION SYSTEM v1 · v9.2.1
+         Утверждённая дизайн-система анимаций.
+         Основа Apple HIG (iOS / macOS Sonoma).
+
+         До v9.2 в проекте было 5 разных easing-кривых
+         и 8+ длительностей — стихийный рост.
+         Эта система сводит всё к 2 кривым × 3 длительности.
+
+         ────────────────────────────────────────────
+         EASING (кривые ускорения/торможения):
+
+         --ease-standard   — для большинства transitions.
+           Material-кривая Apple iOS (settings, sliders).
+           Используется в 90% случаев: hover, focus, color, scale.
+
+         --ease-emphasis   — для важных, эмоциональных движений.
+           Apple Wallet curve (карточки, sheets, modals).
+           Используется для: expand/collapse футера, share-sheet,
+           больших layout-transitions где нужно «дыхание».
+
+         --ease-decel      — deceleration (быстрый старт → плавный стоп).
+           Material decelerated curve. Используется для:
+           collapse-анимаций (старт сразу с тапом, мягкая остановка).
+
+         ────────────────────────────────────────────
+         DURATION (длительности):
+
+         --dur-fast    — 150ms — hover, focus, color-change, micro.
+         --dur-medium  — 280ms — transform, transition элементов.
+         --dur-slow    — 500ms — масштабные expand/collapse, sheets.
+
+         Раньше использовались: 120, 140, 150, 180, 200, 250, 300, 350,
+         450, 900, 1300, 2100ms. После v9.2.2 останутся ТОЛЬКО эти три.
+
+         ────────────────────────────────────────────
+         ПРАВИЛА (Apple HIG):
+
+         1. Один transition = один смысл.
+            Не комбинируй "fast + emphasis" — это противоречит идее
+            (emphasis по определению медленнее).
+
+         2. Если новый паттерн не вписывается — НЕ добавляй четвёртую
+            кривую/длительность. Спроси: «Это правда новый паттерн
+            или я просто не нашёл подходящего?».
+
+         3. Спец-анимации (slider bounce, presetPop, shake) могут
+            использовать собственные значения — это допустимо, если
+            они часть микро-взаимодействия (haptic-like).
+
+         4. Применение начинается с v9.2.2. Сейчас (v9.2.1) —
+            только фундамент. Никаких применений в стилях.
+         ============================================ */
+      --ease-standard:  cubic-bezier(0.4, 0.0, 0.2, 1);    /* Material iOS — 90% случаев */
+      --ease-emphasis:  cubic-bezier(0.32, 0.72, 0, 1);    /* Apple Wallet — важные движения */
+      --ease-decel:     cubic-bezier(0.0, 0.0, 0.2, 1);    /* Decelerated — collapse-анимации */
+
+      --dur-fast:       150ms;   /* hover, focus, color */
+      --dur-medium:     280ms;   /* transform, элементы */
+      --dur-slow:       500ms;   /* expand/collapse, sheets */
     }
 
     :root.light-mode {
@@ -274,7 +377,7 @@
         cursor: pointer;
         user-select: none;
         -webkit-user-select: none;
-        transition: color 200ms, background 200ms, border-color 200ms, transform 200ms;
+        transition: color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); /* v9.2.2 */
         white-space: nowrap;
         text-align: center;
       }
@@ -371,7 +474,7 @@
       width: 100%;
       scrollbar-width: none;
       -ms-overflow-style: none;
-      transition: background-color 0.3s ease;
+      transition: background-color var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
     body::-webkit-scrollbar { width: 0; height: 0; }
     .scroll-area { width: 100%; overflow-x: hidden; }
@@ -392,7 +495,7 @@
       background: var(--bg);
       display: flex; flex-direction: column;
       align-items: center; justify-content: flex-end;
-      transition: opacity 0.45s ease;
+      transition: opacity var(--dur-medium) var(--ease-standard); /* v9.2.2 */
       overflow: hidden;
     }
     .ob-overlay.ob-hidden { opacity: 0; pointer-events: none; }
@@ -421,7 +524,7 @@
       align-items: center; justify-content: center;
       padding: 0 32px 16px;
       opacity: 0; transform: translateX(52px);
-      transition: opacity 0.36s ease, transform 0.36s ease;
+      transition: opacity var(--dur-medium) var(--ease-standard), transform var(--dur-medium) var(--ease-standard); /* v9.2.2 */
       pointer-events: none;
     }
     .ob-slide.ob-active {
@@ -481,7 +584,7 @@
     .ob-dot {
       width: 6px; height: 6px; border-radius: 3px;
       background: var(--border-input);
-      transition: width 0.28s ease, background 0.28s ease;
+      transition: width var(--dur-medium) var(--ease-standard), background var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
     .ob-dot.ob-dot-active { width: 24px; background: var(--orange); }
 
@@ -493,7 +596,7 @@
       font-size: 16px; font-weight: 700; letter-spacing: 0.2px;
       cursor: pointer;
       box-shadow: 0 4px 20px rgba(234,88,12,0.28);
-      transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+      transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     .ob-btn:hover  { box-shadow: 0 8px 28px rgba(234,88,12,0.38); } /* v9.1.0: translateY убран — Apple CTA не прыгает */
     .ob-btn:active { transform: scale(0.97); opacity: 0.9; }
@@ -507,7 +610,7 @@
       /* Оригинальные стили */
       font-size: 13px; color: var(--text-muted);
       cursor: pointer; padding: 6px 12px; border-radius: 8px;
-      transition: color 0.18s ease, background 0.18s ease;
+      transition: color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     .ob-skip:hover { color: var(--text-secondary); background: var(--inverse-bg); }
     /* Видимый фокус для Tab-навигации (WCAG 2.1) */
@@ -524,7 +627,7 @@
       position: fixed; top:0; left:0; right:0; bottom:0;
       background: var(--bg); z-index:3000;
       display: flex; flex-direction:column; align-items:center; justify-content:center;
-      padding: 24px; overflow:hidden; transition: opacity 0.5s ease, background-color 0.3s ease; opacity:1;
+      padding: 24px; overflow:hidden; transition: opacity var(--dur-slow) var(--ease-standard), background-color var(--dur-medium) var(--ease-standard); opacity:1; /* v9.2.2 */
     }
     .fullscreen-prompt.hidden { opacity:0; pointer-events:none; }
     .fullscreen-prompt::before {
@@ -544,7 +647,7 @@
     .prompt-subtitle { color:var(--text-secondary); font-size:16px; }
     .prompt-version { color:var(--text-secondary); font-size:10px; opacity:0.5; margin-top:2px; }
     .prompt-promise { color:var(--text-muted); font-size:12px; font-weight:400; text-align:center; max-width:280px; line-height:1.4; margin-bottom:28px; position:relative; z-index:1; }
-    .prompt-continue-link { color:var(--orange); font-size:14px; font-weight:600; text-decoration:none; border-bottom:1px solid rgba(234,88,12,0.3); padding-bottom:4px; cursor:pointer; transition:border-color 0.2s; position:relative; z-index:1; }
+    .prompt-continue-link { color:var(--orange); font-size:14px; font-weight:600; text-decoration:none; border-bottom:1px solid rgba(234,88,12,0.3); padding-bottom:4px; cursor:pointer; transition:border-color var(--dur-fast) var(--ease-standard); position:relative; z-index:1; } /* v9.2.2 */
     .prompt-continue-link:hover { border-color:var(--orange); }
     .prompt-swipe-indicator { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); width:48px; height:5px; background:var(--border-input); border-radius:3px; opacity:0.6; animation:fadeInSwipe 0.8s ease-out forwards; }
     @keyframes fadeInSwipe { 0% { opacity:0; } 100% { opacity:1; } }
@@ -556,7 +659,7 @@
       padding:12px 12px 8px;
       padding-top:calc(12px + env(safe-area-inset-top));
       border-bottom:1px solid var(--border-subtle);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
+      transition: background-color var(--dur-medium) var(--ease-standard), border-color var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
     .header-row { display:flex; align-items:center; gap:8px; }
     .logo { font-weight:800; font-size:28px; letter-spacing:2px; color:var(--text-primary); }
@@ -565,7 +668,7 @@
       background:var(--inverse-bg); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
       border:var(--border-thin) solid var(--border-btn); border-radius:var(--radius-chip); padding:4px 12px;
       font-size:11px; font-weight:500; color:var(--text-secondary); margin-left:auto; white-space:nowrap;
-      transition:background 0.2s, color 0.2s; cursor:default; line-height:1.4;
+      transition:background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); cursor:default; line-height:1.4; /* v9.2.2 */
     }
     .badge:hover { background:rgba(234,88,12,0.06); color:var(--text-accent); }
     .badge-full { display:inline; }
@@ -579,7 +682,7 @@
     .fullscreen-btn, .theme-btn {
       position:relative; background:var(--inverse-bg); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
       border:var(--border-thin) solid var(--border-btn); border-radius:var(--radius-icon-btn); width:36px; height:36px; padding:8px;
-      display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s ease; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all var(--dur-fast) var(--ease-standard); flex-shrink:0; /* v9.2.2 */
       color:var(--text-secondary);
     }
     .fullscreen-btn::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; background:transparent; }
@@ -600,7 +703,7 @@
     }
 
     .theme-btn .icon-sun, .theme-btn .icon-moon {
-      position: absolute; width: 20px; height: 20px; transition: opacity 0.3s ease, transform 0.3s ease;
+      position: absolute; width: 20px; height: 20px; transition: opacity var(--dur-medium) var(--ease-standard), transform var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
     .light-mode .theme-btn .icon-sun { opacity:1; transform: rotate(0deg); }
     .light-mode .theme-btn .icon-moon { opacity:0; transform: rotate(90deg); }
@@ -629,7 +732,7 @@
       border:var(--border-thin) solid var(--tooltip-border); border-radius:var(--radius-tooltip); padding:7px 12px;
       font-family:'Montserrat', sans-serif; font-size:12px; font-weight:500; line-height:1.4; color:var(--tooltip-text);
       box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.10);
-      text-align:center; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity 0.2s ease;
+      text-align:center; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       z-index:11000; max-width:280px; margin:0;
       text-transform:none; letter-spacing:normal; display:block; bottom:-34px; top:auto;
     }
@@ -646,7 +749,7 @@
       background:var(--tooltip-bg); backdrop-filter:blur(12px) saturate(160%); -webkit-backdrop-filter:blur(12px) saturate(160%); /* v9.1.1 */
       border:var(--border-thin) solid var(--tooltip-border); border-radius:var(--radius-tooltip); padding:8px 16px;
       font-size:13px; font-weight:500; color:var(--tooltip-text); z-index:10000; opacity:0; pointer-events:none;
-      transition:opacity 0.25s, transform 0.25s;
+      transition:opacity var(--dur-medium) var(--ease-standard), transform var(--dur-medium) var(--ease-standard); /* v9.2.2 */
       box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.10);
       white-space:nowrap; max-width:calc(100% - 32px);
     }
@@ -661,7 +764,7 @@
       background:var(--tooltip-bg); border:var(--border-thin) solid var(--tooltip-border);
       border-radius:var(--radius-field); padding:14px 18px 14px 16px;
       z-index:10001; opacity:0; pointer-events:none;
-      transition:opacity 0.3s, transform 0.3s;
+      transition:opacity var(--dur-medium) var(--ease-standard), transform var(--dur-medium) var(--ease-standard); /* v9.2.2 */
       box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.10);
       backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%);
       max-width:320px; width:calc(100% - 32px);
@@ -677,16 +780,16 @@
     .card {
       background:var(--bg-card); border:var(--border-thin) solid var(--border-subtle); border-radius:var(--radius-card);
       padding:16px 18px;
-      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      transition: background-color var(--dur-medium) var(--ease-standard), border-color var(--dur-medium) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       box-shadow: var(--shadow-soft);
     }
     .card:hover { box-shadow: var(--shadow-medium); } /* v9.0.7: translateY убран — нет дёрга */
     .card-title {
       font-size:14px; font-weight:600; text-transform:none; letter-spacing:0.2px; color:var(--text-secondary); /* v9.1.3: uppercase→none, 1px→0.2px — Apple 2024 Title Case */
       margin-bottom:12px; display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px;
-      transition:background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      transition:background-color var(--dur-medium) var(--ease-standard), border-color var(--dur-medium) var(--ease-standard), color var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
-    .card-title svg { width:20px; height:20px; stroke:var(--icon-color); stroke-width:2; fill:none; transition: stroke 0.3s ease; }
+    .card-title svg { width:20px; height:20px; stroke:var(--icon-color); stroke-width:2; fill:none; transition: stroke var(--dur-medium) var(--ease-standard); } /* v9.2.2 */
     .card-title.hours-warning { color:var(--warning); background-color:rgba(212,149,107,0.06); border-left:2px solid var(--warning); } /* v9.1.3: 3px→2px — тоньше, взрослее */
     .input-group { margin-bottom:12px; }
     .input-group:last-child { margin-bottom:0; }
@@ -718,7 +821,7 @@
       user-select: none;
       -webkit-user-select: none;
       white-space: nowrap;
-      transition: opacity 200ms ease;
+      transition: opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       z-index: 1;
       /* Soft mask: если цифра подползает, она уходит под фоновую плашку */
       background: linear-gradient(to right, transparent 0px, var(--bg-input) 6px, var(--bg-input) 100%);
@@ -774,7 +877,7 @@
       opacity: 0.35; /* v9.1.1: 0.6→0.35 — линия в покое тише (Apple iOS паттерн) */
       border-radius: 99px;
       pointer-events: none;
-      transition: height 150ms ease, opacity 200ms ease;
+      transition: height var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8px, black calc(100% - 8px), transparent 100%);
       mask-image: linear-gradient(to right, transparent 0%, black 8px, black calc(100% - 8px), transparent 100%);
     }
@@ -799,7 +902,7 @@
       border-radius: 99px;
       pointer-events: none;
       opacity: 0.85; /* v9.0.7: заливка видна в покое (Apple iOS паттерн) */
-      transition: height 150ms ease, opacity 200ms ease;
+      transition: height var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8px, black 100%);
       mask-image: linear-gradient(to right, transparent 0%, black 8px, black 100%);
     }
@@ -821,9 +924,9 @@
       pointer-events: none;    /* трек ловит события, thumb — нет */
       opacity: 1; /* v9.0.7: бегунок всегда виден */
       z-index: 2;
-      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
-                  box-shadow 150ms ease,
-                  opacity 150ms ease;
+      transition: transform var(--dur-fast) var(--ease-standard),
+                  box-shadow var(--dur-fast) var(--ease-standard),
+                  opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     .slider-track-wrap.is-dragging .slider-thumb {
       transform: translate(-50%, -50%) scale(1.3);
@@ -843,7 +946,7 @@
       height: 0;
       pointer-events: none;    /* весь контейнер не интерактивный */
       opacity: 0;
-      transition: opacity 200ms ease;
+      transition: opacity var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     .slider-track-wrap.is-dragging .slider-ticks { opacity: 1; }
     .slider-ticks.fade-out { opacity: 0; }
@@ -886,7 +989,7 @@
     .input-field {
       width:100%; background:var(--bg-input); border:var(--border-thin) solid var(--border-input); border-radius:var(--radius-field); padding:14px 60px 14px 16px;
       font-family:'Montserrat', sans-serif; font-size:16px; font-weight:500; color:var(--text-primary); outline:none;
-      transition:border-color 0.2s, background-color 0.2s, box-shadow 0.2s; -moz-appearance:textfield; appearance:textfield;
+      transition:border-color var(--dur-fast) var(--ease-standard), background-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); -moz-appearance:textfield; appearance:textfield; /* v9.2.2 */
     }
     .input-field::-webkit-outer-spin-button, .input-field::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
     .input-field:hover { border-color: var(--border-input-hover); }
@@ -897,7 +1000,7 @@
     .warning-message {
       background-color:rgba(255,59,48,0.1); border:var(--border-medium) solid var(--error); border-radius:var(--radius-field); padding:14px 16px; margin-bottom:12px;
       color:var(--error); font-size:14px; font-weight:500; display:flex; align-items:center; gap:10px; overflow:hidden;
-      transition:max-height 0.35s ease, opacity 0.35s ease, padding 0.35s ease, margin 0.35s ease;
+      transition:max-height var(--dur-medium) var(--ease-standard), opacity var(--dur-medium) var(--ease-standard), padding var(--dur-medium) var(--ease-standard), margin var(--dur-medium) var(--ease-standard); /* v9.2.2 */
       max-height:300px; opacity:1;
     }
     .warning-message.hidden { max-height:0; opacity:0; padding-top:0; padding-bottom:0; margin-top:0; margin-bottom:0; border-color:transparent; }
@@ -907,7 +1010,7 @@
     .hours-count {
       padding:4px 12px; border-radius:100px; font-size:14px; font-weight:600; line-height:1;
       border:var(--border-medium) solid transparent;
-      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      transition: background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     /* v9.1.4: нет выбора — нейтральный серый, не кричит */
     .hours-count.is-zero {
@@ -935,7 +1038,7 @@
     .hour-btn {
       background:var(--bg-input); border:var(--border-thin) solid var(--border-input); border-radius:var(--radius-button); padding:12px 4px;
       font-family:'Montserrat', sans-serif; font-size:14px; font-weight:600; color:var(--text-primary); text-align:center; cursor:pointer;
-      transition:background 0.18s ease, border-color 0.18s ease, color 0.18s ease; user-select:none; width:100%; flex:1 1 0; /* v9.1.2: 150→180ms Apple норма */
+      transition:background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); user-select:none; width:100%; flex:1 1 0; /* v9.2.2 (v9.1.2: 150→180ms Apple норма) */
     }
     .hour-btn:hover { background:rgba(255,255,255,0.05); } /* v9.1.2: тёмная тема — чуть светлее */
     .light-mode .hour-btn:hover { background:rgba(0,0,0,0.05); } /* v9.1.2: светлая тема — тёмный оттенок (был белый = невидимо) */
@@ -949,7 +1052,7 @@
     .reset-inline-btn {
       background:var(--inverse-bg); border:var(--border-thin) solid var(--border-input); border-radius:var(--radius-button); padding:12px 4px;
       font-family:'Montserrat', sans-serif; font-size:14px; font-weight:600; color:var(--text-secondary);
-      display:flex; align-items:center; justify-content:center; gap:6px; width:100%; cursor:pointer; transition:all 0.18s; /* v9.1.5: серый — действие не результат */
+      display:flex; align-items:center; justify-content:center; gap:6px; width:100%; cursor:pointer; transition:all var(--dur-fast) var(--ease-standard); /* v9.2.2 (v9.1.5: серый — действие не результат) */
     }
     .reset-inline-btn svg { width:16px; height:16px; stroke:currentColor; stroke-width:2; fill:none; }
     .reset-inline-btn:hover { background:var(--bg-input); border-color:var(--border-input-hover); color:var(--text-primary); } /* v9.1.5: hover серый */
@@ -962,7 +1065,7 @@
       font-size: 12px;
       color: var(--text-muted);
       line-height: 1.5;
-      transition: border-color 200ms ease; /* v9.0 polish: плавный fade при drag */
+      transition: border-color var(--dur-fast) var(--ease-standard); /* v9.2.2 (v9.0 polish: плавный fade при drag) */
     }
     /* v9.0 polish: во время drag скрываем border-top info-text
        (тики визуально совпадали с линией — Apple HIG: временное доминирует над постоянным) */
@@ -981,7 +1084,7 @@
     .result-card {
       background:var(--result-card-bg); border:var(--border-thin) solid var(--result-card-border);
       border-radius:var(--radius-card); padding:14px 16px 14px; position:relative;
-      transition:padding 0.35s ease, box-shadow 0.3s ease, transform 0.2s ease;
+      transition:padding var(--dur-medium) var(--ease-standard), box-shadow var(--dur-medium) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       box-shadow: var(--shadow-medium);
     }
     .result-meta,
@@ -991,15 +1094,15 @@
       overflow: hidden;
       max-height: 200px;
       opacity: 1;
-      transition: max-height 0.9s ease, opacity 0.6s ease, margin 0.9s ease; /* v8.46.1: синхронно с .result-mobile-layout */
+      transition: max-height var(--dur-slow) var(--ease-emphasis), opacity var(--dur-slow) var(--ease-emphasis), margin var(--dur-slow) var(--ease-emphasis); /* v9.2.2 (v8.46.1: синхронно с .result-mobile-layout) */
     }
     /* footer-bottom: без overflow:hidden — иначе hover email-кнопки обрезается */
     .footer-bottom {
       max-height: 200px;
       opacity: 1;
-      transition: max-height 0.9s ease, opacity 0.6s ease, margin 0.9s ease; /* v8.46.1: синхронно с .result-mobile-layout */
+      transition: max-height var(--dur-slow) var(--ease-emphasis), opacity var(--dur-slow) var(--ease-emphasis), margin var(--dur-slow) var(--ease-emphasis); /* v9.2.2 (v8.46.1: синхронно с .result-mobile-layout) */
     }
-    .result-card { transition: padding 0.9s ease, box-shadow 0.3s ease, transform 0.2s ease; } /* v8.46.1: синхронно с ростом карточки */
+    .result-card { transition: padding var(--dur-slow) var(--ease-emphasis), box-shadow var(--dur-medium) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); } /* v9.2.2 (v8.46.1: синхронно с ростом карточки) */
     .sticky-footer.is-compact .result-meta { max-height: 0; opacity: 0; overflow: hidden; }
     .sticky-footer.is-compact .result-card { padding: 10px 16px 10px; height: auto; }
     .sticky-footer.is-compact .result-divider { max-height: 0; opacity: 0; margin: 0; }
@@ -1067,7 +1170,7 @@
         cursor: pointer;
         color: rgba(234,88,12,0.75);                 /* mid-orange icon — узнаваемость без агрессии */
         -webkit-tap-highlight-color: transparent;
-        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+        transition: background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       }
       .snapshot-btn-mobile:active {
         transform: scale(0.94);
@@ -1087,7 +1190,7 @@
     .contact-icon {
       position:relative; display:inline-flex; align-items:center; justify-content:center;
       width:34px; height:34px; background:var(--inverse-bg); border:var(--border-thin) solid var(--border-btn);
-      border-radius:var(--radius-icon-btn); cursor:pointer; transition:all 0.2s; flex-shrink:0; color:var(--text-muted);
+      border-radius:var(--radius-icon-btn); cursor:pointer; transition:all var(--dur-fast) var(--ease-standard); flex-shrink:0; color:var(--text-muted); /* v9.2.2 */
     }
     .contact-icon svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; fill:none; }
     .contact-icon:hover { background:rgba(255,255,255,0.08); border-color:var(--border-input-hover); color:var(--text-primary); opacity:1; transform:scale(1.03); } /* v9.1.6: серый hover — Color Discipline завершена */
@@ -1099,10 +1202,10 @@
       background:var(--inverse-bg); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
       border:var(--border-thin) solid var(--border-btn); border-radius:var(--radius-button); color:var(--text-secondary);
       font-family:'Montserrat', sans-serif; font-size:12px; font-weight:600; cursor:pointer;
-      transition:all 0.18s; display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; letter-spacing:0.2px; outline:none;
+      transition:all var(--dur-fast) var(--ease-standard); display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; letter-spacing:0.2px; outline:none; /* v9.2.2 */
     }
     .preset-chip:hover { border-color:rgba(255,255,255,0.14); color:var(--text-accent); background:rgba(255,255,255,0.04); } /* v9.1.1: без orange hover */
-    .light-mode .preset-chip:hover { border-color:rgba(0,0,0,0.10); color:var(--text-secondary); background:rgba(0,0,0,0.05); } /* v9.1.3: светлая тема — был невидим */
+    .light-mode .preset-chip:hover { border-color:rgba(0,0,0,0.16); color:var(--text-secondary); background:rgba(0,0,0,0.08); } /* v9.2.3: bg 0.05→0.08, border 0.10→0.16 — Apple HIG light mode hover норма */
     .preset-chip:active { transform:scale(0.97); }
     .preset-chip.active { border-color:rgba(234,88,12,0.40); color:var(--orange); background:rgba(234,88,12,0.08); } /* v9.1.1: active тише */
     .preset-chip svg { width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none; flex-shrink:0; }
@@ -1111,7 +1214,7 @@
       display:inline-flex; align-items:center; justify-content:center;
       width:15px; height:15px; margin-left:3px; border-radius:50%;
       background:rgba(120,120,130,0.15); color:var(--text-secondary); font-size:10px; font-weight:700;
-      cursor:pointer; vertical-align:middle; position:relative; transition:background 0.2s, color 0.2s;
+      cursor:pointer; vertical-align:middle; position:relative; transition:background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     .info-tooltip-trigger:hover, .info-tooltip-trigger.popover-visible { background:rgba(120,120,130,0.30); color:var(--text-primary); } /* v9.1.5: серый hover, не оранжевый */
     .info-popover {
@@ -1119,7 +1222,7 @@
       background:var(--tooltip-bg); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
       border:var(--border-thin) solid var(--tooltip-border); border-radius:var(--radius-field); padding:14px 16px;
       font-size:12px; line-height:1.55; color:var(--tooltip-text); text-align:left;
-      box-shadow:var(--shadow-soft); opacity:0; visibility:hidden; transition:opacity 0.2s, visibility 0.2s; z-index:50;
+      box-shadow:var(--shadow-soft); opacity:0; visibility:hidden; transition:opacity var(--dur-fast) var(--ease-standard), visibility var(--dur-fast) var(--ease-standard); z-index:50; /* v9.2.2 */
       pointer-events:auto; font-weight:400; max-width:calc(100vw - 32px);
     }
     .info-popover::after { content:''; position:absolute; border:5px solid transparent; }
@@ -1164,11 +1267,13 @@
         max-height: 400px;
         opacity: 1;
         overflow: hidden;
-        transition:
-          max-height 2100ms cubic-bezier(0.32, 0.72, 0, 1),
-          opacity    1300ms cubic-bezier(0.32, 0.72, 0, 1),
-          margin     2100ms cubic-bezier(0.32, 0.72, 0, 1); /* v8.46.5: премиум-раскрытие 2100ms — выверено визуально на устройстве,
-   цена и расчётные значения бегут синхронно с ростом контейнера (дыхание). */
+        /* v9.2.2: ПРЕМИУМ-WOW expand сохранён — 2100ms выверены визуально на устройстве.
+         Это спец-анимация (wow-эффект футера), оправдывающая отклонение от --dur-slow.
+         Easing унифицирован: --ease-emphasis (Apple Wallet curve). */
+      transition:
+          max-height 2100ms var(--ease-emphasis),
+          opacity    1300ms var(--ease-emphasis),
+          margin     2100ms var(--ease-emphasis);
       }
 
       /* Compact-режим: схлопываем mobile-layout с анимацией */
@@ -1182,10 +1287,13 @@
            иллюзия задержки. Длительности 700/500/700ms синхронны с animateCounter
            (800ms). !important обязателен — базовый transition .result-mobile-layout
            перекрывает иначе. */
+        /* v9.2.2 (v8.46.5 сохранено): collapse через --ease-decel (Material decel).
+           Длительности 700/500/700ms — спец-значения, синхрон с animateCounter (800ms).
+           !important обязателен — базовый transition .result-mobile-layout перекрывает иначе. */
         transition:
-          max-height 700ms cubic-bezier(0.0, 0.0, 0.2, 1),
-          opacity    500ms cubic-bezier(0.0, 0.0, 0.2, 1),
-          margin     700ms cubic-bezier(0.0, 0.0, 0.2, 1) !important;
+          max-height 700ms var(--ease-decel),
+          opacity    500ms var(--ease-decel),
+          margin     700ms var(--ease-decel) !important;
       }
 
       /* Типографика compact-карточки на мобилке */
@@ -1222,7 +1330,7 @@
     /* v8.45 БАГ #7: top/left/width/height вместо inset:0.
        В Firefox body{zoom:1.5} создаёт новый containing block для fixed-потомков,
        inset:0 резолвится в 0×0. 100vw/100vh игнорируют zoom — работают корректно. */
-    .share-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:3000; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity 0.25s ease; }
+    .share-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:3000; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity var(--dur-medium) var(--ease-standard); } /* v9.2.2 */
     .share-overlay.open { opacity:1; pointer-events:all; }
     .share-sheet {
       position:fixed; left: 50%; bottom: 12px;
@@ -1231,14 +1339,14 @@
       background:var(--bg-card); border-radius:var(--radius-modal);
       border:var(--border-thin) solid var(--border-subtle);
       padding:0 0 8px; z-index:3001;
-      transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
+      transition:transform var(--dur-medium) var(--ease-emphasis); /* v9.2.2 */
       pointer-events:none;
     }
     .share-sheet.open { transform: translateX(-50%) translateY(0); pointer-events:all; }
     .sheet-handle { width:36px; height:4px; background:var(--border-input); border-radius:2px; margin:10px auto 14px; }
     .sheet-title { font-size:11px; font-weight:600; color:var(--text-muted); text-align:center; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:14px; }
     .sheet-options { display:flex; flex-direction:column; gap:8px; padding:0 12px; }
-    .format-btn { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:var(--radius-button); border:var(--border-thin) solid; cursor:pointer; width:100%; text-align:left; background:transparent; transition:transform 0.12s; font-family:inherit; }
+    .format-btn { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:var(--radius-button); border:var(--border-thin) solid; cursor:pointer; width:100%; text-align:left; background:transparent; transition:transform var(--dur-fast) var(--ease-standard); font-family:inherit; } /* v9.2.2 */
     .format-btn:active { transform:scale(0.97); }
     .fmt-png { background:rgba(29,158,117,0.08); border-color:rgba(29,158,117,0.25); }
     .fmt-png:hover { background:rgba(29,158,117,0.14); border-color:rgba(29,158,117,0.45); }
@@ -1351,7 +1459,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.15s;
+      transition: background var(--dur-fast) var(--ease-standard); /* v9.2.2 */
     }
     #devResetBtn:active { background: rgba(234,88,12,0.25); }
 
@@ -1381,8 +1489,8 @@
       opacity: 0;
       pointer-events: none;
       /* Появление и исчезновение через opacity + translateY */
-      transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
-                  transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity var(--dur-medium) var(--ease-standard),
+                  transform var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
     /* Появление: translateY(8px)→0, opacity: 0→1 */
     #scrollHint.show {
@@ -1425,7 +1533,8 @@
     }
 
     /* ════════════════════════════════════════════════════
-       RUSS RADIUS & BORDER SYSTEM v1 · ПАМЯТКА · v8.39
+       RUSS DESIGN SYSTEM v1 · ПАМЯТКА · v9.2.1
+       (RADIUS · BORDER · MOTION)
        ════════════════════════════════════════════════════
 
        ШКАЛА РАДИУСОВ (используй переменные, не хардкод):
@@ -1502,6 +1611,54 @@
        Шаг 3. Если ни одна категория не подходит:
               СНАЧАЛА добавь новую переменную в :root,
               ПОТОМ используй её. Это закон проекта.
+
+       ════════════════════════════════════════════════════
+       MOTION SYSTEM v1 · v9.2.1
+       ════════════════════════════════════════════════════
+
+       ШКАЛА EASING (используй переменные, не хардкод):
+
+         var(--ease-standard)  →  Material iOS · 90% случаев
+                                  hover, focus, color, scale
+         var(--ease-emphasis)  →  Apple Wallet · важные движения
+                                  expand/collapse, sheets, modals
+         var(--ease-decel)     →  Decelerated · collapse-анимации
+                                  быстрый старт → плавный стоп
+
+       ШКАЛА DURATION:
+
+         var(--dur-fast)       →  150ms · hover, focus, color
+         var(--dur-medium)     →  280ms · transform, элементы
+         var(--dur-slow)       →  500ms · expand/collapse, sheets
+
+       ════════════════════════════════════════════════════
+       ПРАВИЛА MOTION (Apple HIG):
+
+       1. Один transition = один смысл.
+          Не комбинируй fast + emphasis — это противоречит идее.
+
+       2. НИ при каких обстоятельствах не вводи 4-ю кривую.
+          Если кажется что нужна — ты не нашёл подходящей.
+
+       3. Спец-анимации (slider bounce, presetPop, shake) могут
+          иметь собственные значения — это микро-haptic.
+
+       4. prefers-reduced-motion ВСЕГДА уважается. Если делаешь
+          новую анимацию — добавь @media reduce-motion guard.
+
+       ════════════════════════════════════════════════════
+       ДОБАВЛЕНИЕ НОВОЙ АНИМАЦИИ:
+
+       Шаг 1. Спросить себя: «Какая категория?»
+              - hover/focus/color → --dur-fast + --ease-standard
+              - transform элемента → --dur-medium + --ease-standard
+              - expand/collapse → --dur-slow + --ease-emphasis
+              - collapse (с тапа) → --dur-slow + --ease-decel
+              - микро-haptic (bounce, shake) → собственные значения
+
+       Шаг 2. Если ни одна категория не подходит:
+              99% это значит «ты не понял какая категория».
+              Перечитай. Применяй ближайшую.
 
        ════════════════════════════════════════════════════
     */
@@ -1968,7 +2125,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.1.6';
+    const APP_VERSION = 'v9.2.5';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2370,9 +2527,10 @@
       void el.offsetWidth; // forced reflow
 
       let size = MOBILE_RESULT_FONT_MAX;
+      const SAFETY_PX = 6; // v9.2.5: запас 6px — Montserrat шире system-шрифта на ~4-6%
 
       // PASS 1: подгонка по ширине
-      while (el.scrollWidth > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
+      while (el.scrollWidth + SAFETY_PX > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
         size--;
         el.style.fontSize = size + 'px';
       }
@@ -3053,7 +3211,12 @@
       footer.querySelectorAll('#snapshotBtnMobile').forEach(el => el.remove());
       footer.querySelectorAll('.contact-icon').forEach(el => el.remove());
       // ─────────────────────────────────────────────────────────────
-      if (hoursTitleEl) hoursTitleEl.style.cssText = 'font-size:13px;font-weight:600;text-transform:none;letter-spacing:0.2px;color:var(--text-secondary);margin-bottom:6px;display:flex;align-items:center;gap:8px;padding:4px 0;'; /* v9.1.5: Title Case как в UI */
+      // v9.2.4: letter-spacing:0.2px → normal — fixLetterSpacing не успевал
+      // из-за конкуренции cssText (inline) vs style.letterSpacing.
+      // Убираем источник проблемы прямо в cssText.
+      if (hoursTitleEl) hoursTitleEl.style.cssText = 'font-size:13px;font-weight:600;text-transform:none;letter-spacing:normal;color:var(--text-secondary);margin-bottom:6px;display:flex;align-items:center;gap:8px;padding:4px 0;';
+
+      // v9.2.4: блок нормализации пробелов v9.2.3 удалён — был мёртвым кодом (DevTools: один пробел в DOM)
       const hoursTimeTitleEl = calculatorBlock.querySelector('.hours-title');
       if (hoursTimeTitleEl) hoursTimeTitleEl.style.marginBottom = '8px';
       footer.querySelectorAll('.info-tooltip-trigger').forEach(el => el.remove());
@@ -3892,6 +4055,26 @@
       try { initSliders(); } catch(e) { console.warn("[v9.0] initSliders:", e); }
       updateHoursCounter();
       calculateTotal();
+
+      // v9.2.5: Google Fonts race condition fix (только мобиль).
+      // prepareMobileFontSizeForFinalValue замеряет шрифт синхронно в calculateTotal() —
+      // в этот момент Montserrat может ещё не загрузиться с Google Fonts CDN.
+      // Замер с системным шрифтом → font-size зафиксирован → Montserrat догружается
+      // (он шире system) → text-overflow:ellipsis на .result-value-mobile.
+      // После fonts.ready — пересчитываем размер с реальным шрифтом.
+      // try/catch: document.fonts не поддерживается в Chromium < 81 (старые Android).
+      try {
+        if (document.fonts && typeof document.fonts.ready !== 'undefined') {
+          document.fonts.ready.then(() => {
+            if (window.innerWidth <= 500) {
+              adjustMobileResultFontSize();
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('[v9.2.5] document.fonts.ready недоступен:', e);
+      }
+
       hoursGrid.addEventListener('click', handleHourClick);
       screensInput.addEventListener('input', handleInputChange);
       daysInput.addEventListener('input', handleInputChange);
