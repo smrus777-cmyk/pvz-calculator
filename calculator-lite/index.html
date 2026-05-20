@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.2.6
+  Продукт: ПВЗ Калькулятор Lite · v9.2.7
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -139,6 +139,10 @@
              Продукт-шапка, meta description, promptVersion, printBadge,
              badge-full, badge-short, mailto subject → все на v9.2.6.
              Добавлена памятка «9 мест для смены версии» в шапку файла.
+             v9.2.7 — Premium Font Restore:
+             Откат SAFETY_PX=6 из v9.2.5 — он уменьшал цену в ~1.5 раза.
+             Race condition решён через Fix A (document.fonts.ready, v9.2.5),
+             дополнительный пиксельный запас не нужен и ломал wow-размер цены.
   ================================================
 -->
 <!DOCTYPE html>
@@ -146,7 +150,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v9.2.6</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v9.2.7</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -158,7 +162,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v9.2.6 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v9.2.7 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1912,7 +1916,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.2.6</div>
+    <div class="prompt-version" id="promptVersion">Lite · v9.2.7</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -1922,7 +1926,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.2.6<br>Расчёт стоимости размещения</div>
+    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.2.7<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -1966,8 +1970,8 @@
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.2.6</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.2.6</span>
+      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.2.7</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.2.7</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Снимок просчёта · копируется в буфер">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2123,7 +2127,7 @@
       <!-- Snapshot — только mobile, thumb zone -->
       <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       <!-- Email — только desktop -->
-      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.2.6" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
+      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.2.7" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · smrus@yandex.ru</span>
       </a>
@@ -2141,7 +2145,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.2.6';
+    const APP_VERSION = 'v9.2.7';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2543,10 +2547,12 @@
       void el.offsetWidth; // forced reflow
 
       let size = MOBILE_RESULT_FONT_MAX;
-      const SAFETY_PX = 6; // v9.2.5: запас 6px — Montserrat шире system-шрифта на ~4-6%
 
-      // PASS 1: подгонка по ширине
-      while (el.scrollWidth + SAFETY_PX > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
+      // PASS 1: подгонка по ширине.
+      // v9.2.7: SAFETY_PX=6 удалён — он уменьшал премиальный размер цены в ~1.5 раза.
+      // Race condition Google Fonts решён через Fix A (document.fonts.ready в init()),
+      // дополнительный запас не нужен и вреден.
+      while (el.scrollWidth > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
         size--;
         el.style.fontSize = size + 'px';
       }
