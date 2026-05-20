@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.3.1
+  Продукт: ПВЗ Калькулятор Lite · v9.3.3
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -174,6 +174,18 @@
              без overflow-swap, без race conditions. Ellipsis убран с
              .result-value-mobile — proportional fit гарантирует вхождение.
              Доступная ширина берётся из parentElement (не el) — вне flex-влияния.
+             v9.3.2 — Safety Ratio Fix (₽ выпадал на вторую строку):
+             Добавлен SAFETY_RATIO=0.95 к пропорциональному расчёту.
+             Без запаса ratio=1.0 точно — subpixel rendering на реальном
+             железе даёт 1-2px разницы и ₽ съезжал вниз.
+             5% запас незаметен визуально, ₽ всегда остаётся в строке.
+             При probeWidth ≤ availableWidth safety не применяется — MAX.
+             v9.3.3 — Exact Width Fix (₽ заезжал на колонку чипов):
+             availableWidth теперь = topContainer.width - chipsCol.width - 8px gap.
+             Было: parent.getBoundingClientRect() — завышенная ширина, overflow:visible
+             позволял тексту заходить на .result-mobile-chips.
+             Стало: измеряем реальный лимит — весь ряд минус чипы минус отступ.
+             Никаких SAFETY-констант — математически точно. Убран SAFETY_RATIO.
   ================================================
 -->
 <!DOCTYPE html>
@@ -181,7 +193,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v9.3.1</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v9.3.3</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -193,7 +205,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v9.3.1 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v9.3.3 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1965,7 +1977,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.3.1</div>
+    <div class="prompt-version" id="promptVersion">Lite · v9.3.3</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -1975,7 +1987,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.3.1<br>Расчёт стоимости размещения</div>
+    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.3.3<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -2019,8 +2031,8 @@
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.3.1</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.3.1</span>
+      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.3.3</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.3.3</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Снимок просчёта · копируется в буфер">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2179,7 +2191,7 @@
       <!-- Snapshot — только mobile, thumb zone -->
       <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       <!-- Email — только desktop -->
-      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.3.1" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
+      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.3.3" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · smrus@yandex.ru</span>
       </a>
@@ -2197,7 +2209,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.3.1';
+    const APP_VERSION = 'v9.3.3';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2590,28 +2602,33 @@
     }
 
     function _runMobileFontFit(el, finalText) {
-      // v9.3.1: PROPORTIONAL FIT через hidden probe.
-      // Архитектура: вычисляем font-size ДО рендера математически.
-      // Никаких overflow-swap, while-overflow-detection, layout race conditions.
-      //
-      // Алгоритм:
-      //   1. Получаем доступную ширину через родителя (вне el — нет flex-contamination)
-      //   2. В probe (position:fixed, вне flex) меряем ширину текста при MAX font-size
-      //   3. ratio = availableWidth / probeWidth → newSize = MAX * ratio
-      //   4. Clamp: MIN ≤ newSize ≤ MAX
-      //   5. PASS 2: accent chip (DOM-layout, оставляем)
+      // v9.3.3: ТОЧНЫЙ лимит ширины — вычитаем правую колонку чипов.
+      // Проблема v9.3.1/v9.3.2: availableWidth = parent.getBoundingClientRect()
+      // давал ширину .result-mobile-left которая завышена — overflow:visible
+      // позволяет тексту выходить за границу и перекрывать колонку чипов.
+      // Решение: берём ширину .result-mobile-top (весь ряд), вычитаем
+      // ширину .result-mobile-chips (100px) и gap (8px) — это реальный лимит.
+      // Никакой SAFETY-константы — математически точно.
 
       const text = finalText !== null ? finalText : el.textContent;
       if (!text || !text.trim()) return;
 
-      // Шаг 1: доступная ширина через РОДИТЕЛЯ (не el — он flex-child)
-      // Родитель .result-mobile-left имеет flex:1 1 auto, min-width:0 —
-      // его ширина стабильна до любых изменений шрифта внутри.
-      const parent = el.parentElement;
-      if (!parent) return;
-      const parentRect = parent.getBoundingClientRect();
-      const availableWidth = Math.floor(parentRect.width);
-      if (availableWidth <= 0) return; // блок ещё не в layout — ResizeObserver поймает
+      // Шаг 1: РЕАЛЬНАЯ доступная ширина через topContainer
+      const topContainer = el.closest('.result-mobile-top');
+      if (!topContainer) return;
+      const chipsCol = topContainer.querySelector('.result-mobile-chips');
+      if (!chipsCol) return;
+
+      const topRect   = topContainer.getBoundingClientRect();
+      const chipsRect = chipsCol.getBoundingClientRect();
+
+      if (topRect.width <= 0) return; // ещё не в layout — ResizeObserver поймает
+
+      // gap между колонками = 8px (CSS .result-mobile-top { gap: 8px })
+      const GAP = 8;
+      const availableWidth = Math.floor(topRect.width - chipsRect.width - GAP);
+
+      if (availableWidth <= 0) return;
 
       // Шаг 2: probe-измерение при MAX font-size
       const probe = _getFontProbe();
@@ -2619,29 +2636,26 @@
 
       probe.style.fontSize = MOBILE_RESULT_FONT_MAX + 'px';
       probe.textContent = text;
-      void probe.offsetWidth; // forced reflow в probe (изолирован — не влияет на flex)
+      void probe.offsetWidth; // forced reflow (probe изолирован от flex)
       const probeWidth = probe.getBoundingClientRect().width;
 
       if (probeWidth <= 0) return; // шрифт ещё не загружен — fonts.ready пересчитает
 
-      // Шаг 3: пропорциональный расчёт
+      // Шаг 3: пропорциональный расчёт — точный, без магических констант
       let size;
       if (probeWidth <= availableWidth) {
-        // Текст помещается при MAX — берём максимум
-        size = MOBILE_RESULT_FONT_MAX;
+        size = MOBILE_RESULT_FONT_MAX; // влезает при MAX — берём максимум
       } else {
-        // Пропорционально уменьшаем: ratio = доступное / нужное
         const ratio = availableWidth / probeWidth;
         size = Math.floor(MOBILE_RESULT_FONT_MAX * ratio);
       }
 
-      // Шаг 4: clamp
+      // Шаг 4: clamp MIN ≤ size ≤ MAX
       size = Math.max(MOBILE_RESULT_FONT_MIN, Math.min(MOBILE_RESULT_FONT_MAX, size));
 
-      // Применяем
       el.style.fontSize = size + 'px';
 
-      // Шаг 5: PASS 2 — accent chip (реальный DOM-layout, нельзя считать математически)
+      // Шаг 5: PASS 2 — accent chip высота (DOM-layout, нельзя посчитать иначе)
       if (chipAccentMobileEl) {
         while (chipAccentMobileEl.offsetHeight < CHIP_MOBILE_HEIGHT && size > MOBILE_RESULT_FONT_MIN) {
           size--;
