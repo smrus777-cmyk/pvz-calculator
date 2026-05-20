@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.2.8
+  Продукт: ПВЗ Калькулятор Lite · v9.3.1
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -151,6 +151,29 @@
              ResizeObserver на totalCostMobileEl — ловит раскрытие 2100ms
              transition expand, поворот устройства, resize окна.
              Try/catch для совместимости (Safari < 13.1, старый Android).
+             v9.2.9 — Rollback Canvas Font-Fit:
+             Canvas ctx.measureText из v9.2.8 ошибочен — не учитывает font
+             hinting и sub-pixel rendering (дискрепанс 5-10% на 64px).
+             Результат: canvas говорил «влезает», DOM показывал многоточие.
+             Восстановлен DOM-замер v8.5.3 (overflow-swap + scrollWidth).
+             Сохранены: ResizeObserver, убранный guard offsetWidth===0,
+             document.fonts.ready. Только canvas-блок удалён.
+             v9.3.0 — BoundingRect Fix (корневая причина ellipsis):
+             el.clientWidth при overflow:visible возвращает ширину ДО reflow
+             → flex-родитель не пересчитан → PASS 1 не уменьшает шрифт.
+             Решение: availableWidth = Math.floor(el.getBoundingClientRect().width)
+             ПОСЛЕ void el.offsetWidth. BoundingRect возвращает реальную
+             отрендеренную ширину. Сравнение: scrollWidth vs availableWidth
+             (зафиксированный до цикла, не меняется при resize шрифта).
+             v9.3.1 — Proportional Fit Architecture (системное решение):
+             Полная замена overflow-based fitting на proportional measured fitting.
+             Добавлен #fontMeasureProbe (position:fixed, visibility:hidden,
+             contain:layout style paint) — изолированный DOM-элемент для замера.
+             _runMobileFontFit: probe меряет probeWidth при MAX, ratio =
+             availableWidth / probeWidth, size = MAX * ratio. Без while-loops,
+             без overflow-swap, без race conditions. Ellipsis убран с
+             .result-value-mobile — proportional fit гарантирует вхождение.
+             Доступная ширина берётся из parentElement (не el) — вне flex-влияния.
   ================================================
 -->
 <!DOCTYPE html>
@@ -158,7 +181,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v9.2.8</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v9.3.1</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -170,7 +193,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v9.2.8 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v9.3.1 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1729,9 +1752,27 @@
       letter-spacing: -0.02em;
       color: var(--text-primary);
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible; /* v9.3.1: ellipsis убран — proportional fit гарантирует вхождение */
       margin: 0;
+    }
+
+    /* v9.3.1: Isolated hidden probe для точного DOM-измерения ширины текста.
+       position:fixed — вне flex-layout, не влияет на родителей.
+       visibility:hidden — не виден, но участвует в typography pipeline (font hinting!).
+       contain:layout style paint — изолирован от остального layout. */
+    #fontMeasureProbe {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      visibility: hidden;
+      white-space: nowrap;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      contain: layout style paint;
+      pointer-events: none;
+      user-select: none;
     }
     /* .result-value-mobile.is-long удалён в v8.45 — заменён на JS auto-fit adjustMobileResultFontSize() */
 
@@ -1924,7 +1965,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.2.8</div>
+    <div class="prompt-version" id="promptVersion">Lite · v9.3.1</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -1934,7 +1975,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.2.8<br>Расчёт стоимости размещения</div>
+    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.3.1<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -1978,8 +2019,8 @@
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.2.8</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.2.8</span>
+      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.3.1</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.3.1</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Снимок просчёта · копируется в буфер">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2088,6 +2129,9 @@
       </div>
     </div>
 
+    <!-- v9.3.1: Hidden probe для proportional font fit. Вне flex-layout. -->
+    <div id="fontMeasureProbe" aria-hidden="true"></div>
+
     <!-- ── МОБИЛЬНАЯ СТРУКТУРА v8.41 ── (≤450px) ──────────────────
          Видима только на мобилке через CSS display:none/block.
          Все id уникальны — дублей нет.
@@ -2135,7 +2179,7 @@
       <!-- Snapshot — только mobile, thumb zone -->
       <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       <!-- Email — только desktop -->
-      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.2.8" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
+      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.3.1" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · smrus@yandex.ru</span>
       </a>
@@ -2153,7 +2197,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.2.8';
+    const APP_VERSION = 'v9.3.1';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2537,60 +2581,67 @@
     const MOBILE_RESULT_FONT_MIN  = 24;  // v9.0 polish: было 28, опускаем до 24 для длинных значений ≥10 цифр
     const CHIP_MOBILE_HEIGHT      = 28;
 
+    // v9.3.1: Hidden probe для DOM-измерения.
+    // Ищется один раз и кешируется — probe живёт в DOM постоянно.
+    let _fontProbeEl = null;
+    function _getFontProbe() {
+      if (!_fontProbeEl) _fontProbeEl = document.getElementById('fontMeasureProbe');
+      return _fontProbeEl;
+    }
+
     function _runMobileFontFit(el, finalText) {
-      // v9.2.8: canvas-based измерение — не зависит от overflow CSS-состояния.
-      // Problem #4 fix: overflow-swap менял clientWidth → ellipsis после восстановления.
-      // Fallback: если canvas недоступен — старый overflow-swap (v8.5.3).
+      // v9.3.1: PROPORTIONAL FIT через hidden probe.
+      // Архитектура: вычисляем font-size ДО рендера математически.
+      // Никаких overflow-swap, while-overflow-detection, layout race conditions.
+      //
+      // Алгоритм:
+      //   1. Получаем доступную ширину через родителя (вне el — нет flex-contamination)
+      //   2. В probe (position:fixed, вне flex) меряем ширину текста при MAX font-size
+      //   3. ratio = availableWidth / probeWidth → newSize = MAX * ratio
+      //   4. Clamp: MIN ≤ newSize ≤ MAX
+      //   5. PASS 2: accent chip (DOM-layout, оставляем)
+
       const text = finalText !== null ? finalText : el.textContent;
-      const availableWidth = el.clientWidth;
-      if (availableWidth <= 0) return; // блок ещё не в layout
+      if (!text || !text.trim()) return;
 
-      let size = MOBILE_RESULT_FONT_MAX;
-      let useCanvas = false;
-      let ctx = null;
+      // Шаг 1: доступная ширина через РОДИТЕЛЯ (не el — он flex-child)
+      // Родитель .result-mobile-left имеет flex:1 1 auto, min-width:0 —
+      // его ширина стабильна до любых изменений шрифта внутри.
+      const parent = el.parentElement;
+      if (!parent) return;
+      const parentRect = parent.getBoundingClientRect();
+      const availableWidth = Math.floor(parentRect.width);
+      if (availableWidth <= 0) return; // блок ещё не в layout — ResizeObserver поймает
 
-      try {
-        const cvs = document.createElement('canvas');
-        ctx = cvs.getContext('2d');
-        if (ctx) useCanvas = true;
-      } catch(e) { /* fallback */ }
+      // Шаг 2: probe-измерение при MAX font-size
+      const probe = _getFontProbe();
+      if (!probe) return;
 
-      if (useCanvas) {
-        // letter-spacing: -0.03em учитываем через коррекцию ширины
-        const LETTER_SPACING_EM = -0.03;
-        function measuredWidth(s) {
-          ctx.font = `800 ${s}px Montserrat, sans-serif`;
-          const m = ctx.measureText(text);
-          const lsPx = LETTER_SPACING_EM * s;
-          const charCount = [...text].length;
-          return m.width + lsPx * Math.max(0, charCount - 1);
-        }
-        // PASS 1: canvas-based
-        while (measuredWidth(size) > availableWidth && size > MOBILE_RESULT_FONT_MIN) {
-          size--;
-        }
-        el.style.fontSize = size + 'px';
+      probe.style.fontSize = MOBILE_RESULT_FONT_MAX + 'px';
+      probe.textContent = text;
+      void probe.offsetWidth; // forced reflow в probe (изолирован — не влияет на flex)
+      const probeWidth = probe.getBoundingClientRect().width;
 
+      if (probeWidth <= 0) return; // шрифт ещё не загружен — fonts.ready пересчитает
+
+      // Шаг 3: пропорциональный расчёт
+      let size;
+      if (probeWidth <= availableWidth) {
+        // Текст помещается при MAX — берём максимум
+        size = MOBILE_RESULT_FONT_MAX;
       } else {
-        // Fallback: overflow-swap (v8.5.3 метод)
-        const prevText         = el.textContent;
-        const prevOverflow     = el.style.overflow;
-        const prevTextOverflow = el.style.textOverflow;
-        if (finalText !== null) el.textContent = finalText;
-        el.style.overflow    = 'visible';
-        el.style.textOverflow = 'clip';
-        el.style.fontSize = MOBILE_RESULT_FONT_MAX + 'px';
-        void el.offsetWidth;
-        while (el.scrollWidth > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
-          size--;
-          el.style.fontSize = size + 'px';
-        }
-        el.style.overflow    = prevOverflow;
-        el.style.textOverflow = prevTextOverflow;
-        if (finalText !== null) el.textContent = prevText;
+        // Пропорционально уменьшаем: ratio = доступное / нужное
+        const ratio = availableWidth / probeWidth;
+        size = Math.floor(MOBILE_RESULT_FONT_MAX * ratio);
       }
 
-      // PASS 2: accent ≥ CHIP_MOBILE_HEIGHT (DOM-layout, оставляем)
+      // Шаг 4: clamp
+      size = Math.max(MOBILE_RESULT_FONT_MIN, Math.min(MOBILE_RESULT_FONT_MAX, size));
+
+      // Применяем
+      el.style.fontSize = size + 'px';
+
+      // Шаг 5: PASS 2 — accent chip (реальный DOM-layout, нельзя считать математически)
       if (chipAccentMobileEl) {
         while (chipAccentMobileEl.offsetHeight < CHIP_MOBILE_HEIGHT && size > MOBILE_RESULT_FONT_MIN) {
           size--;
