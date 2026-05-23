@@ -48,16 +48,18 @@
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
       text-rendering:optimizeLegibility;
-      /* Fade-in при загрузке */
-      opacity:0; transform:translateY(8px);
-      animation:pageIn .4s var(--ease) .05s forwards;
+      /* Видим по умолчанию — анимация опциональна */
     }
+        /* Maxim: keyframes ВНЕ @media — иначе Yandex Browser не находит их */
     @keyframes pageIn{
-      to{opacity:1;transform:translateY(0);}
+      from{opacity:0;transform:translateY(8px);}
+      to  {opacity:1;transform:translateY(0);}
     }
-    @media(prefers-reduced-motion:reduce){
-      body{animation:none;opacity:1;transform:none;}
-      *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+    /* Fade-in только когда анимации разрешены */
+    @media(prefers-reduced-motion:no-preference){
+      body{
+        animation:pageIn .4s var(--ease) .05s both;
+      }
     }
 
     /* ══ ТИХИЙ MOTION BG — из презентации */
@@ -81,39 +83,41 @@
       padding:20px 28px;
     }
     .header-logo{display:flex;align-items:center;gap:12px;}
-    .header-logo-text{
-      font-size:1.15rem;font-weight:800;letter-spacing:-.4px;color:var(--col);
+             .header-logo-text{
+      font-size:clamp(1.4rem, 1.6vw, 2rem);font-weight:800;letter-spacing:-.4px;color:var(--col);
       text-shadow:var(--ts);
     }
     .header-logo-text span{color:var(--orange);}
-    .header-badge{
-      font-size:.6rem;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;
+     .header-badge{
+      font-size:clamp(.72rem, .85vw, .9rem);font-weight:600;letter-spacing:.4px;
       color:rgba(234,88,12,.8);
       border:1px solid rgba(234,88,12,.22);
-      border-radius:20px;padding:4px 10px;
+      border-radius:20px;padding:5px 12px;
     }
-    .header-back{
-      font-size:.75rem;font-weight:600;color:rgba(255,255,255,.3);
+            .header-back{
+      font-size:clamp(.8rem, .9vw, .95rem);font-weight:500;color:rgba(255,255,255,.35);
       text-decoration:none;letter-spacing:.3px;
       transition:color .2s ease;
     }
     .header-back:hover{color:rgba(255,255,255,.6);}
     .header-back:focus-visible{outline:2px solid var(--orange);outline-offset:4px;border-radius:4px;}
 
-    /* ══ ОСНОВНОЙ LAYOUT — точно как #slide7 в v13.4 */
+    /* ══ ОСНОВНОЙ LAYOUT — двухколоночный, горизонтальный на десктопе */
     .pro-layout{
       position:relative;z-index:1;
       flex:1;display:flex;flex-direction:row;gap:10px;
       padding:0 10px 10px;
+      min-height:0; /* важно для flex */
     }
 
-    /* ══ ЛЕВАЯ КОЛОНКА — .slide7-left из v13.4 */
+        /* ══ ЛЕВАЯ КОЛОНКА — Maxim: расширил с 38vw до 45vw, padding больше */
     .pro-left{
-      width:calc((100vh - 20px)*9/17);min-width:260px;max-width:44%;flex-shrink:0;
+      width:clamp(380px, 45vw, 720px);
+      flex-shrink:0;
       background:var(--card);border:1px solid var(--border);
       border-radius:var(--r);
       display:flex;flex-direction:column;align-items:center;justify-content:center;
-      padding:32px 28px;
+      padding:clamp(32px, 4vw, 64px) clamp(28px, 3.5vw, 56px);
       position:relative;overflow:hidden;
     }
     /* Тихий glow — из .slide7-left::before */
@@ -129,35 +133,35 @@
 
     /* Переход Lite → Pro — точно из .slide7-card-transition + иконки v13.4 */
     .pro-card-transition{display:flex;align-items:center;gap:14px;margin-bottom:4px;}
-    .s7-icon-wrap{
-      display:flex;align-items:center;gap:8px;
-      padding:6px 12px 6px 8px;border-radius:8px;border:1px solid var(--border);
+        .s7-icon-wrap{
+      display:flex;align-items:center;gap:10px;
+      padding:clamp(8px, .7vw, 12px) clamp(14px, 1.2vw, 20px);border-radius:10px;border:1px solid var(--border);
     }
-    .s7-icon-wrap svg{width:18px;height:18px;flex-shrink:0;}
-    .s7-icon-wrap span{font-size:.78rem;font-weight:700;letter-spacing:.2px;text-shadow:var(--ts);}
+    .s7-icon-wrap svg{width:clamp(22px, 1.5vw, 28px);height:clamp(22px, 1.5vw, 28px);flex-shrink:0;}
+    .s7-icon-wrap span{font-size:clamp(.95rem, 1vw, 1.15rem);font-weight:700;letter-spacing:.2px;text-shadow:var(--ts);}
     .s7-icon-lite{color:rgba(255,255,255,.55);}
     .s7-icon-lite span{color:var(--sec);}
     .s7-icon-pro{color:var(--orange);border-color:rgba(234,88,12,.25);background:rgba(234,88,12,.05);}
     .s7-icon-pro span{color:var(--col);}
-    .s7-arrow{font-size:1.1rem;font-weight:700;color:rgba(234,88,12,.55);text-shadow:var(--ts);}
+        .s7-arrow{font-size:clamp(1.4rem, 1.5vw, 1.8rem);font-weight:700;color:rgba(234,88,12,.55);text-shadow:var(--ts);}
 
-    /* Eyebrow, заголовок, список — из .slide7-card-* в v13.4 */
-    .pro-card-eyebrow{
-      font-size:.62rem;font-weight:700;letter-spacing:2.8px;text-transform:uppercase;
-      color:rgba(234,88,12,.7);text-shadow:var(--ts);
-    }
-    .pro-card-title{
-      font-size:clamp(1.6rem,2.4vw,2.2rem);font-weight:900;color:var(--col);
-      letter-spacing:-.5px;line-height:1;
+        .pro-card-title{
+      font-size:clamp(2.8rem, 5vw, 5rem);font-weight:900;color:var(--col);
+      letter-spacing:-1px;line-height:1;
       text-shadow:0 2px 20px rgba(0,0,0,.3);
     }
-    .pro-card-desc{font-size:.82rem;font-weight:400;line-height:1.6;color:var(--sec);text-shadow:var(--ts);}
-    .pro-card-divider{width:32px;height:1px;background:rgba(234,88,12,.3);}
-    .pro-card-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
-    .pro-card-list li{
-      font-size:.8rem;font-weight:400;line-height:1.5;color:var(--sec);
-      text-shadow:var(--ts);padding-left:16px;position:relative;
+    .pro-card-desc{
+      font-size:clamp(1rem, 1.2vw, 1.25rem);
+      font-weight:400;line-height:1.55;color:var(--sec);text-shadow:var(--ts);
     }
+    .pro-card-divider{width:48px;height:1px;background:rgba(234,88,12,.3);}
+    .pro-card-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:clamp(12px, 1.1vw, 18px);}
+    .pro-card-list li{
+      font-size:clamp(.95rem, 1.05vw, 1.15rem);
+      font-weight:400;line-height:1.5;color:var(--sec);
+      text-shadow:var(--ts);padding-left:18px;position:relative;
+    }
+	
     .pro-card-list li::before{
       content:'';position:absolute;left:0;top:.55em;
       width:4px;height:4px;border-radius:50%;background:var(--orange);opacity:.7;
@@ -169,10 +173,10 @@
       display:flex;flex-direction:column;gap:10px;
       margin-top:4px;
     }
-    .cta-btn{
+       .cta-btn{
       display:flex;align-items:center;justify-content:center;gap:10px;
-      padding:13px 20px;border-radius:var(--rb);
-      font-family:inherit;font-size:.88rem;font-weight:700;
+      padding:clamp(13px, 1.1vw, 18px) clamp(20px, 1.6vw, 28px);border-radius:var(--rb);
+      font-family:inherit;font-size:clamp(.95rem, 1vw, 1.1rem);font-weight:700;
       text-decoration:none;cursor:pointer;
       transition:transform .18s var(--ease),box-shadow .18s var(--ease),opacity .18s ease;
     }
@@ -204,9 +208,9 @@
     .cta-divider-line{flex:1;height:1px;background:var(--border);}
     .cta-divider-text{font-size:.7rem;font-weight:500;color:var(--muted);flex-shrink:0;}
     /* Альтернатива — Lite */
-    .cta-alt-link{
-      font-size:.8rem;font-weight:600;color:rgba(234,88,12,.75);
-      text-decoration:none;text-align:center;
+       .cta-alt-link{
+      font-size:clamp(.95rem, 1vw, 1.1rem);font-weight:600;color:rgba(234,88,12,.75);
+      text-decoration:none;text-align:center;padding:8px 0;
       transition:color .18s ease;
     }
     .cta-alt-link:hover{color:var(--orange);}
@@ -226,12 +230,13 @@
       animation:bgDrift 14s ease-in-out infinite alternate;
     }
     /* Фон pro.jpg — точные параметры из .slide7-bg v13.4 */
+       /* Фон pro.jpg — Maxim: усилил блюр с 2.5px до 6px */
     .pro-bg{
       position:absolute;inset:0;width:100%;height:100%;
       object-fit:cover;
       object-position:left center;
-      filter:blur(2.5px) brightness(0.52) saturate(0.85);
-      transform:scale(1.03);
+      filter:blur(6px) brightness(0.48) saturate(0.82);
+      transform:scale(1.06);
     }
     /* Тёмная маска — из .slide7-overlay */
     .pro-overlay{
@@ -240,28 +245,23 @@
         linear-gradient(90deg,rgba(11,11,12,.3) 0%,rgba(11,11,12,.65) 55%,rgba(11,11,12,.45) 100%),
         radial-gradient(circle at 50% 50%,transparent 0%,rgba(11,11,12,.35) 100%);
     }
-    /* Контент правой колонки */
+        /* Контент правой колонки — Maxim: больше воздуха между элементами */
     .pro-content{
       position:relative;z-index:3;height:100%;
       display:flex;flex-direction:column;align-items:center;justify-content:center;
-      padding:48px;gap:20px;text-align:center;
+      padding:48px;gap:clamp(20px, 2.2vw, 32px);text-align:center;
     }
-    /* Оранжевый штрих сверху */
-    .pro-content::before{
-      content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-      width:48px;height:2px;
-      background:linear-gradient(90deg,transparent,var(--orange),transparent);
-    }
+    
     /* Бейдж — из .slide7-badge */
-    .pro-badge{
-      font-size:.66rem;font-weight:700;letter-spacing:2.8px;
+     .pro-badge{
+      font-size:clamp(.85rem, 1vw, 1.1rem);font-weight:700;letter-spacing:.5px;
       color:rgba(234,88,12,.9);
       text-shadow:0 1px 8px rgba(0,0,0,.5),0 0 20px rgba(234,88,12,.2);
     }
     .pro-badge-dot{color:rgba(234,88,12,.55);margin:0 4px;}
     /* СКОРО. — из .slide7-soon */
-    .pro-soon{
-      font-size:clamp(3rem,5.5vw,4.8rem);font-weight:900;
+   .pro-soon{
+      font-size:clamp(4rem, 9vw, 9rem);font-weight:900;
       letter-spacing:-.5px;line-height:1;color:#FFFFFF;
       text-shadow:
         0 2px 32px rgba(0,0,0,.55),
@@ -271,75 +271,105 @@
     }
     .pro-soon-dot{color:var(--orange);}
     /* Подзаголовок */
-    .pro-soon-sub{
-      font-size:.85rem;font-weight:400;color:rgba(255,255,255,.45);
-      line-height:1.5;max-width:280px;
+            .pro-soon-sub{
+      font-size:clamp(1rem, 1.15vw, 1.2rem);font-weight:400;color:rgba(255,255,255,.5);
+      line-height:1.5;max-width:520px;
       text-shadow:0 1px 4px rgba(0,0,0,.4);
     }
     /* CTA в правой колонке — Telegram */
-    .pro-right-cta{
-      display:flex;flex-direction:column;align-items:center;gap:10px;
-      margin-top:4px;width:100%;max-width:280px;
+       .pro-right-cta{
+      display:flex;flex-direction:column;align-items:center;gap:14px;
+      margin-top:4px;width:100%;max-width:clamp(280px, 26vw, 420px);
     }
-    .pro-tg-btn{
-      display:flex;align-items:center;justify-content:center;gap:9px;
-      width:100%;padding:13px 20px;border-radius:var(--rb);
+           .pro-tg-btn{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:clamp(14px, 1.2vw, 20px) clamp(20px, 1.6vw, 32px);border-radius:var(--rb);
       background:var(--orange);color:#fff;font-family:inherit;
-      font-size:.88rem;font-weight:700;text-decoration:none;
+      font-size:clamp(1rem, 1.1vw, 1.2rem);font-weight:700;text-decoration:none;
+      white-space:nowrap;
       box-shadow:0 4px 18px rgba(234,88,12,.3);
       transition:transform .18s var(--ease),box-shadow .18s var(--ease);
     }
+    .pro-tg-btn svg{width:clamp(20px, 1.4vw, 26px);height:clamp(20px, 1.4vw, 26px);flex-shrink:0;}
     .pro-tg-btn:hover{transform:scale(1.02);box-shadow:0 6px 28px rgba(234,88,12,.45);}
-    .pro-tg-btn:focus-visible{outline:2px solid #fff;outline-offset:4px;}
-    .pro-tg-btn svg{width:18px;height:18px;flex-shrink:0;}
-    .pro-right-alt{
-      font-size:.75rem;font-weight:500;color:rgba(255,255,255,.3);
+        .pro-tg-btn:focus-visible{outline:2px solid #fff;outline-offset:4px;}
+             .pro-right-alt{
+      font-size:clamp(.85rem, .95vw, 1rem);font-weight:500;color:rgba(255,255,255,.4);
+      letter-spacing:1.2px;text-transform:uppercase;
       text-shadow:0 1px 4px rgba(0,0,0,.4);
     }
     /* QR — опционально */
+       /* QR — стиль из презентации v13.5, Maxim: связан с кнопкой */
     .pro-qr-wrap{
-      display:flex;flex-direction:column;align-items:center;gap:6px;
-      margin-top:8px;
+      margin-top:clamp(1.8rem, 2.5vw, 2.8rem);
+      display:flex;flex-direction:column;align-items:center;gap:10px;
+      opacity:0;
+      animation:proQrFadeIn .8s cubic-bezier(.25,.46,.45,.94) .4s forwards;
     }
     .pro-qr-img{
-      width:clamp(100px,10vw,140px);height:clamp(100px,10vw,140px);
-      border-radius:10px;
+      width:clamp(180px, 16vw, 260px);
+      height:clamp(180px, 16vw, 260px);
+      border-radius:14px;
+      padding:10px;
+      background:rgba(255,255,255,0);
+      border:1px solid rgba(234,88,12,.25);
+      box-shadow:
+        0 4px 24px rgba(0,0,0,.4),
+        0 0 32px rgba(234,88,12,.12);
+      transition:transform .35s cubic-bezier(.25,.46,.45,.94),
+                 border-color .25s ease,
+                 box-shadow .35s ease;
+      cursor:pointer;
+      display:block;
     }
-    .pro-qr-label{font-size:.6rem;font-weight:500;letter-spacing:1px;color:rgba(255,255,255,.25);}
+    .pro-qr-img:hover{
+      transform:scale(1.04);
+      border-color:rgba(234,88,12,.5);
+      box-shadow:
+        0 6px 32px rgba(0,0,0,.5),
+        0 0 48px rgba(234,88,12,.2);
+    }
+    .pro-qr-label{
+      font-size:.62rem;font-weight:500;letter-spacing:1.6px;text-transform:uppercase;
+      color:rgba(255,255,255,.35);
+      text-shadow:0 1px 4px rgba(0,0,0,.5);
+    }
+    @keyframes proQrFadeIn{
+      from{opacity:0;transform:translateY(10px);}
+      to  {opacity:1;transform:translateY(0);}
+    }
 
-    /* ══ ПОДВАЛ */
+    /* ══ ПОДВАЛ — Maxim: тише, по-Apple-вски ненавязчиво */
     .footer{
       position:relative;z-index:10;
       padding:14px 28px;text-align:center;
-      font-size:.65rem;font-weight:500;color:rgba(255,255,255,.2);
-      letter-spacing:.5px;
+      font-size:clamp(.65rem, .72vw, .78rem);font-weight:500;
+      color:rgba(255,255,255,.18);
+      letter-spacing:.6px;
     }
 
-    /* ══ АДАПТИВ: Mobile <768px — правая СВЕРХУ */
-    @media(max-width:767px){
+    /* ══ АДАПТИВ: Mobile <640px — правая СВЕРХУ (уменьшен порог с 768 до 640) */
+    @media(max-width:639px){
       .pro-layout{
         flex-direction:column-reverse; /* правая (СКОРО.) сверху */
-        padding:0 10px 10px;
-        gap:10px;
       }
       .pro-left{
-        width:100%;max-width:100%;
-        min-height:auto;
+        width:100%;
         padding:24px 20px;
       }
       .pro-right{
-        min-height:60vw;
+        min-height:55vw;
       }
-      .pro-content{padding:32px 24px;}
+      .pro-content{padding:28px 20px;}
       .pro-soon{font-size:clamp(2.4rem,10vw,3.5rem);}
-      .header{padding:16px 20px;}
+      .header{padding:14px 18px;}
       .pro-right-cta{max-width:100%;}
     }
-    /* Tablet 768-1023 */
-    @media(min-width:768px) and (max-width:1023px){
+    /* Narrow tablet 640-900 — сохраняем две колонки, немного уже */
+    @media(min-width:640px) and (max-width:900px){
       .pro-left{
-        width:42%;
-        padding:24px 20px;
+        width:clamp(260px,44vw,360px);
+        padding:24px 18px;
       }
     }
   </style>
@@ -389,7 +419,6 @@
           </div>
         </div>
 
-        <div class="pro-card-eyebrow">Pro · Preview</div>
         <div class="pro-card-title">Pro</div>
         <div class="pro-card-desc">
           Следующий этап развития платформы.<br>
@@ -409,10 +438,11 @@
         <!-- CTA-блок (три пути — никто не уходит пустым) -->
         <div class="pro-cta-block">
           <!-- Главная: Telegram -->
-          <a href="https://t.me/S_M_R_U_S"
+                    <a href="https://t.me/S_M_R_U_S"
              target="_blank" rel="noopener noreferrer"
              class="cta-btn cta-btn-primary"
-             aria-label="Написать в Telegram">
+             aria-label="Написать в Telegram"
+             onclick="openTelegram(event)">
             <!-- Иконка Telegram -->
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
@@ -462,10 +492,11 @@
         <div class="pro-soon-sub">Готовим Pro-версию калькулятора</div>
         <!-- CTA правой колонки: только Telegram -->
         <div class="pro-right-cta">
-          <a href="https://t.me/S_M_R_U_S"
+                    <a href="https://t.me/S_M_R_U_S"
              target="_blank" rel="noopener noreferrer"
              class="pro-tg-btn"
-             aria-label="Написать в Telegram">
+             aria-label="Написать в Telegram"
+             onclick="openTelegram(event)">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
             </svg>
@@ -486,7 +517,28 @@
   <!-- ПОДВАЛ -->
   <footer class="footer">
     RUSS&nbsp;·&nbsp;Volgograd&nbsp;·&nbsp;v1.0&nbsp;·&nbsp;2026
-  </footer>
+    </footer>
+
+  <!-- Maxim: умное открытие Telegram — приложение → web fallback -->
+  <script>
+    function openTelegram(e){
+      e.preventDefault();
+      const username = 'S_M_R_U_S';
+      const appUrl = 'tg://resolve?domain=' + username;
+      const webUrl = 'https://t.me/' + username;
+      
+      // Пытаемся открыть приложение
+      const start = Date.now();
+      window.location.href = appUrl;
+      
+      // Если за 800мс ничего не открылось — fallback на web в новой вкладке
+      setTimeout(() => {
+        if (Date.now() - start < 1500) {
+          window.open(webUrl, '_blank', 'noopener,noreferrer');
+        }
+      }, 800);
+    }
+  </script>
 
 </body>
 </html>
