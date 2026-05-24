@@ -91,10 +91,39 @@
 	-webkit-font-smoothing: antialiased;
   }
 
-  .app-shell {
+    .app-shell {
     width: 100%; max-width: 90rem; margin: 0 auto;
     padding: 1.5rem;
     display: flex; flex-direction: column; gap: 1.25rem;
+  }
+
+   /* Maxim: строка с заголовком и кнопкой возврата — на одной высоте
+     Кнопка справа от "Настройка флаера" (Apple-баланс) */
+  .panel-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .app-header-back {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--app-text-muted);
+    text-decoration: none;
+    letter-spacing: 0.2px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .app-header-back:hover {
+    color: var(--app-text);
+    background: var(--app-surface-2);
+  }
+  .app-header-back:focus-visible {
+    outline: 2px solid var(--app-accent);
+    outline-offset: 2px;
   }
 
   /* ---- Главная компоновка ---- */
@@ -394,9 +423,15 @@ overflow: hidden;
   .flatpickr-weekdays { background: var(--app-surface-2) !important; }
 
   /* ========== ADAPTIVE ========== */
-  @media (max-width: 1000px) {
+    @media (max-width: 1000px) {
     .app-shell { padding: 1rem; }
     .workspace { flex-direction: column-reverse; }
+
+       /* Maxim: на мобиле кнопка чуть крупнее (HIG-комфорт) */
+    .app-header-back {
+      font-size: 13px;
+      padding: 8px 12px;
+    }
     
     .panel {
       width: 100%; position: static;
@@ -548,6 +583,9 @@ overflow: hidden;
 </head>
 <body>
 <div class="app-shell">
+  <!-- Maxim: шапка перенесена внутрь панели (рядом с "Настройка флаера") —
+       не отнимает высоту у превью -->
+
   <!-- Главный контейнер -->
   <main class="workspace" id="workspace">
     
@@ -634,10 +672,14 @@ overflow: hidden;
       </div><!-- /preview-stage -->
     </section><!-- /preview-frame -->
 
-    <!-- Панель управления -->
+        <!-- Панель управления -->
     <aside class="panel">
            <div class="panel-section">
-        <div class="section-title section-title-main">Настройка флаера</div>
+        <!-- Maxim: заголовок + кнопка возврата на одной строке (Apple-баланс) -->
+        <div class="panel-header-row">
+          <div class="section-title section-title-main">Настройка флаера</div>
+          <a href="https://russ-volgograd.ru/" class="app-header-back" aria-label="Вернуться на главную страницу сайта">← На главную</a>
+        </div>
                 <div class="theme-switch">
           <button type="button" id="themeLight" class="active">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
