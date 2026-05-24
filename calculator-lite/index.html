@@ -697,7 +697,27 @@
       transition: background-color var(--dur-medium) var(--ease-standard), border-color var(--dur-medium) var(--ease-standard); /* v9.2.2 */
     }
     .header-row { display:flex; align-items:center; gap:8px; }
-    .logo { font-weight:800; font-size:28px; letter-spacing:2px; color:var(--text-primary); }
+       /* Maxim v9.2.9-link: лого = ссылка на главную.
+       text-decoration:none — убираем подчёркивание (визуально как был div).
+       -webkit-tap-highlight-color:transparent — наследуется из *, но явно
+       подтверждаем для Android Chromium.
+       transition opacity — Apple iOS feedback (slight dim на tap).
+       :active opacity 0.6 — тактильное подтверждение тапа.
+       :focus-visible — WCAG 2.1 для Tab-навигации. */
+    .logo {
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: var(--text-primary);
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-block;
+      transition: opacity var(--dur-fast) var(--ease-standard);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .logo:hover { opacity: 0.85; }
+    .logo:active { opacity: 0.6; }
+    .logo:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; border-radius: 4px; }
     .logo span { color:var(--orange); }
     .badge {
       background:var(--inverse-bg); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
@@ -2098,7 +2118,11 @@
 
 <div class="sticky-header" id="stickyHeader">
   <div class="header-row">
-    <div class="logo">RUSS<span>.</span></div>
+    <!-- Maxim v9.2.9-link: лого в шапке = ссылка на главную сайта.
+         iOS-паттерн (App Store, Safari) — лого узнаваемое место для «домой».
+         target="_self" — открытие в том же окне (не плодим вкладки).
+         rel="noopener" — защита от tabnabbing (Safari/Chrome рекомендация). -->
+    <a href="https://russ-volgograd.ru/" class="logo" rel="noopener" aria-label="Перейти на главную сайта RUSS Volgograd">RUSS<span>.</span></a>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
       <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.2.9</span>
       <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.2.9</span>
