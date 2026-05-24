@@ -88,7 +88,7 @@
       margin-bottom: 80px;
     }
 
-    .card {
+       .card {
       background: rgba(18, 18, 24, 0.6);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -99,12 +99,30 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+
+      /* Maxim fix: убираем синий highlight при тапе/задержке/скролле на мобиле.
+         Проблема: браузер по умолчанию подсвечивает <a> синим прямоугольником.
+         Решение — 3 свойства из отраслевого стандарта (Apple, Stripe, Google). */
+      -webkit-tap-highlight-color: transparent;  /* Убирает синий тап-highlight iOS/Android */
+      -webkit-touch-callout: none;                /* Убирает контекстное меню при долгом тапе */
+      user-select: none;                          /* Убирает выделение текста при задержке */
+      -webkit-user-select: none;                  /* Префикс для Safari/старых WebKit */
     }
 
     .card:hover {
       transform: translateY(-6px);
       border-color: rgba(234, 88, 12, 0.3);
       box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Maxim fix: убираем синюю фокус-обводку после клика — у нас свой hover-эффект.
+       Но НЕ убираем focus-visible — для клавиатурной навигации (a11y). */
+    .card:focus {
+      outline: none;
+    }
+    .card:focus-visible {
+      outline: 2px solid rgba(234, 88, 12, 0.5);
+      outline-offset: 2px;
     }
 
     .card-icon {
@@ -216,6 +234,37 @@
       }
     }
 
+    /* === Бейдж «Для менеджеров RUSS» — состояние «внутренний инструмент» ===
+       Maxim: отдельный класс от .card-soon-badge — это РАЗНЫЕ состояния:
+       - card-soon-badge   = «скоро будет» (динамика, оранжевый, пульс)
+       - card-internal-badge = «для своих» (статика, серый, без пульса)
+       По Apple: цвет и поведение должны соответствовать смыслу. */
+    .card-internal-badge {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #9A9AA4;
+      text-transform: uppercase;
+    }
+    .card-internal-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #9A9AA4;
+      /* без анимации — это спокойное состояние, не событие */
+    }
+
     /* Footer */
     .footer {
       text-align: center;
@@ -264,6 +313,14 @@
       .card-title {
         font-size: 24px;
       }
+      /* На мобиле бейджи чуть меньше — чтобы не залезали на иконку */
+      .card-soon-badge,
+      .card-internal-badge {
+        top: 20px;
+        right: 20px;
+        padding: 5px 11px;
+        font-size: 11px;
+      }
     }
   </style>
   
@@ -282,15 +339,15 @@
     "hasPart": [
       {
         "@type": "WebPage",
-        "name": "Pro Calculator",
-        "url": "https://russ-volgograd.ru/calculator-pro/",
-        "description": "Расширенный калькулятор для Digital-форматов: ПВЗ, DBB, DSS, DCF, DRB, RW. Тарифы день/ночь, ролики 5 и 10 секунд, гибкое расписание и точные даты кампании."
-      },
-      {
-        "@type": "WebPage",
         "name": "Lite Calculator",
         "url": "https://russ-volgograd.ru/calculator-lite/",
         "description": "Быстрый и удобный калькулятор для формата ПВЗ."
+      },
+      {
+        "@type": "WebPage",
+        "name": "Pro Calculator",
+        "url": "https://russ-volgograd.ru/calculator-pro/",
+        "description": "Расширенный калькулятор для Digital-форматов: ПВЗ, DBB, DSS, DCF, DRB, RW. Тарифы день/ночь, ролики 5 и 10 секунд, гибкое расписание и точные даты кампании."
       },
       {
         "@type": "WebPage",
@@ -314,6 +371,35 @@
   </div>
 
   <div class="cards-grid">
+    <!-- Maxim: порядок Lite → Pro → 3+1.
+         Apple-логика: «никогда не показывай недоделанное первым».
+         Lite (готов) = доверие → Pro (тизер) = центр композиции, главный герой →
+         3+1 (готов) = бонус-подтверждение. Трёхактная структура. -->
+
+    <a href="/calculator-lite/" class="card">
+  <div class="card-icon">
+    <!-- Иконка: калькулятор (единство с презентацией v13.5) -->
+    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="3" width="14" height="18" rx="2"/>
+      <rect x="8" y="6" width="8" height="3" rx="0.5"/>
+      <circle cx="9" cy="13" r="0.9" fill="#EA580C" stroke="none"/>
+      <circle cx="12" cy="13" r="0.9" fill="#EA580C" stroke="none"/>
+      <circle cx="15" cy="13" r="0.9" fill="#EA580C" stroke="none"/>
+      <circle cx="9" cy="17" r="0.9" fill="#EA580C" stroke="none"/>
+      <circle cx="12" cy="17" r="0.9" fill="#EA580C" stroke="none"/>
+      <circle cx="15" cy="17" r="0.9" fill="#EA580C" stroke="none"/>
+    </svg>
+  </div>
+  <div class="card-title">Lite</div>
+  <div class="card-desc">
+    Только ПВЗ. Ничего лишнего. За секунды.
+  </div>
+  <div class="card-meta">
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    Открыть
+  </div>
+</a>
+
     <a href="/calculator-pro/" class="card is-soon" aria-label="Pro калькулятор — превью продукта">
   <!-- Бейдж: эхо презентации, slide 7 -->
   <div class="card-soon-badge">PRO · Preview</div>
@@ -336,31 +422,10 @@
   </div>
 </a>
 
-    <a href="/calculator-lite/" class="card">
-  <div class="card-icon">
-    <!-- Иконка: калькулятор (единство с презентацией v13.5) -->
-    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="5" y="3" width="14" height="18" rx="2"/>
-      <rect x="8" y="6" width="8" height="3" rx="0.5"/>
-      <circle cx="9" cy="13" r="0.9" fill="#EA580C" stroke="none"/>
-      <circle cx="12" cy="13" r="0.9" fill="#EA580C" stroke="none"/>
-      <circle cx="15" cy="13" r="0.9" fill="#EA580C" stroke="none"/>
-      <circle cx="9" cy="17" r="0.9" fill="#EA580C" stroke="none"/>
-      <circle cx="12" cy="17" r="0.9" fill="#EA580C" stroke="none"/>
-      <circle cx="15" cy="17" r="0.9" fill="#EA580C" stroke="none"/>
-    </svg>
-  </div>
-  <div class="card-title">Lite</div>
-  <div class="card-desc">
-    Только ПВЗ. Только цифра. За секунды.
-  </div>
-  <div class="card-meta">
-    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    Открыть
-  </div>
-</a>
+    <a href="/promotions/3plus1/" class="card" aria-label="Конструктор акции 3+1 — внутренний инструмент для менеджеров RUSS">
+      <!-- Бейдж: маркер «внутренний инструмент» для менеджеров RUSS -->
+      <div class="card-internal-badge">Для менеджеров RUSS</div>
 
-    <a href="/promotions/3plus1/" class="card">
       <div class="card-icon">
         <svg viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10"/>
