@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.3.3
+  Продукт: ПВЗ Калькулятор Lite · v9.2.9
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -158,34 +158,6 @@
              Восстановлен DOM-замер v8.5.3 (overflow-swap + scrollWidth).
              Сохранены: ResizeObserver, убранный guard offsetWidth===0,
              document.fonts.ready. Только canvas-блок удалён.
-             v9.3.0 — BoundingRect Fix (корневая причина ellipsis):
-             el.clientWidth при overflow:visible возвращает ширину ДО reflow
-             → flex-родитель не пересчитан → PASS 1 не уменьшает шрифт.
-             Решение: availableWidth = Math.floor(el.getBoundingClientRect().width)
-             ПОСЛЕ void el.offsetWidth. BoundingRect возвращает реальную
-             отрендеренную ширину. Сравнение: scrollWidth vs availableWidth
-             (зафиксированный до цикла, не меняется при resize шрифта).
-             v9.3.1 — Proportional Fit Architecture (системное решение):
-             Полная замена overflow-based fitting на proportional measured fitting.
-             Добавлен #fontMeasureProbe (position:fixed, visibility:hidden,
-             contain:layout style paint) — изолированный DOM-элемент для замера.
-             _runMobileFontFit: probe меряет probeWidth при MAX, ratio =
-             availableWidth / probeWidth, size = MAX * ratio. Без while-loops,
-             без overflow-swap, без race conditions. Ellipsis убран с
-             .result-value-mobile — proportional fit гарантирует вхождение.
-             Доступная ширина берётся из parentElement (не el) — вне flex-влияния.
-             v9.3.2 — Safety Ratio Fix (₽ выпадал на вторую строку):
-             Добавлен SAFETY_RATIO=0.95 к пропорциональному расчёту.
-             Без запаса ratio=1.0 точно — subpixel rendering на реальном
-             железе даёт 1-2px разницы и ₽ съезжал вниз.
-             5% запас незаметен визуально, ₽ всегда остаётся в строке.
-             При probeWidth ≤ availableWidth safety не применяется — MAX.
-             v9.3.3 — Exact Width Fix (₽ заезжал на колонку чипов):
-             availableWidth теперь = topContainer.width - chipsCol.width - 8px gap.
-             Было: parent.getBoundingClientRect() — завышенная ширина, overflow:visible
-             позволял тексту заходить на .result-mobile-chips.
-             Стало: измеряем реальный лимит — весь ряд минус чипы минус отступ.
-             Никаких SAFETY-констант — математически точно. Убран SAFETY_RATIO.
   ================================================
 -->
 <!DOCTYPE html>
@@ -193,7 +165,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v9.3.3</title>
+  <title>RUSS · ПВЗ Калькулятор Lite · v9.2.9</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -205,7 +177,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v9.3.3 – RUSS Volgograd">
+  <meta name="description" content="ПВЗ Калькулятор Lite v9.2.9 – RUSS Volgograd">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -842,7 +814,7 @@
     /* === ОСНОВНОЙ КОНТЕНТ === */
     .card {
       background:var(--bg-card); border:var(--border-thin) solid var(--border-subtle); border-radius:var(--radius-card);
-      padding:16px 18px;
+      padding:16px 18px 10px;
       transition: background-color var(--dur-medium) var(--ease-standard), border-color var(--dur-medium) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); /* v9.2.2 */
       box-shadow: var(--shadow-soft);
     }
@@ -856,6 +828,19 @@
     .card-title.hours-warning { color:var(--warning); background-color:rgba(212,149,107,0.06); border-left:2px solid var(--warning); } /* v9.1.3: 3px→2px — тоньше, взрослее */
     .input-group { margin-bottom:12px; }
     .input-group:last-child { margin-bottom:0; }
+	    /* v9.2.18: точечный воздух под полем «Выходов в час».
+       Решает 2 проблемы одной правкой:
+       1. Визуально — поле прижато к нижней границе карточки (нет воздуха).
+       2. Технически — slider-track-wrap имеет position:absolute bottom:-16px,
+          т.е. тики при drag вылезают за пределы карточки. Этот spacer
+          даёт им место «внутри» карточки.
+       16px = с запасом покрывает -16px у slider-track + 0-2px визуального воздуха.
+       Применяется ТОЛЬКО к frequency через [data-field] — другие поля
+       не задевает (у них тики уже внутри визуально благодаря margin-bottom
+       следующего .input-group). */
+    .input-field-wrap[data-field="frequency"] {
+      padding-bottom: 12px;
+    }
     /* ════════════════════════════════════════ */
     /* === SLIDER v9.0: input-wrap + host ===== */
     /* ════════════════════════════════════════ */
@@ -1103,7 +1088,11 @@
       font-family:'Montserrat', sans-serif; font-size:14px; font-weight:600; color:var(--text-primary); text-align:center; cursor:pointer;
       transition:background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); user-select:none; width:100%; flex:1 1 0; /* v9.2.2 (v9.1.2: 150→180ms Apple норма) */
     }
-    .hour-btn:hover { background:rgba(255,255,255,0.05); } /* v9.1.2: тёмная тема — чуть светлее */
+        /* v9.2.13: hover часа в тёмной теме усилен 0.05→0.08 — Apple iOS dark mode норма.
+       0.05 был невидим на тёмном фоне (оптика: тёмный фон поглощает свет сильнее
+       чем светлый — поэтому в светлой теме 0.05 работает, а в тёмной нужно 0.08).
+       Согласовано с .fullscreen-btn:hover (та же кнопочная семья). */
+    .hour-btn:hover { background: rgba(255,255,255,0.08); }
     .light-mode .hour-btn:hover { background:rgba(0,0,0,0.05); } /* v9.1.2: светлая тема — тёмный оттенок (был белый = невидимо) */
     .hour-btn.selected { background:rgba(52,199,89,0.15); border-color:rgba(52,199,89,0.4); color:#34C759; } /* v9.1.1: тихий зелёный toggle вместо заливки */
     .hour-btn.selected:hover { background:rgba(52,199,89,0.22); }
@@ -1111,7 +1100,21 @@
        (Apple Calendar tone #2D9F4F, не конкурирует с оранжевым акцентом) */
     .light-mode .hour-btn.selected { background: rgba(45,159,79,0.12); border-color: rgba(45,159,79,0.4); color: #2D9F4F; } /* v9.1.1: тихий */
     .light-mode .hour-btn.selected:hover { background: rgba(45,159,79,0.20); }
-    .hour-btn.preset-preview { border-color:rgba(234,88,12,0.5); background:rgba(234,88,12,0.10); color:#d8b89a; }
+         /* v9.2.16: preview контраст поднят (0.05/0.25 → 0.08/0.35).
+       Старые значения (v9.2.15) подобраны как ⅓ от selected — оказались
+       слишком тихими, особенно в светлой теме. Новые ≈40% от selected
+       (Apple Calendar event preview норма). Запас до selected сохранён:
+       preview всё ещё в ~2× тише чем selected (0.08 vs 0.15). */
+    .hour-btn.preset-preview {
+      border-color: rgba(52,199,89,0.35);
+      background: rgba(52,199,89,0.08);
+      color: var(--text-secondary);
+    }
+    .light-mode .hour-btn.preset-preview {
+      border-color: rgba(45,159,79,0.35);
+      background: rgba(45,159,79,0.08);
+      color: var(--text-secondary);
+    }
     .reset-inline-btn {
       background:var(--inverse-bg); border:var(--border-thin) solid var(--border-input); border-radius:var(--radius-button); padding:12px 4px;
       font-family:'Montserrat', sans-serif; font-size:14px; font-weight:600; color:var(--text-secondary);
@@ -1195,12 +1198,24 @@
     .result-forecast { font-size:12px; color:var(--text-accent); margin-bottom:2px; }
     .result-per-screen { font-size:10.5px; color:var(--text-muted); opacity:0.8; margin-bottom:6px; }
     .result-meta { text-align:right; font-size:12px; color:var(--text-secondary); line-height:1.45; font-weight:400; white-space:nowrap; flex-shrink:0; padding-top:2px; }
-    .result-meta strong { font-weight:700; color:var(--text-primary); }
+        /* v9.2.14: числа справа на одну ступень тише цены — Apple HIG Type Hierarchy.
+       Было var(--text-primary) = цвет цены → числа «бились» в тёмной теме.
+       Стало var(--text-accent) = D0D0D8 (тёмная) / 3A3A3C (светлая) — тот же
+       тон что у «0,60 ₽» в дисклеймере. Три тона иерархии: primary (цена) →
+       accent (числа-справочники) → secondary (labels). */
+    .result-meta strong { font-weight: 700; color: var(--text-accent); }
     .result-divider { height:1px; background:linear-gradient(to right, transparent, var(--border-input) 20%, var(--border-input) 80%, transparent); margin:10px 0 8px; }
     .footer-bottom { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:8px; }
     .disclaimer-text { font-size:10.5px; color:var(--text-muted); line-height:1.45; text-align:left; flex:1; }
-    .disclaimer-text .accent { color: var(--text-primary); font-weight: 600; } /* v9.1.5: видимо но не оранжево — просто важный факт */
-    /* === v9.0.1 polish: mobile/desktop разделение футера === */
+       /* v9.2.10: «0,60 ₽ (без НДС)» в дисклеймере — тон ниже на одну ступень.
+       Было: --text-primary (#FFFFFF / #1D1D1F) — бреет глаз в тёмной теме,
+       слишком чёрный в светлой. Apple HIG: «important ≠ shouting».
+       Стало: --text-accent в тёмной (#D0D0D8 — мягкий светло-серый,
+       тот же тон что у активного пресет-чипа). --text-secondary в светлой
+       (#6E6E73 — Apple Settings норма для importance без агрессии). */
+    .disclaimer-text .accent { color: var(--text-accent); font-weight: 600; }
+    .light-mode .disclaimer-text .accent { color: var(--text-secondary); }
+   /* === v9.0.1 polish: mobile/desktop разделение футера === */
     .disclaimer-mobile { display: none; }
     .snapshot-btn-mobile { display: none; }
 
@@ -1268,10 +1283,78 @@
       transition:all var(--dur-fast) var(--ease-standard); display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; letter-spacing:0.2px; outline:none; /* v9.2.2 */
     }
     .preset-chip:hover { border-color:rgba(255,255,255,0.14); color:var(--text-accent); background:rgba(255,255,255,0.04); } /* v9.1.1: без orange hover */
-    .light-mode .preset-chip:hover { border-color:rgba(0,0,0,0.16); color:var(--text-secondary); background:rgba(0,0,0,0.08); } /* v9.2.3: bg 0.05→0.08, border 0.10→0.16 — Apple HIG light mode hover норма */
-    .preset-chip:active { transform:scale(0.97); }
-    .preset-chip.active { border-color:rgba(234,88,12,0.40); color:var(--orange); background:rgba(234,88,12,0.08); } /* v9.1.1: active тише */
-    .preset-chip svg { width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none; flex-shrink:0; }
+        /* v9.2.11: норма пресета в светлой теме — «лист бумаги на столе».
+       Сливается с карточкой, виден только по тонкой границе и тексту.
+       Hover остаётся прежним (становится серым → видно что кликабельно). */
+    .light-mode .preset-chip {
+      background: var(--bg-card);
+      border-color: rgba(0,0,0,0.10);
+    }   
+        /* v9.2.12: фон hover пресета = фон обычной кнопки часа (--bg-input #FAFAFB).
+       Apple HIG «Tonal Consistency»: пресет на hover «проваливается» на тот же
+       визуальный слой что и часы. Бордер остаётся 1px (Border System v1). */
+    .light-mode .preset-chip:hover {
+      background: var(--bg-input);
+      border-color: rgba(0,0,0,0.16);
+      color: var(--text-secondary);
+    }
+     .preset-chip:active { transform:scale(0.97); }
+    
+	    /* v9.2.10: Active = идентичная копия hover-состояния.
+       Apple HIG «Subtle State Differentiation» — активность сигнализируется
+       только зелёной иконкой (Apple Mail flags pattern), а фон/текст
+       остаются как при hover. Глаз видит ОДИН акцент (иконка), не два.
+       Hover-значения скопированы 1:1 из .preset-chip:hover. */
+    .preset-chip.active {
+      border-color: rgba(255,255,255,0.14);
+      color: var(--text-accent);
+      background: rgba(255,255,255,0.04);
+    }
+        /* v9.2.12: active = идентичная копия hover (v9.2.10 принцип Subtle State
+       Differentiation сохранён). Фон тот же что у часов — Tonal Consistency. */
+    .light-mode .preset-chip.active {
+      background: var(--bg-input);
+      border-color: rgba(0,0,0,0.16);
+      color: var(--text-secondary);
+    }
+	
+	/* v9.2.10 desktop polish: SVG-иконка пресета окрашивается в зелёный
+       когда пресет активен — Color Family Resonance (Apple HIG).
+       Связь с зелёными часами становится визуальной: иконка пресета =
+       такой же зелёный как у selected hour-btn. Apple Mail flags pattern.
+       Тёмная тема: #34C759 (Apple iOS Green).
+       Светлая тема: #2D9F4F (Apple Calendar Green — синхрон с hour-btn.selected). */
+    .preset-chip.active svg {
+      stroke: #34C759;
+    }
+    .light-mode .preset-chip.active svg {
+      stroke: #2D9F4F;
+    }
+	
+    /* v9.2.20: Color Family Resonance для мобилки.
+       На ≤500px SVG-иконки пресетов скрыты (см. @media), поэтому
+       .preset-chip.active svg { stroke: green } не работает —
+       нет визуальной связи активного пресета с зелёными часами.
+       
+       Решение: числовые диапазоны «8–22», «16–20», «8–10» обёрнуты
+       в <span class="preset-num"> и горят зелёным при .active.
+       Apple HIG: «акцент идёт ТУДА где смысл» — диапазон часов
+       это и есть «что применяется», поэтому именно его подсвечиваем.
+       
+       Работает на ОБЕИХ темах и ОБЕИХ ширинах (desktop + mobile).
+       Цвета — те же что у hour-btn.selected (точный синхрон). */
+    .preset-num {
+      font-weight: 700;  /* числа чуть жирнее текста — визуальная иерархия */
+      transition: color var(--dur-fast) var(--ease-standard);
+    }
+    .preset-chip.active .preset-num {
+      color: #34C759;  /* Apple iOS Green — тёмная тема */
+    }
+    .light-mode .preset-chip.active .preset-num {
+      color: #2D9F4F;  /* Apple Calendar Green — светлая тема */
+    }
+
+	.preset-chip svg { width:13px; height:13px; stroke:currentColor; stroke-width:1.8; fill:none; flex-shrink:0; }
 
     .info-tooltip-trigger {
       display:inline-flex; align-items:center; justify-content:center;
@@ -1292,7 +1375,11 @@
     .info-popover[data-direction="up"]::after { top:100%; left:50%; transform:translateX(-50%); border-top-color:var(--tooltip-border); border-bottom:none; }
     .info-popover[data-direction="down"]::after { bottom:100%; left:50%; transform:translateX(-50%); border-bottom-color:var(--tooltip-border); border-top:none; }
     .info-tooltip-trigger:hover .info-popover, .info-popover.popover-visible { opacity:1; visibility:visible; }
-    .info-popover .accent { color:var(--orange); font-weight:600; }
+        .info-popover .accent { color:var(--orange); font-weight:600; }
+    /* v9.2.19: popover внутри disclaimer наследовал .light-mode .disclaimer-text .accent
+       (3 класса) — оранжевый из строки выше (2 класса) проигрывал. Поднимаем
+       specificity точечно для popover в светлой теме. Тёмная не тронута. */
+    .light-mode .info-popover .accent { color: var(--orange); }
 
     @media (max-width:500px) {
       .preset-chip svg { display:none; }
@@ -1764,27 +1851,9 @@
       letter-spacing: -0.02em;
       color: var(--text-primary);
       white-space: nowrap;
-      overflow: visible; /* v9.3.1: ellipsis убран — proportional fit гарантирует вхождение */
+      overflow: hidden;
+      text-overflow: ellipsis;
       margin: 0;
-    }
-
-    /* v9.3.1: Isolated hidden probe для точного DOM-измерения ширины текста.
-       position:fixed — вне flex-layout, не влияет на родителей.
-       visibility:hidden — не виден, но участвует в typography pipeline (font hinting!).
-       contain:layout style paint — изолирован от остального layout. */
-    #fontMeasureProbe {
-      position: fixed;
-      top: -9999px;
-      left: -9999px;
-      visibility: hidden;
-      white-space: nowrap;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      contain: layout style paint;
-      pointer-events: none;
-      user-select: none;
     }
     /* .result-value-mobile.is-long удалён в v8.45 — заменён на JS auto-fit adjustMobileResultFontSize() */
 
@@ -1977,7 +2046,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.3.3</div>
+    <div class="prompt-version" id="promptVersion">Lite · v9.2.9</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за 30 секунд</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -1987,7 +2056,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.3.3<br>Расчёт стоимости размещения</div>
+    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.2.9<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -2031,8 +2100,8 @@
   <div class="header-row">
     <div class="logo">RUSS<span>.</span></div>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.3.3</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.3.3</span>
+      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.2.9</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.2.9</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Снимок просчёта · копируется в буфер">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2092,19 +2161,19 @@
           </div>
         </div>
         <div class="warning-message hidden" id="daysWarningMessage"><span>⚠️</span><span>Превышено максимально допустимое количество дней размещения (360)</span></div>
+                <!-- v9.2.17: info-text удалён целиком.
+             «Популярно: 15·30·60» — был дубль inline-пресетов над полем.
+             Техническая инфа (длительность блока/ролика) переехала в ⓘ-popover
+             рядом с label — Apple iOS Settings паттерн «Progressive Disclosure». -->
         <div class="input-group input-field-wrap"
              data-field="frequency"
              data-min="1"
              data-max="360"
              data-sweet-max="120"
              data-ticks="15,30,60,120">
-          <div class="compact-label"><span class="label-text">Выходов в час</span></div>
+          <div class="compact-label"><span class="label-text">Выходов в час<span class="info-tooltip-trigger" id="infoTriggerFreq" role="button" tabindex="0" aria-label="Подробнее о выходах в час">i<span class="info-popover" id="infoPopoverFreq">Длительность рекламного блока — <span class="accent">120 секунд</span>, длительность ролика — <span class="accent">10 секунд</span>. Поэтому в один блок помещается до <span class="accent">12 выходов</span>.</span></span></span></div>
           <div class="input-field-host" data-range="1 – 360">
             <input type="text" id="frequency" class="input-field" value="30" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_freq">
-          </div>
-          <div class="info-text">
-            Блок — <span class="accent">120 сек</span>, ролик — <span class="accent">10 сек</span>. До <span class="accent">12 выходов</span> в блоке.<br>
-            <span class="popular">Популярно: 15 (через блок), 30 (каждый блок), 60 (дважды в блоке)</span>
           </div>
         </div>
       </div>
@@ -2112,10 +2181,10 @@
       <div class="card">
         <div class="card-title hours-warning" id="hoursTitle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Выберите часы вещания</div>
         <div class="hours-title"><span>Временная шкала</span><div class="hours-info"><span class="hours-label">Выбрано часов – </span><span class="hours-count is-zero" id="hoursCounter">0</span></div></div>
-        <div class="quick-presets" id="quickPresets">
-          <button class="preset-chip" data-preset="full" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg> Весь день 8–22</button>
-          <button class="preset-chip" data-preset="peak" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="3" height="6" rx="0.5"/><rect x="10.5" y="10" width="3" height="10" rx="0.5"/><rect x="17" y="6" width="3" height="14" rx="0.5"/></svg> Час пик 16–20</button>
-          <button class="preset-chip" data-preset="morning" type="button"><svg viewBox="0 0 24 24"><path d="M5 18a7 7 0 0 1 14 0"/><line x1="6" y1="18" x2="18" y2="18"/><polyline points="12 14 12 2"/><polyline points="8 6 12 2 16 6"/></svg> Утро 8–10</button>
+                <div class="quick-presets" id="quickPresets">
+          <button class="preset-chip" data-preset="full" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg> Весь день <span class="preset-num">8–22</span></button>
+          <button class="preset-chip" data-preset="peak" type="button"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="3" height="6" rx="0.5"/><rect x="10.5" y="10" width="3" height="10" rx="0.5"/><rect x="17" y="6" width="3" height="14" rx="0.5"/></svg> Час пик <span class="preset-num">16–20</span></button>
+          <button class="preset-chip" data-preset="morning" type="button"><svg viewBox="0 0 24 24"><path d="M5 18a7 7 0 0 1 14 0"/><line x1="6" y1="18" x2="18" y2="18"/><polyline points="12 14 12 2"/><polyline points="8 6 12 2 16 6"/></svg> Утро <span class="preset-num">8–10</span></button>
         </div>
         <div class="hours-grid" id="hoursGrid"></div>
       </div>
@@ -2140,9 +2209,6 @@
         <div>Всего показов: <strong id="totalOutputs">0</strong></div>
       </div>
     </div>
-
-    <!-- v9.3.1: Hidden probe для proportional font fit. Вне flex-layout. -->
-    <div id="fontMeasureProbe" aria-hidden="true"></div>
 
     <!-- ── МОБИЛЬНАЯ СТРУКТУРА v8.41 ── (≤450px) ──────────────────
          Видима только на мобилке через CSS display:none/block.
@@ -2191,7 +2257,7 @@
       <!-- Snapshot — только mobile, thumb zone -->
       <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       <!-- Email — только desktop -->
-      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.3.3" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
+      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.2.9" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · smrus@yandex.ru</span>
       </a>
@@ -2209,7 +2275,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.3.3';
+    const APP_VERSION = 'v9.2.9';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2593,75 +2659,51 @@
     const MOBILE_RESULT_FONT_MIN  = 24;  // v9.0 polish: было 28, опускаем до 24 для длинных значений ≥10 цифр
     const CHIP_MOBILE_HEIGHT      = 28;
 
-    // v9.3.1: Hidden probe для DOM-измерения.
-    // Ищется один раз и кешируется — probe живёт в DOM постоянно.
-    let _fontProbeEl = null;
-    function _getFontProbe() {
-      if (!_fontProbeEl) _fontProbeEl = document.getElementById('fontMeasureProbe');
-      return _fontProbeEl;
-    }
+    // v9.2.9-fix: запоминаем последний финальный текст цены, чтобы
+    // ResizeObserver мог замерять именно его (а не промежуточное значение
+    // animateCounter). Гонка RO vs animateCounter — корень многоточия.
+    let _lastFinalMobileText = null;
 
     function _runMobileFontFit(el, finalText) {
-      // v9.3.3: ТОЧНЫЙ лимит ширины — вычитаем правую колонку чипов.
-      // Проблема v9.3.1/v9.3.2: availableWidth = parent.getBoundingClientRect()
-      // давал ширину .result-mobile-left которая завышена — overflow:visible
-      // позволяет тексту выходить за границу и перекрывать колонку чипов.
-      // Решение: берём ширину .result-mobile-top (весь ряд), вычитаем
-      // ширину .result-mobile-chips (100px) и gap (8px) — это реальный лимит.
-      // Никакой SAFETY-константы — математически точно.
+      // v9.2.9: rollback к DOM-замеру из v8.5.3.
+      // Canvas-замер из v9.2.8 был ошибкой — ctx.measureText не учитывает
+      // font hinting и sub-pixel rendering (дискрепанс 5-10% на 64px).
+      // Единственный точный метод: scrollWidth/clientWidth через DOM.
+      // overflow-swap (visible→clip→restore) обязателен:
+      //   иначе scrollWidth === clientWidth при активном ellipsis.
+      const prevText         = el.textContent;
+      const prevOverflow     = el.style.overflow;
+      const prevTextOverflow = el.style.textOverflow;
 
-      const text = finalText !== null ? finalText : el.textContent;
-      if (!text || !text.trim()) return;
+      if (finalText !== null) el.textContent = finalText;
 
-      // Шаг 1: РЕАЛЬНАЯ доступная ширина через topContainer
-      const topContainer = el.closest('.result-mobile-top');
-      if (!topContainer) return;
-      const chipsCol = topContainer.querySelector('.result-mobile-chips');
-      if (!chipsCol) return;
+      // Отключаем ellipsis — иначе scrollWidth === clientWidth при обрезке
+      el.style.overflow    = 'visible';
+      el.style.textOverflow = 'clip';
 
-      const topRect   = topContainer.getBoundingClientRect();
-      const chipsRect = chipsCol.getBoundingClientRect();
+      el.style.fontSize = MOBILE_RESULT_FONT_MAX + 'px';
+      void el.offsetWidth; // forced reflow
 
-      if (topRect.width <= 0) return; // ещё не в layout — ResizeObserver поймает
+      let size = MOBILE_RESULT_FONT_MAX;
 
-      // gap между колонками = 8px (CSS .result-mobile-top { gap: 8px })
-      const GAP = 8;
-      const availableWidth = Math.floor(topRect.width - chipsRect.width - GAP);
-
-      if (availableWidth <= 0) return;
-
-      // Шаг 2: probe-измерение при MAX font-size
-      const probe = _getFontProbe();
-      if (!probe) return;
-
-      probe.style.fontSize = MOBILE_RESULT_FONT_MAX + 'px';
-      probe.textContent = text;
-      void probe.offsetWidth; // forced reflow (probe изолирован от flex)
-      const probeWidth = probe.getBoundingClientRect().width;
-
-      if (probeWidth <= 0) return; // шрифт ещё не загружен — fonts.ready пересчитает
-
-      // Шаг 3: пропорциональный расчёт — точный, без магических констант
-      let size;
-      if (probeWidth <= availableWidth) {
-        size = MOBILE_RESULT_FONT_MAX; // влезает при MAX — берём максимум
-      } else {
-        const ratio = availableWidth / probeWidth;
-        size = Math.floor(MOBILE_RESULT_FONT_MAX * ratio);
+      // PASS 1: подгонка по ширине через DOM
+      while (el.scrollWidth > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
+        size--;
+        el.style.fontSize = size + 'px';
       }
 
-      // Шаг 4: clamp MIN ≤ size ≤ MAX
-      size = Math.max(MOBILE_RESULT_FONT_MIN, Math.min(MOBILE_RESULT_FONT_MAX, size));
-
-      el.style.fontSize = size + 'px';
-
-      // Шаг 5: PASS 2 — accent chip высота (DOM-layout, нельзя посчитать иначе)
+      // PASS 2: accent ≥ CHIP_MOBILE_HEIGHT
       if (chipAccentMobileEl) {
         while (chipAccentMobileEl.offsetHeight < CHIP_MOBILE_HEIGHT && size > MOBILE_RESULT_FONT_MIN) {
           size--;
           el.style.fontSize = size + 'px';
         }
       }
+
+      // Восстанавливаем overflow; font-size остаётся зафиксированным
+      el.style.overflow    = prevOverflow;
+      el.style.textOverflow = prevTextOverflow;
+      if (finalText !== null) el.textContent = prevText;
     }
 
     // Используется при resize и reduced-motion (текущее значение в DOM)
@@ -2670,7 +2712,10 @@
       if (!totalCostMobileEl) return;
       if (totalCostMobileEl.offsetWidth === 0) return; // блок схлопнут
       requestAnimationFrame(() => {
-        _runMobileFontFit(totalCostMobileEl, null);
+        // v9.2.9-fix2: используем финальный текст (не null/промежуточный).
+        // Эта функция вызывается из fonts.ready и prefers-reduced-motion —
+        // в обоих случаях анимация уже прошла, нужен финал, не textContent.
+        _runMobileFontFit(totalCostMobileEl, _lastFinalMobileText);
       });
     }
 
@@ -2682,6 +2727,8 @@
     function prepareMobileFontSizeForFinalValue(finalText) {
       if (window.innerWidth > 500) return;
       if (!totalCostMobileEl) return;
+      // v9.2.9-fix: сохраняем финальный текст для ResizeObserver
+      _lastFinalMobileText = finalText;
       // Синхронно (без rAF) — вызывается до animateCounter, layout уже стабилен
       _runMobileFontFit(totalCostMobileEl, finalText);
     }
@@ -2806,6 +2853,7 @@
         // chipScreens/Days/Freq/Hours обновлены выше (параллельно с summary*).
         if (window.innerWidth <= 500) {
           if (totalCostMobileEl)         { totalCostMobileEl.textContent = '0 ₽'; totalCostMobileEl.classList.remove('is-long'); }
+          _lastFinalMobileText = '0\u202F₽'; // v9.2.9-fix: сброс к нулю для RO
           if (dailyOutputsValueMobileEl)   dailyOutputsValueMobileEl.textContent = '0';
           if (perScreenValueMobileEl)      perScreenValueMobileEl.textContent = '0';
           if (chipTotalOutputsEl)          chipTotalOutputsEl.textContent = '0';
@@ -2904,7 +2952,74 @@
       }
     }
 
+        /**
+     * v9.2.10: подсветка активных пресет-чипов (Exact Match Logic).
+     *
+     * Apple HIG: «Buttons reflect state, not history».
+     * Пресет горит когда selectedHours === union(активных пресетов).
+     *
+     * Алгоритм:
+     *   1. Перебираем все 2³=8 комбинаций активности (full/peak/morning).
+     *   2. Для каждой вычисляем объединение выбранных пресетов.
+     *   3. Ищем комбинацию где union === selectedHours.
+     *   4. Среди найденных берём минимальную (наименьшее число пресетов).
+     *
+     * Граничные случаи:
+     *   - selectedHours пуст → ничего не горит (комбинация 000 даёт пустой union,
+     *     но мы её пропускаем — нет смысла «подсвечивать пустоту»).
+     *   - selectedHours содержит часы вне пресетов → ничего не горит.
+     *   - «Весь день» равно «Утро+Час пик+руками 11..15,21» — второе невалидно
+     *     (есть часы вне пресетов), поэтому коллизий не возникает.
+     */
+    function updatePresetButtonsState() {
+      const PRESET_NAMES = ['full', 'peak', 'morning'];
+      const presetSets = PRESET_NAMES.map(name => new Set(getPresetHours(name)));
 
+      // Пустая выборка — все чипы гаснут
+      if (selectedHours.size === 0) {
+        PRESET_NAMES.forEach(name => {
+          const btn = document.querySelector(`.preset-chip[data-preset="${name}"]`);
+          if (btn) btn.classList.remove('active');
+        });
+        return;
+      }
+
+      let bestCombo = null;       // массив индексов активных пресетов
+      let bestComboSize = 999;    // минимальное число активных пресетов
+
+      // Перебираем все 2³ = 8 комбинаций (битовая маска 0..7)
+      for (let mask = 1; mask < 8; mask++) {
+        const activeIdxs = [];
+        const union = new Set();
+        for (let i = 0; i < 3; i++) {
+          if (mask & (1 << i)) {
+            activeIdxs.push(i);
+            presetSets[i].forEach(h => union.add(h));
+          }
+        }
+        // Проверка: union === selectedHours (по содержимому)
+        if (union.size !== selectedHours.size) continue;
+        let equal = true;
+        for (const h of union) {
+          if (!selectedHours.has(h)) { equal = false; break; }
+        }
+        if (!equal) continue;
+        // Нашли валидную комбинацию — берём минимальную
+        if (activeIdxs.length < bestComboSize) {
+          bestCombo = activeIdxs;
+          bestComboSize = activeIdxs.length;
+        }
+      }
+
+      // Применяем подсветку
+      PRESET_NAMES.forEach((name, idx) => {
+        const btn = document.querySelector(`.preset-chip[data-preset="${name}"]`);
+        if (!btn) return;
+        const shouldBeActive = bestCombo !== null && bestCombo.includes(idx);
+        btn.classList.toggle('active', shouldBeActive);
+      });
+    }
+	
     /**
      * Staggered Pop — волновая анимация для новых ячеек пресета.
      * Apple HIG: анимируем только те часы которые реально появились.
@@ -3336,6 +3451,8 @@
       // v9.2.4: блок нормализации пробелов v9.2.3 удалён — был мёртвым кодом (DevTools: один пробел в DOM)
       const hoursTimeTitleEl = calculatorBlock.querySelector('.hours-title');
       if (hoursTimeTitleEl) hoursTimeTitleEl.style.marginBottom = '8px';
+	        // v9.2.17: ⓘ из label «Выходов в час» — удаляем из клона PNG (нет смысла на снимке)
+      calculatorBlock.querySelectorAll('.info-tooltip-trigger').forEach(el => el.remove());
       footer.querySelectorAll('.info-tooltip-trigger').forEach(el => el.remove());
 
       const rc = footer.querySelector('.result-card');
@@ -3522,13 +3639,11 @@
     }
 
     function setupDynamicPaddingBottom() {
-      const isDesktop = window.matchMedia('(pointer: fine) and (min-width: 768px) and (hover: hover)').matches;
-      if (isDesktop) return;
       const footer = document.querySelector('.sticky-footer');
       if (!footer) return;
       function updatePadding() {
         if (_snapInProgress) return;
-        document.body.style.paddingBottom = (footer.offsetHeight + 16) + 'px';
+        document.body.style.paddingBottom = (footer.offsetHeight + 12) + 'px';
       }
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(updatePadding);
@@ -4158,8 +4273,12 @@
         _mobileFontFitRO = new ResizeObserver(() => {
           if (window.innerWidth > 500) return;
           if (!totalCostMobileEl) return;
-          // Не проверяем offsetWidth — ResizeObserver вызывается именно когда ширина ≠ 0
-          _runMobileFontFit(totalCostMobileEl, null);
+          // v9.2.9-fix: ResizeObserver мерит ФИНАЛЬНЫЙ текст, не промежуточный.
+          // Иначе во время animateCounter (800ms) RO ловит "892 451 ₽" вместо
+          // финального "1 475 712 ₽", шрифт остаётся большим, финал не помещается.
+          // Если финального текста ещё нет (init, resize до первого расчёта) —
+          // мерим то что в DOM (старое поведение через null).
+          _runMobileFontFit(totalCostMobileEl, _lastFinalMobileText);
         });
         _mobileFontFitRO.observe(totalCostMobileEl);
       } catch(e) {
@@ -4351,6 +4470,37 @@
         // v9.0.6 FIX: было infoTrigger.click() — ошибка (копипаст), должно быть infoTriggerMobile
         infoTriggerMobile.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); infoTriggerMobile.click(); }
+        });
+      }
+	  
+      // v9.2.17: popover «Выходов в час» — тот же паттерн что и mobile info.
+      // Переиспользуем positionInfoPopover (универсальная, desktop+mobile).
+      const infoTriggerFreq = document.getElementById('infoTriggerFreq');
+      const infoPopoverFreq = document.getElementById('infoPopoverFreq');
+      if (infoTriggerFreq && infoPopoverFreq) {
+        infoTriggerFreq.addEventListener('mouseenter', () => {
+          setTimeout(() => positionInfoPopover(infoTriggerFreq, infoPopoverFreq), 10);
+        });
+        infoTriggerFreq.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isVisible = infoPopoverFreq.classList.contains('popover-visible');
+          if (!isVisible) {
+            infoPopoverFreq.classList.add('popover-visible');
+            infoTriggerFreq.classList.add('popover-visible');
+            positionInfoPopover(infoTriggerFreq, infoPopoverFreq);
+          } else {
+            infoPopoverFreq.classList.remove('popover-visible');
+            infoTriggerFreq.classList.remove('popover-visible');
+          }
+        });
+        document.addEventListener('click', (e) => {
+          if (!infoTriggerFreq.contains(e.target) && !infoPopoverFreq.contains(e.target)) {
+            infoPopoverFreq.classList.remove('popover-visible');
+            infoTriggerFreq.classList.remove('popover-visible');
+          }
+        });
+        infoTriggerFreq.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); infoTriggerFreq.click(); }
         });
       }
 
@@ -4640,6 +4790,59 @@
       // Совместимость: если осталась старая кнопка — тоже работает
       if (oldBtn) {
         oldBtn.addEventListener('click', performReset);
+      }
+    })();
+
+    // ════════════════════════════════════════════════════
+    // ПРОДАКШН-ФУНКЦИЯ · Скрытый fullscreen для презентации
+    // 5 тапов по иконке-домику (слайд 0 онбординга) → fullscreen.
+    // Скрытая опция: нет UI-намёков, обычный юзер не догадается.
+    // Паттерн: тот же что и DEV reset (5 тапов на бейдж версии).
+    // ════════════════════════════════════════════════════
+    (function initOnboardingFullscreen() {
+      const firstSlide = document.querySelector('.ob-slide[data-idx="0"]');
+      if (!firstSlide) return;
+      const icon = firstSlide.querySelector('.ob-icon');
+      if (!icon) return;
+
+      let tapCount  = 0;
+      let lastTapMs = 0;
+      const TAP_WINDOW  = 3000; // ms — окно между тапами
+      const TAPS_NEEDED = 5;
+
+      function resetCounter() {
+        tapCount  = 0;
+        lastTapMs = 0;
+      }
+
+      icon.addEventListener('click', function(e) {
+        // Не даём клику всплыть к swipe-обработчикам онбординга
+        e.stopPropagation();
+
+        const now = Date.now();
+        if (now - lastTapMs > TAP_WINDOW) {
+          tapCount = 1; // окно истекло — начинаем заново
+        } else {
+          tapCount++;
+        }
+        lastTapMs = now;
+
+        if (tapCount >= TAPS_NEEDED) {
+          // Haptic + fullscreen
+          if (typeof haptic === 'function') haptic('success');
+          requestFullscreen(); // используем уже существующую функцию
+          resetCounter();
+        }
+        // 1-4 тапа: молча (нет UI-сигналов — это скрытая функция)
+      });
+
+      // Сбрасываем счётчик при любом клике вне иконки (смена слайда,
+      // кнопки «Далее»/«Пропустить», свайп) — capture: true, ловим раньше bubbling
+      const overlay = document.getElementById('obOverlay');
+      if (overlay) {
+        overlay.addEventListener('click', function(e) {
+          if (!icon.contains(e.target)) resetCounter();
+        }, true);
       }
     })();
   })();
