@@ -206,7 +206,8 @@
       margin:2px 0;
     }
     .cta-divider-line{flex:1;height:1px;background:var(--border);}
-    .cta-divider-text{font-size:.7rem;font-weight:500;color:var(--muted);flex-shrink:0;}
+       /* Maxim: .78rem — синхронизировано с подвалом для системности служебного текста */
+    .cta-divider-text{font-size:.78rem;font-weight:500;color:var(--muted);flex-shrink:0;}
     /* Альтернатива — Lite */
        .cta-alt-link{
       font-size:clamp(.95rem, 1vw, 1.1rem);font-weight:600;color:rgba(234,88,12,.75);
@@ -293,51 +294,17 @@
     .pro-tg-btn svg{width:clamp(20px, 1.4vw, 26px);height:clamp(20px, 1.4vw, 26px);flex-shrink:0;}
     .pro-tg-btn:hover{transform:scale(1.02);box-shadow:0 6px 28px rgba(234,88,12,.45);}
         .pro-tg-btn:focus-visible{outline:2px solid #fff;outline-offset:4px;}
-             .pro-right-alt{
+                          .pro-right-alt{
       font-size:clamp(.85rem, .95vw, 1rem);font-weight:500;color:rgba(255,255,255,.4);
       letter-spacing:1.2px;text-transform:uppercase;
       text-shadow:0 1px 4px rgba(0,0,0,.4);
     }
-    /* QR — опционально */
-       /* QR — стиль из презентации v13.5, Maxim: связан с кнопкой */
-    .pro-qr-wrap{
-      margin-top:clamp(1.8rem, 2.5vw, 2.8rem);
-      display:flex;flex-direction:column;align-items:center;gap:10px;
-      opacity:0;
-      animation:proQrFadeIn .8s cubic-bezier(.25,.46,.45,.94) .4s forwards;
+    /* Maxim: группа статуса — два текста читаются как единый блок (Гештальт: близость) */
+    .pro-status-group{
+      display:flex;flex-direction:column;align-items:center;
+      gap:10px;
     }
-    .pro-qr-img{
-      width:clamp(180px, 16vw, 260px);
-      height:clamp(180px, 16vw, 260px);
-      border-radius:14px;
-      padding:10px;
-      background:rgba(255,255,255,0);
-      border:1px solid rgba(234,88,12,.25);
-      box-shadow:
-        0 4px 24px rgba(0,0,0,.4),
-        0 0 32px rgba(234,88,12,.12);
-      transition:transform .35s cubic-bezier(.25,.46,.45,.94),
-                 border-color .25s ease,
-                 box-shadow .35s ease;
-      cursor:pointer;
-      display:block;
-    }
-    .pro-qr-img:hover{
-      transform:scale(1.04);
-      border-color:rgba(234,88,12,.5);
-      box-shadow:
-        0 6px 32px rgba(0,0,0,.5),
-        0 0 48px rgba(234,88,12,.2);
-    }
-    .pro-qr-label{
-      font-size:.62rem;font-weight:500;letter-spacing:1.6px;text-transform:uppercase;
-      color:rgba(255,255,255,.35);
-      text-shadow:0 1px 4px rgba(0,0,0,.5);
-    }
-    @keyframes proQrFadeIn{
-      from{opacity:0;transform:translateY(10px);}
-      to  {opacity:1;transform:translateY(0);}
-    }
+       /* QR удалён — клиент уже на сайте, перенос в цифру не нужен */
 
     /* ══ ПОДВАЛ — Maxim: тише, по-Apple-вски ненавязчиво */
     .footer{
@@ -419,10 +386,10 @@
           </div>
         </div>
 
-        <div class="pro-card-title">Pro</div>
+                <div class="pro-card-title">Pro</div>
         <div class="pro-card-desc">
-          Следующий этап развития платформы.<br>
-          Логика, выходящая далеко за рамки ПВЗ.
+          Профессиональный инструмент медиапланирования.<br>
+          Для тех, кто работает с Digital всерьёз.
         </div>
         <div class="pro-card-divider"></div>
 
@@ -488,26 +455,10 @@
         <div class="pro-badge">Pro <span class="pro-badge-dot">·</span> Preview</div>
         <!-- Главный текст -->
         <div class="pro-soon">СКОРО<span class="pro-soon-dot">.</span></div>
-        <!-- Подзаголовок -->
-        <div class="pro-soon-sub">Готовим Pro-версию калькулятора</div>
-        <!-- CTA правой колонки: только Telegram -->
-        <div class="pro-right-cta">
-                    <a href="https://t.me/S_M_R_U_S"
-             target="_blank" rel="noopener noreferrer"
-             class="pro-tg-btn"
-             aria-label="Написать в Telegram"
-             onclick="openTelegram(event)">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-            </svg>
-            <span>Написать в Telegram</span>
-          </a>
+                <!-- Группа статуса: что готовится + микро-призыв (Гештальт: близость = единство) -->
+        <div class="pro-status-group">
+          <div class="pro-soon-sub">Готовим Pro-версию калькулятора</div>
           <div class="pro-right-alt">Следите за обновлениями</div>
-          <!-- QR-код (опционально — скрывается если нет qr.png) -->
-          <div class="pro-qr-wrap">
-            <img src="qr.png" alt="QR-код" class="pro-qr-img"
-                 onerror="this.parentElement.style.display='none'">
-          </div>
         </div>
       </div>
     </section>
@@ -543,5 +494,5 @@
 </body>
 </html>
 <!-- Pro Preview v1.0 · 2026 -->
-<!-- Файлы рядом: pro.jpg (фон с blur), qr.png (опционально) -->
+<!-- Файл рядом: pro.jpg (фон с blur) -->
 <!-- Telegram: https://t.me/S_M_R_U_S · Email: msorokin@rwb.ru -->
