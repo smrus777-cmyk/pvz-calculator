@@ -165,7 +165,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>RUSS · ПВЗ Калькулятор Lite · v9.2.9</title>
+  <title>ПВЗ Калькулятор · RUSS Волгоград — расчёт рекламной кампании</title>
 
   <meta name="theme-color" content="#0A0A0C">
   <meta name="msapplication-navbutton-color" content="#0A0A0C">
@@ -177,7 +177,65 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="author" content="Maxim Sorokin, RUSS Volgograd">
-  <meta name="description" content="ПВЗ Калькулятор Lite v9.2.9 – RUSS Volgograd">
+    <!-- Maxim v9.2.9-meta: SEO + Open Graph + Twitter Card + JSON-LD.
+       Версия живёт ТОЛЬКО в внутренних элементах (badge, footer, mailto).
+       Поиск и соцсети видят чистый продукт, не «техничку». -->
+
+  <!-- SEO base -->
+  <meta name="description" content="Рассчитайте стоимость рекламы на экранах ПВЗ за 30 секунд. Выберите часы вещания, экраны и дни — получите точную смету. Бесплатно, без регистрации.">
+  <meta name="keywords" content="ПВЗ калькулятор, реклама на экранах, реклама ПВЗ Волгоград, расчёт стоимости рекламы, цифровая реклама, RUSS Волгоград">
+  <link rel="canonical" href="https://russ-volgograd.ru/calculator-lite/">
+
+  <!-- Open Graph — превью в Telegram / VK / WhatsApp / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://russ-volgograd.ru/calculator-lite/">
+  <meta property="og:title" content="ПВЗ Калькулятор — стоимость рекламы за 30 секунд">
+  <meta property="og:description" content="Выберите часы, экраны и дни — получите точную смету рекламной кампании. RUSS Волгоград.">
+  <meta property="og:site_name" content="RUSS Волгоград">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:image" content="https://russ-volgograd.ru/calculator-lite/og-lite.png">
+  <meta property="og:image:secure_url" content="https://russ-volgograd.ru/calculator-lite/og-lite.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ПВЗ Калькулятор RUSS Волгоград — расчёт стоимости рекламы">
+
+  <!-- Twitter Card — X / VK fallback -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ПВЗ Калькулятор — стоимость рекламы за 30 секунд">
+  <meta name="twitter:description" content="Выберите часы, экраны и дни — получите точную смету. RUSS Волгоград.">
+  <meta name="twitter:image" content="https://russ-volgograd.ru/calculator-lite/og-lite.png">
+
+  <!-- JSON-LD schema.org — структурированные данные для Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "ПВЗ Калькулятор",
+    "url": "https://russ-volgograd.ru/calculator-lite/",
+    "description": "Расчёт стоимости рекламной кампании на экранах ПВЗ в Волгограде. Выбор часов вещания, экранов и дней размещения.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "browserRequirements": "Requires JavaScript",
+    "inLanguage": "ru",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "RUB"
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "Maxim Sorokin",
+      "email": "msorokin@rwb.ru"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "RUSS Волгоград",
+      "url": "https://russ-volgograd.ru"
+    }
+  }
+  </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4327,9 +4385,13 @@
         contactLink.href = `mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20${vEncoded}`;
       }
       // v8.46: обновляем <title> и <meta description> из APP_VERSION
-      document.title = `RUSS · ПВЗ Калькулятор Lite · ${APP_VERSION}`;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute('content', `ПВЗ Калькулятор Lite ${APP_VERSION} – RUSS Volgograd`);
+      // v9.2.9-meta: title для SEO остаётся чистый (без версии).
+     // Версия живёт в badge/footer/mailto — это для пользователя, не для Google.
+     // Title НЕ перезаписываем — иначе SEO ломается при каждом релизе.
+     // document.title оставляем как в HTML.
+     // v9.2.9-meta: meta description чистая, для SEO.
+     // НЕ перезаписываем при каждом релизе — потеряем все SEO-выгоды.
+     // if (metaDesc) — оставляем как в HTML (с продающим текстом).
 
       prevValidState.screens = getValidScreens() > 0;
       prevValidState.days    = getValidDays() > 0;
