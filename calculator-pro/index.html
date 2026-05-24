@@ -32,12 +32,19 @@
   </script>
   <style>
     /* ══ ПЕРЕМЕННЫЕ — точно из :root презентации v13.4 */
-    :root{
+       :root{
       --bg:#0A0A0C; --card:#121218; --col:#FFFFFF; --sec:#B0B0B8; --muted:#686874;
       --border:rgba(255,255,255,0.07); --orange:#EA580C;
       --r:13px; --rb:8px;
       --ts:0 1px 3px rgba(0,0,0,0.18),0 0 1px rgba(0,0,0,0.08);
       --ease:.55s cubic-bezier(.25,.46,.45,.94);
+
+      /* Maxim: параметры фона pro.jpg — десктоп по умолчанию.
+         Переопределяются в @media для мобильной версии.
+         Меняй здесь = меняется весь десктоп. */
+      --bg-blur:2px;        /* сила блюра */
+      --bg-bright:0.48;     /* яркость (1 = норма, меньше = темнее) */
+      --bg-sat:0.82;        /* насыщенность (1 = норма, меньше = тусклее) */
     }
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
     html{height:100%;}
@@ -225,13 +232,13 @@
       pointer-events:none;z-index:2;
       animation:bgDrift 14s ease-in-out infinite alternate;
     }
-    /* Фон pro.jpg — точные параметры из .slide7-bg v13.4 */
-       /* Фон pro.jpg — Maxim: усилил блюр с 2.5px до 6px */
+       /* Фон pro.jpg — Maxim: параметры через CSS-переменные.
+       Десктоп — значения из :root. Мобила — переопределены в @media. */
     .pro-bg{
       position:absolute;inset:0;width:100%;height:100%;
       object-fit:cover;
       object-position:left center;
-      filter:blur(6px) brightness(0.48) saturate(0.82);
+      filter:blur(var(--bg-blur)) brightness(var(--bg-bright)) saturate(var(--bg-sat));
       transform:scale(1.06);
     }
     /* Тёмная маска — из .slide7-overlay */
@@ -310,8 +317,18 @@
       letter-spacing:.6px;
     }
 
-    /* ══ АДАПТИВ: Mobile <640px — правая СВЕРХУ (уменьшен порог с 768 до 640) */
+       /* ══ АДАПТИВ: Mobile <640px — правая СВЕРХУ (уменьшен порог с 768 до 640) */
     @media(max-width:639px){
+
+      /* Maxim: на мобиле фон сильнее размыт и темнее.
+         Причина: блок маленький, картинка детальная — сильный блюр
+         даёт визуальный покой и контраст для крупного текста «СКОРО.». */
+      :root{
+        --bg-blur:8px;       /* было 2px на десктопе → 8px на мобиле */
+        --bg-bright:0.35;    /* было 0.48 → темнее, текст читаемее */
+        --bg-sat:0.7;        /* было 0.82 → чуть тусклее, не отвлекает */
+      }
+
       .pro-layout{
         flex-direction:column-reverse; /* правая (СКОРО.) сверху */
       }
