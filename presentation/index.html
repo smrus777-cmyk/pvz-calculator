@@ -1,16 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>RWB PVZ Platform — v13.8 · executive</title>
+        <title>RWB PVZ Platform — v13.11 · executive</title>
   <!-- ПРАВКА 1: Google Fonts Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
- <style>
+  <style>
     /* v12.1 START */
     :root {
       --bg:#0A0A0C; --card:#121218; --col:#FFFFFF; --sec:#B0B0B8; --muted:#686874;
@@ -315,12 +313,12 @@
     }
     .slide7-content::-webkit-scrollbar{display:none;}
     
-    .slide7-badge{
+        .slide7-badge{
       font-size:.66rem;font-weight:700;letter-spacing:2.8px;
-      color:rgba(234,88,12,.9);
-      text-shadow:0 1px 8px rgba(0,0,0,.5),0 0 20px rgba(234,88,12,.2);
+      color:rgba(255,255,255,.6);
+      text-shadow:0 1px 8px rgba(0,0,0,.5);
     }
-    .s7-badge-dot{color:rgba(234,88,12,.55);margin:0 4px;}
+    .s7-badge-dot{color:rgba(255,255,255,.35);margin:0 4px;}
        .slide7-soon{
       font-size:clamp(4.5rem,8vw,7.5rem);font-weight:900;
       letter-spacing:-1px;line-height:1;color:#FFFFFF;
@@ -329,14 +327,18 @@
     .s7-soon-dot{color:var(--orange);}
     .slide7-cta{margin-top:4px;display:flex;flex-direction:column;align-items:center;gap:8px;}
     .s7-cta-label{font-size:.7rem;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.5);text-shadow:0 1px 6px rgba(0,0,0,.5);}
-    .s7-cta-link{font-size:.92rem;font-weight:700;color:var(--orange);text-decoration:none;display:inline-flex;align-items:center;gap:5px;text-shadow:0 1px 6px rgba(0,0,0,.5),0 0 22px rgba(234,88,12,.3);transition:color .2s ease;}
-    .s7-cta-link:hover{color:#FF7A2E;}
+        .s7-cta-link{font-size:.92rem;font-weight:700;color:rgba(255,255,255,.9);text-decoration:none;display:inline-flex;align-items:center;gap:5px;text-shadow:0 1px 6px rgba(0,0,0,.5);transition:color .2s ease;}
+    .s7-cta-link:hover{color:#FFFFFF;}
     .s7-cta-arrow{font-size:1rem;font-weight:700;opacity:.8;}
 
-    /* ══ EFFECT-CHIP — единый класс для слайдов 6 и 7 (v13.8) */
+    /* ══ EFFECT-CHIP — единый класс для слайдов 6 и 7 (v13.9) */
     .effect-chips-row{
       display:grid;grid-template-columns:1fr 1fr;gap:10px;
       width:100%;
+    }
+    /* Второй ряд — 3 колонки (слайд 7, ряд 2) */
+    .effect-chips-row.row-3col{
+      grid-template-columns:1fr 1fr 1fr;
     }
     .effect-chip{
       background:rgba(255,255,255,.025);border:1px solid var(--border);
@@ -349,37 +351,71 @@
     }
     /* На слайде 7 — frosted glass поверх блюра */
     .s7-effect-block .effect-chip{
-      background:rgba(0,0,0,.35);
-      border-color:rgba(255,255,255,.12);
+      background:rgba(0,0,0,.28);
+      border-color:rgba(255,255,255,.1);
       backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     }
     .s7-effect-block .effect-chip-accent{
-      border-color:rgba(234,88,12,.35);background:rgba(234,88,12,.08);
+      border-color:rgba(234,88,12,.38);background:rgba(234,88,12,.1);
     }
     .effect-chip-value{
       font-size:clamp(1.55rem,2.4vw,2rem);font-weight:900;
       letter-spacing:-.5px;line-height:1;
       color:var(--col);text-shadow:var(--ts);
+      white-space:nowrap; /* фикс: ₽ не переносится */
     }
     .effect-chip-accent .effect-chip-value{color:var(--orange);}
-    .s7-effect-block .effect-chip-value{
+        .s7-effect-block .effect-chip-value{
       text-shadow:0 2px 12px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.4);
+      font-size:clamp(1.4rem,2.1vw,1.8rem);
     }
+        .s7-effect-block .effect-chip{padding:18px 16px;gap:9px;}
+    /* Чипсы второго ряда (3col) чуть меньше — компактнее */
+    .row-3col .effect-chip{padding:14px 10px;}
+    .row-3col .effect-chip-value{font-size:clamp(1.2rem,1.8vw,1.55rem);}
     .effect-chip-label{
       font-size:.68rem;font-weight:500;color:var(--sec);
       line-height:1.35;text-shadow:var(--ts);
     }
     .s7-effect-block .effect-chip-label{color:rgba(255,255,255,.65);}
 
-    /* Блок «Эффект от Pro» на слайде 7 */
+    /* Блок «Эффект от Pro» на слайде 7 — премиальная оранжевая карточка (v13.9) */
     .s7-effect-block{
-      width:100%;max-width:360px;
+      width:100%;max-width:420px;
       display:flex;flex-direction:column;align-items:center;gap:12px;
       margin-top:8px;
+      padding:20px 18px;
+      background:rgba(234,88,12,.05);
+      border:1px solid rgba(234,88,12,.28);
+      border-radius:var(--rb);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      position:relative;
     }
-    .s7-effect-eyebrow{
-      font-size:.62rem;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;
-      color:rgba(234,88,12,.75);text-shadow:0 1px 4px rgba(0,0,0,.4);
+    /* Деликатный motion glow вокруг блока */
+    .s7-effect-block::before{
+      content:'';position:absolute;inset:-1px;
+      border-radius:var(--rb);
+      background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(234,88,12,.07) 0%,transparent 70%);
+      pointer-events:none;z-index:-1;
+    }
+            .s7-effect-eyebrow{
+      font-size:1rem;font-weight:800;letter-spacing:.8px;
+      color:var(--orange);
+      text-shadow:0 1px 6px rgba(0,0,0,.5),0 0 24px rgba(234,88,12,.3);
+      margin-bottom:4px;
+      padding-bottom:10px;
+      position:relative;
+      display:flex;flex-direction:column;align-items:center;
+    }
+    .s7-effect-eyebrow::after{
+      content:'';
+      position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+      width:28px;height:1px;
+      background:linear-gradient(90deg,
+        transparent 0%,
+        rgba(234,88,12,.5) 50%,
+        transparent 100%);
     }
     .s7-effect-note{
       font-size:.62rem;font-weight:500;
@@ -387,7 +423,7 @@
       text-shadow:0 1px 4px rgba(0,0,0,.4);
       text-align:center;line-height:1.5;
     }
-
+   
     /* Слайд 6 — подпись расчёта */
     .effect-calc-note{
       margin-top:12px;
@@ -780,17 +816,24 @@
     <!-- СЛАЙД 06 -->
     <div class="screen slide" id="slide6">
       <div class="slide-tag"><span>06</span> · Что это даёт компании</div>
-      <h2>Что это даёт компании</h2>
+      <h2>Lite уже работает.<br>Вот что это даёт.</h2>
       <div class="slide-body">
-        <p class="effect-block-label">Эффект от внедрения Lite-калькулятора:</p>
         <div class="effect-chips-row">
           <div class="effect-chip effect-chip-accent">
-            <div class="effect-chip-value">+9 млн ₽</div>
+            <div class="effect-chip-value">+9&nbsp;млн&nbsp;₽</div>
             <div class="effect-chip-label">выручка ПВЗ<br>в год</div>
           </div>
           <div class="effect-chip">
             <div class="effect-chip-value">+600</div>
             <div class="effect-chip-label">новых клиентов<br>в Russ Online</div>
+          </div>
+          <div class="effect-chip">
+            <div class="effect-chip-value">×3</div>
+            <div class="effect-chip-label">быстрее цикл<br>сделки</div>
+          </div>
+          <div class="effect-chip effect-chip-accent">
+            <div class="effect-chip-value">0&nbsp;₽</div>
+            <div class="effect-chip-label">стоимость<br>внедрения</div>
           </div>
         </div>
         <div class="effect-calc-note">Расчёт: 50 менеджеров × 1 сделка/мес × 15 000 ₽</div>
@@ -846,7 +889,7 @@
       <div class="pp-sep"></div>
       <div class="pp-progress"><div class="pp-fill" id="sFill"></div></div>
       <div class="pp-counter" id="sCount">— / 7</div>
-                        <div style="font-size:.6rem;color:rgba(255,255,255,.2);padding-left:4px;font-weight:600;">v13.8 · executive</div>
+                        <div style="font-size:.6rem;color:rgba(255,255,255,.2);padding-left:4px;font-weight:600;">v13.11 · executive</div>
     </div>
 
   </div>
@@ -910,30 +953,38 @@
     <span class="s7-cta-arrow">›</span>russ-volgograd.ru
   </a>
 </div>
-      <!-- v13.8 — Эффект от Pro: 4 чипса 2×2 -->
+      <!-- v13.9 — Эффект от Pro: оранжевая карточка, 2 ряда чипсов -->
       <div class="s7-effect-block">
         <div class="s7-effect-eyebrow">Эффект от Pro</div>
+        <!-- Ряд 1: 2 крупных чипса — оба с акцентом -->
         <div class="effect-chips-row">
           <div class="effect-chip effect-chip-accent">
-            <div class="effect-chip-value">+36 млн ₽</div>
-            <div class="effect-chip-label">выручка в год</div>
+            <div class="effect-chip-value">+36&nbsp;млн&nbsp;₽</div>
+            <div class="effect-chip-label">выручка 1й год</div>
           </div>
+          <div class="effect-chip effect-chip-accent">
+            <div class="effect-chip-value">+54&nbsp;млн&nbsp;₽</div>
+            <div class="effect-chip-label">выручка 2й год</div>
+          </div>
+        </div>
+        <!-- Ряд 2: 3 чипса меньше -->
+        <div class="effect-chips-row row-3col">
           <div class="effect-chip">
             <div class="effect-chip-value">1.5 мес</div>
             <div class="effect-chip-label">окупаемость</div>
           </div>
           <div class="effect-chip">
             <div class="effect-chip-value">+25%</div>
-            <div class="effect-chip-label">конверсия<br>встреч</div>
+            <div class="effect-chip-label">конверсия встреч</div>
           </div>
           <div class="effect-chip">
             <div class="effect-chip-value">×5</div>
-            <div class="effect-chip-label">форматов<br>охвата</div>
+            <div class="effect-chip-label">форматов</div>
           </div>
         </div>
-        <div class="s7-effect-note">
-          Стоимость аналога на рынке: 3–5 млн ₽<br>
-          По данным Tagline и Workspace.ru, 2025
+                <div class="s7-effect-note">
+          Стоимость аналогов: 3–5&nbsp;млн&nbsp;₽<br>
+          Tagline · Workspace, 2025
         </div>
       </div>
     </div>
@@ -1297,3 +1348,23 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- слайд 7: «СКОРО.» поднят выше, добавлен блок «Эффект от Pro»: -->
 <!--          4 чипса 2×2 (+36 млн ₽, 1.5 мес, +25%, ×5) + рыночная цена -->
 <!-- новый класс .effect-chip — единый для слайдов 6 и 7 -->
+
+<!-- v13.9 (Заход 5 — premium executive): -->
+<!-- слайд 6: 4 чипса 2×2 (+9 млн ₽, +600, ×3, 0 ₽), -->
+<!--          eyebrow «Lite уже работает. Вот что это даёт.» -->
+<!-- слайд 7: премиальная оранжевая карточка вокруг «Эффект от Pro», -->
+<!--          1й/2й год (+36 млн ₽ / +54 млн ₽), -->
+<!--          второй ряд 3 чипса (1.5 мес, +25%, ×5), -->
+<!--          добавлено пояснение про рост ×1.5 -->
+<!-- фикс: white-space:nowrap для .effect-chip-value, &nbsp; перед ₽ -->
+<!-- v13.10 (Заход 6 — Apple-минимализм, чистка иерархии): -->
+<!-- слайд 7: «Эффект от Pro» — Title Case крупнее (.85rem), без капса, полный оранжевый -->
+<!--          фикс +54 млн ₽: уменьшен размер value (max 1.8rem), padding 16px -->
+<!--          приглушены: «Pro · Preview» и «russ-volgograd.ru» → белые/серые -->
+<!--          убран блок .s7-effect-rationale (Apple: цифра сама за себя) -->
+<!--          «Стоимость аналогов: 3–5 млн ₽ / Tagline · Workspace, 2025» -->
+<!-- v13.11 (Заход 7 — Apple Pricing-style «Эффект от Pro»): -->
+<!-- .s7-effect-eyebrow: .85rem → 1rem, letter-spacing .8px, glow .3 -->
+<!-- добавлен ::after — тонкая оранжевая линия с gradient fade под заголовком -->
+<!-- .s7-effect-block .effect-chip: gap 6 → 9px (воздух между цифрой и подписью) -->
+<!-- результат: «Эффект от Pro» теперь «имя раздела», а не подзаголовок -->
