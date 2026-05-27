@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>RUSS Волгоград · executive</title>
+        <title>RWB PVZ Platform — v13.11 · executive</title>
   <!-- ПРАВКА 1: Google Fonts Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -295,15 +295,16 @@
       object-fit:cover;
       /* Прижато к левому краю — начало картинки упирается в левый край */
       object-position:left center;
-      /* Ослаблен blur — контуры хорошо видны */
-      filter:blur(2.5px) brightness(0.52) saturate(0.85);
-      transform:scale(1.03);
+      /* v13.12: усиленный blur для интриги — контуры угадываются, детали скрыты */
+            filter:blur(2px) brightness(0.85) saturate(0.85);
+      transform:scale(1.04);
     }
-    .slide7-overlay{
+          .slide7-overlay{
       position:absolute;inset:0;z-index:1;
       background:
-        linear-gradient(90deg,rgba(11,11,12,.3) 0%,rgba(11,11,12,.65) 55%,rgba(11,11,12,.45) 100%),
-        radial-gradient(circle at 50% 50%,transparent 0%,rgba(11,11,12,.35) 100%);
+        linear-gradient(180deg,rgba(11,11,12,.1) 0%,rgba(11,11,12,.2) 50%,rgba(11,11,12,.75) 100%),
+        linear-gradient(90deg,rgba(11,11,12,.15) 0%,rgba(11,11,12,.4) 50%,rgba(11,11,12,.25) 100%),
+        radial-gradient(circle at 50% 45%,transparent 0%,rgba(11,11,12,.2) 100%);
     }
     .slide7-content{
       position:relative;z-index:3;height:100%;
@@ -381,10 +382,10 @@
 
     /* Блок «Эффект от Pro» на слайде 7 — премиальная оранжевая карточка (v13.9) */
     .s7-effect-block{
-      width:100%;max-width:420px;
-      display:flex;flex-direction:column;align-items:center;gap:12px;
+      width:100%;max-width:400px;
+      display:flex;flex-direction:column;align-items:center;gap:8px;
       margin-top:8px;
-      padding:20px 18px;
+            padding:14px 16px 12px;
       background:rgba(234,88,12,.05);
       border:1px solid rgba(234,88,12,.28);
       border-radius:var(--rb);
@@ -400,30 +401,128 @@
       pointer-events:none;z-index:-1;
     }
             .s7-effect-eyebrow{
-      font-size:1rem;font-weight:800;letter-spacing:.8px;
+            font-size:.92rem;font-weight:800;letter-spacing:.6px;
       color:var(--orange);
       text-shadow:0 1px 6px rgba(0,0,0,.5),0 0 24px rgba(234,88,12,.3);
-      margin-bottom:4px;
-      padding-bottom:10px;
+      margin-bottom:2px;
+      padding-bottom:2px;
       position:relative;
       display:flex;flex-direction:column;align-items:center;
     }
-    .s7-effect-eyebrow::after{
-      content:'';
-      position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-      width:28px;height:1px;
-      background:linear-gradient(90deg,
-        transparent 0%,
-        rgba(234,88,12,.5) 50%,
-        transparent 100%);
+    
+	
+	       /* ══ v13.15 — Financial Table COMPACT (для презентации 200%) */
+    .s7-effect-table{
+      width:100%;display:flex;flex-direction:column;
+      margin:2px 0;
     }
+    .s7-row{
+      display:flex;align-items:baseline;justify-content:space-between;
+      gap:10px;
+      padding:7px 4px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+    .s7-row.s7-row-last{border-bottom:none;padding-bottom:4px;}
+    /* Hero-строка — компактнее, но всё равно выделена */
+    .s7-row.s7-row-hero{
+      padding:8px 4px 10px;
+      border-bottom:1px solid rgba(234,88,12,.18);
+    }
+    .s7-row-label{
+      font-size:.7rem;font-weight:500;
+      color:rgba(255,255,255,.62);
+      text-shadow:0 1px 4px rgba(0,0,0,.4);
+      text-align:left;letter-spacing:.1px;
+      line-height:1.3;
+    }
+    .s7-row-label em{
+      font-style:normal;
+      color:rgba(255,255,255,.4);
+      font-weight:400;
+    }
+    .s7-row-value{
+      font-size:.95rem;font-weight:800;
+      letter-spacing:-.3px;
+      color:#FFFFFF;
+      text-shadow:0 1px 6px rgba(0,0,0,.5);
+      white-space:nowrap;flex-shrink:0;
+    }
+    .s7-row-value-accent{
+      font-size:1.25rem;
+      color:var(--orange);
+      letter-spacing:-.5px;
+      text-shadow:0 2px 12px rgba(0,0,0,.5),0 0 20px rgba(234,88,12,.25);
+    }
+    .s7-row-hero .s7-row-label{
+      font-size:.72rem;font-weight:600;
+      color:rgba(255,255,255,.78);
+    }
+
+    .s7-row-hero .s7-row-label{
+      font-size:.78rem;font-weight:600;
+      color:rgba(255,255,255,.75);
+    }
+
+	
     .s7-effect-note{
       font-size:.62rem;font-weight:500;
       color:rgba(255,255,255,.3);
       text-shadow:0 1px 4px rgba(0,0,0,.4);
       text-align:center;line-height:1.5;
     }
-   
+       /* ══ СЛАЙД 6 v13.13 — Hero + Supporting layout */
+    #slide6 .slide-body{
+      display:flex;flex-direction:column;gap:12px;
+      justify-content:flex-start;padding-top:8px;
+    }
+    .s6-hero{
+      width:100%;padding:36px 28px;gap:14px;
+      min-height:180px;justify-content:center;
+    }
+    .s6-hero-value{
+      font-size:clamp(2.4rem,4vw,3.4rem);font-weight:900;
+      letter-spacing:-1px;line-height:1;
+      color:var(--orange);text-shadow:var(--ts);
+      white-space:nowrap;
+    }
+    .s6-hero-label{
+      font-size:.92rem;font-weight:600;color:var(--col);
+      line-height:1.4;text-shadow:var(--ts);
+      opacity:.9;
+    }
+    .s6-supporting{
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;
+      width:100%;
+    }
+    .s6-supporting .effect-chip{
+      padding:22px 14px;min-height:130px;
+      justify-content:center;
+    }
+    .s6-supporting .effect-chip-value{
+      font-size:clamp(1.4rem,2vw,1.75rem);
+    }
+
+    /* ══ STAGGER ANIMATION v13.13 — поочерёдное появление */
+    @keyframes s6ChipIn{
+      from{opacity:0;transform:translateY(14px) scale(.96);filter:blur(6px);}
+      to  {opacity:1;transform:translateY(0)    scale(1);  filter:blur(0);}
+    }
+    /* Анимация запускается ТОЛЬКО когда слайд активен */
+    #slide6.active [data-stagger]{
+      opacity:0;
+      animation:s6ChipIn .65s cubic-bezier(.25,.46,.45,.94) forwards;
+    }
+    #slide6.active [data-stagger="1"]{animation-delay:.15s;}
+    #slide6.active [data-stagger="2"]{animation-delay:.45s;}
+    #slide6.active [data-stagger="3"]{animation-delay:.65s;}
+    #slide6.active [data-stagger="4"]{animation-delay:.85s;}
+
+    /* prefers-reduced-motion — мгновенно показываем */
+    @media (prefers-reduced-motion:reduce){
+      #slide6.active [data-stagger]{
+        animation:none;opacity:1;transform:none;filter:none;
+      }
+    }
     /* Слайд 6 — подпись расчёта */
     .effect-calc-note{
       margin-top:12px;
@@ -814,29 +913,31 @@
     </div>
 
     <!-- СЛАЙД 06 -->
+        <!-- СЛАЙД 06 (v13.13 — Hero + 3 supporting, stagger animation) -->
     <div class="screen slide" id="slide6">
       <div class="slide-tag"><span>06</span> · Что это даёт компании</div>
       <h2>Lite уже работает.<br>Вот что это даёт.</h2>
       <div class="slide-body">
-        <div class="effect-chips-row">
-          <div class="effect-chip effect-chip-accent">
-            <div class="effect-chip-value">+9&nbsp;млн&nbsp;₽</div>
-            <div class="effect-chip-label">выручка ПВЗ<br>в год</div>
+        <!-- HERO: главный аргумент -->
+        <div class="s6-hero effect-chip effect-chip-accent" data-stagger="1">
+          <div class="s6-hero-value">10+&nbsp;млн&nbsp;₽</div>
+          <div class="s6-hero-label">выручка ПВЗ — в первый год</div>
+        </div>
+        <!-- SUPPORTING: 3 доказательства -->
+        <div class="s6-supporting">
+          <div class="effect-chip" data-stagger="2">
+            <div class="effect-chip-value">600+</div>
+            <div class="effect-chip-label">клиентов<br>к АКБ программатик</div>
           </div>
-          <div class="effect-chip">
-            <div class="effect-chip-value">+600</div>
-            <div class="effect-chip-label">новых клиентов<br>в Russ Online</div>
-          </div>
-          <div class="effect-chip">
+          <div class="effect-chip" data-stagger="3">
             <div class="effect-chip-value">×3</div>
             <div class="effect-chip-label">быстрее цикл<br>сделки</div>
           </div>
-          <div class="effect-chip effect-chip-accent">
+          <div class="effect-chip effect-chip-accent" data-stagger="4">
             <div class="effect-chip-value">0&nbsp;₽</div>
             <div class="effect-chip-label">стоимость<br>внедрения</div>
           </div>
         </div>
-        <div class="effect-calc-note">Расчёт: 50 менеджеров × 1 сделка/мес × 15 000 ₽</div>
       </div>
     </div>
 
@@ -953,36 +1054,35 @@
     <span class="s7-cta-arrow">›</span>russ-volgograd.ru
   </a>
 </div>
-      <!-- v13.9 — Эффект от Pro: оранжевая карточка, 2 ряда чипсов -->
+            <!-- v13.14 — Эффект от Pro: Financial Table (Apple Keynote style) -->
       <div class="s7-effect-block">
         <div class="s7-effect-eyebrow">Эффект от Pro</div>
-        <!-- Ряд 1: 2 крупных чипса — оба с акцентом -->
-        <div class="effect-chips-row">
-          <div class="effect-chip effect-chip-accent">
-            <div class="effect-chip-value">+36&nbsp;млн&nbsp;₽</div>
-            <div class="effect-chip-label">выручка 1й год</div>
+
+        <div class="s7-effect-table">
+          <!-- HERO ROW: главная цифра, крупнее остальных -->
+          <div class="s7-row s7-row-hero">
+            <span class="s7-row-label">Выручка <em>в первый год</em></span>
+            <span class="s7-row-value s7-row-value-accent">100+&nbsp;млн&nbsp;₽</span>
           </div>
-          <div class="effect-chip effect-chip-accent">
-            <div class="effect-chip-value">+54&nbsp;млн&nbsp;₽</div>
-            <div class="effect-chip-label">выручка 2й год</div>
+          <div class="s7-row">
+            <span class="s7-row-label">Новых клиентов в Russ Online</span>
+            <span class="s7-row-value">+20%</span>
           </div>
-        </div>
-        <!-- Ряд 2: 3 чипса меньше -->
-        <div class="effect-chips-row row-3col">
-          <div class="effect-chip">
-            <div class="effect-chip-value">1.5 мес</div>
-            <div class="effect-chip-label">окупаемость</div>
+          <div class="s7-row">
+            <span class="s7-row-label">Окупаемость</span>
+            <span class="s7-row-value">1.5&nbsp;мес</span>
           </div>
-          <div class="effect-chip">
-            <div class="effect-chip-value">+25%</div>
-            <div class="effect-chip-label">конверсия встреч</div>
+          <div class="s7-row">
+            <span class="s7-row-label">Конверсия встреч</span>
+            <span class="s7-row-value">+25%</span>
           </div>
-          <div class="effect-chip">
-            <div class="effect-chip-value">×5</div>
-            <div class="effect-chip-label">форматов</div>
+          <div class="s7-row s7-row-last">
+            <span class="s7-row-label">Digital-форматов</span>
+            <span class="s7-row-value">×5</span>
           </div>
         </div>
-                <div class="s7-effect-note">
+
+        <div class="s7-effect-note">
           Стоимость аналогов: 3–5&nbsp;млн&nbsp;₽<br>
           Tagline · Workspace, 2025
         </div>
@@ -1056,11 +1156,24 @@ function goSlide(n) {
   } else {
     hideSlide7();
     setActive(n);
+    // Maxim v13.13: перезапуск stagger-анимации на слайде 6 при каждом заходе
+    if (n === 6) restartSlide6Animation();
   }
   document.getElementById('sCount').textContent=n+' / '+TOTAL;
   document.getElementById('sFill').style.width=(n/TOTAL*100)+'%';
   document.getElementById('sPrev').disabled=n===1;
   document.getElementById('sNext').disabled=n===TOTAL;
+}
+
+// Maxim v13.13: трюк с reflow — перезапускает CSS-анимацию при возврате на слайд
+function restartSlide6Animation(){
+  const slide = document.getElementById('slide6');
+  const chips = slide.querySelectorAll('[data-stagger]');
+  chips.forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetWidth; // форсируем reflow
+    el.style.animation = '';
+  });
 }
 
 function showFinal() {
@@ -1141,7 +1254,11 @@ function mountImage(src,n){
 function mountVideo(src,n,autoplay){
   mediaIdx=n;mediaType='video';videoEnded=false;
   const inner=document.getElementById('mediaInner');inner.innerHTML='';
-  const v=document.createElement('video');v.src=src;v.playsInline=true;v.className='media-fade';
+  const v=document.createElement('video');
+  v.src=src;
+  v.playsInline=true;
+  v.muted=true; // Maxim v13.12: muted обязательно для autoplay в браузерах
+  v.className='media-fade';
   Object.assign(v.style,{width:'auto',height:'100%',maxWidth:'100%',maxHeight:'100%',objectFit:'contain',display:'block',borderRadius:'6px'});
   v.addEventListener('play',()=>setPlayState(true));
   v.addEventListener('pause',()=>{if(!videoEnded)setPlayState(false);});
@@ -1150,7 +1267,11 @@ function mountVideo(src,n,autoplay){
   document.getElementById('vLabel').innerHTML='<span>'+pad(n)+'.mp4</span>';
   document.getElementById('vPrev').disabled=n<=1;
   updateNext();
-  if(autoplay)v.play().catch(()=>{});
+  // Maxim v13.12: видео ВСЕГДА стартует автоматически когда смонтировано
+  v.play().catch(err=>{
+    // Если браузер блочит автоплей — оставляем кнопку Play
+    console.log('Autoplay blocked, click to start:', err);
+  });
 }
 
 function updateNext(){
@@ -1198,7 +1319,11 @@ document.getElementById('btnSlides').addEventListener('mouseleave',()=>hidePanel
 
 /* ══ ТИТУЛ */
 function openTitleScreen(){document.getElementById('titleScreen').classList.add('show');}
-function closeTitleScreen(){document.getElementById('titleScreen').classList.remove('show');}
+function closeTitleScreen(){
+  document.getElementById('titleScreen').classList.remove('show');
+  // Maxim v13.12: после титула — сразу на слайд 1 (меню overview пропускаем)
+  if (isOverview) goSlide(1);
+}
 
 function loadTitleImage(){
   const wrap=document.getElementById('titlePhoneWrap');
@@ -1268,14 +1393,21 @@ document.addEventListener('keydown', e => {
       }
       break;
     case 'Escape':
-      closeTitleScreen();
-      break;
+  // Maxim: сначала закрываем титул, если открыт; иначе выходим из fullscreen
+  if (document.getElementById('titleScreen').classList.contains('show')) {
+    closeTitleScreen();
+  } else if (document.fullscreenElement) {
+    document.exitFullscreen().catch(()=>{});
+  }
+  break;
   }
 });
 
 /* ══ INIT */
 window.addEventListener('DOMContentLoaded', () => {
-  showOverview();
+  // Maxim v13.12: меню overview закомментировано, стартуем сразу со слайда 1
+  // showOverview();
+  goSlide(1);
   loadTitleImage();
   loadSlide7Bg();
   tryLoad(1, false);
