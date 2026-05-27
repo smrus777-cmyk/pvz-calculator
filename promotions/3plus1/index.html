@@ -26,17 +26,22 @@
   <noscript><div><img src="https://mc.yandex.ru/watch/109395885" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
   <!-- /Maxim: Яндекс.Метрика -->
 	
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Maxim: preconnect к CDN скриптов — экономит 100-200мс на DNS+TLS -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- Flatpickr -->
+    <!-- Flatpickr -->
+  <!-- Maxim: defer — не блокирует рендер, грузится параллельно с HTML.
+       l10n/ru.js перенесён на jsdelivr — npmcdn.com устарел и тормозит. -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script>
-  
-  <!-- html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js" defer></script>
+
+  <!-- Maxim: html2canvas вынесен в ленивую загрузку (только при клике "Скачать PNG").
+       Это убирает 200 КБ из стартовой загрузки страницы. См. функцию loadHtml2Canvas() -->
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -817,6 +822,9 @@ overflow: hidden;
 <div id="toast" class="toast"><span class="toast-icon">⚠️</span><span class="toast-message"></span></div>
 
 <script>
+// Maxim: ждём DOMContentLoaded — гарантирует, что defer-скрипты Flatpickr
+// уже загружены и flatpickr() доступен. defer на inline не работает (спека HTML)
+window.addEventListener('DOMContentLoaded', function() {
 (function(){
   // ---------- КОНСТАНТЫ ----------
   const DEFAULTS = {
@@ -1228,6 +1236,21 @@ overflow: hidden;
     showToast('Данные сброшены');
   });
 
+    // ---------- ЛЕНИВАЯ ЗАГРУЗКА html2canvas ----------
+  // Maxim: грузим html2canvas только при первом клике "Скачать PNG"
+  // Это убирает 200 КБ из стартовой загрузки страницы (страница открывается мгновенно)
+  let html2canvasLoaded = false;
+  function loadHtml2Canvas() {
+    if (html2canvasLoaded && typeof html2canvas !== 'undefined') return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = () => { html2canvasLoaded = true; resolve(); };
+      s.onerror = () => reject(new Error('html2canvas failed to load'));
+      document.head.appendChild(s);
+    });
+  }
+
   // ---------- ЭКСПОРТ PNG (стабильный клон) ----------
   async function downloadPNG() {
     if (btnDownload.disabled) return;
@@ -1235,6 +1258,18 @@ overflow: hidden;
     btnDownload.disabled = true;
     exportOverlay.classList.add('show');
     document.body.classList.add('export-mode');
+
+    // Maxim: грузим html2canvas прямо сейчас (если ещё не загружен)
+    try {
+      await loadHtml2Canvas();
+    } catch(e) {
+      console.error(e);
+      showToast('Не удалось загрузить экспортер');
+      btnDownload.disabled = false;
+      exportOverlay.classList.remove('show');
+      document.body.classList.remove('export-mode');
+      return;
+    }
 
     // Клонируем страницу
     const clone = page.cloneNode(true);
@@ -1326,9 +1361,10 @@ overflow: hidden;
   renderAll();
   updatePreviewHeight();
 
-    // Десктоп / мобильная адаптация при загрузке
+       // Десктоп / мобильная адаптация при загрузке
   if (!isMobile()) setZoom(calcDesktopZoom(), false);
 })();
+}); // Maxim: конец window.addEventListener('DOMContentLoaded')
 </script>
 </body>
 </html>
