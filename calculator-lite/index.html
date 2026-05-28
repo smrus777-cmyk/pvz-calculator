@@ -983,7 +983,8 @@
       box-shadow: 4px 4px 8px rgba(0,0,0,0.20);
     }
 
-    /* Хвостик-стрелка ВВЕРХ (desktop: tooltip под шапкой). */
+       /* Хвостик-стрелка ВВЕРХ (desktop: tooltip под шапкой).
+       v9.3.5: устранён дубль блока (был case copy-paste из v9.3.4). */
     .save-hint-toast.tail-up::after {
       content: '';
       position: absolute;
@@ -999,24 +1000,6 @@
       border-left: var(--border-thin) solid var(--tooltip-border);
       border-top: var(--border-thin) solid var(--tooltip-border);
       box-shadow: -4px -4px 8px rgba(0,0,0,0.20);
-    }    
-
-    /* Хвостик-стрелка ВВЕРХ (desktop: tooltip под шапкой). */
-    .save-hint-toast.tail-up::after {
-      content: '';
-      position: absolute;
-      bottom: 100%;
-      left: var(--tail-x, 50%);
-      transform: translateX(-50%) rotate(45deg);
-      width: 12px;
-      height: 12px;
-      background: var(--tooltip-bg);
-      backdrop-filter: blur(12px) saturate(160%);
-      -webkit-backdrop-filter: blur(12px) saturate(160%);
-      margin-bottom: -6px;
-      border-left: var(--border-thin) solid var(--tooltip-border);
-      border-top: var(--border-thin) solid var(--tooltip-border);
-      box-shadow: -2px -2px 4px rgba(0,0,0,0.08);
     }
 
     /* Лампочка — Apple Settings оранжевая SVG */
@@ -4240,7 +4223,7 @@
         haptic('light');
       }
 
-      function finish() {
+            function finish() {
         haptic('success');
         overlay.style.transition = 'opacity 0.42s ease';
         overlay.classList.add('ob-hidden');
@@ -4259,12 +4242,67 @@
             // reduce-motion или повторный онбординг (DEV) — scroll-reveal как раньше
             setTimeout(() => initAutoScrollReveal(), 600);
           } else {
+            // v9.3.5 · ПРЕРЫВАЕМАЯ АНИМАЦИЯ ОНБОРДИНГА (Apple HIG).
+            // «The user always wins» — любой ввод обрывает обучение.
+            //
+            // Раньше: shake продолжался даже если юзер крутил колесо.
+            // Прерывание ловилось только через hasTouched (тач/клик
+            // по ползунку). Колесо мыши/скролл/клавиши — игнорировались.
+            //
+            // Решение: глобальный флаг + listener'ы на wheel/pointerdown/
+            // keydown ДО запуска shake. Каждая фаза _demoShake уже
+            // проверяет hasTouched — добавляем эквивалент для глобал.
+            // Pending setTimeout на scroll-reveal тоже отменяется.
+
+            // Флаг прерывания + ID отложенного scroll-reveal
+            window._onboardingInterrupted = false;
+            let pendingScrollRevealId = null;
+
+            const onboardingInterrupt = () => {
+              if (window._onboardingInterrupted) return; // уже прервано
+              window._onboardingInterrupted = true;
+              // Помечаем все слайдеры как «тронутые» — _demoShake выйдет
+              // на следующей фазе через guard `if (this.hasTouched)`.
+              if (Array.isArray(sliderInstances)) {
+                sliderInstances.forEach(s => { s.hasTouched = true; });
+              }
+              // Отменяем pending scroll-reveal (если ещё не запустился)
+              if (pendingScrollRevealId !== null) {
+                clearTimeout(pendingScrollRevealId);
+                pendingScrollRevealId = null;
+              }
+              // haptic-отклик «система услышала юзера» (Кодекс: Осязаемость)
+              if (typeof haptic === 'function') haptic('medium');
+              // Снимаем listener'ы — once:true даёт защиту, но явный
+              // removeEventListener гарантирует чистоту памяти.
+              window.removeEventListener('wheel',       onboardingInterrupt);
+              window.removeEventListener('pointerdown', onboardingInterrupt);
+              window.removeEventListener('keydown',     onboardingInterrupt);
+            };
+
+            // Регистрируем listener'ы ДО запуска shake (Apple HIG):
+            // юзер мог крутить колесо ещё во время fade overlay.
+            // passive:true — не блокируем нативный скролл страницы.
+            window.addEventListener('wheel',       onboardingInterrupt, { once: true, passive: true });
+            window.addEventListener('pointerdown', onboardingInterrupt, { once: true, passive: true });
+            window.addEventListener('keydown',     onboardingInterrupt, { once: true });
+
             // Первое знакомство: 350ms (overlay fade) → shake → scroll-reveal
             setTimeout(() => {
+              // Если юзер уже прервал во время 350ms fade — не запускаем shake
+              if (window._onboardingInterrupted) return;
+
               if (typeof runAffordanceShakeOnboarding === 'function') {
                 runAffordanceShakeOnboarding();
               }
-              setTimeout(() => initAutoScrollReveal(), 2500);
+              // pendingScrollRevealId — чтобы можно было отменить
+              // из onboardingInterrupt если юзер прервёт во время shake
+              pendingScrollRevealId = setTimeout(() => {
+                pendingScrollRevealId = null;
+                // Если прервали — initAutoScrollReveal не запускаем
+                if (window._onboardingInterrupted) return;
+                initAutoScrollReveal();
+              }, 2500);
             }, 350);
           }
         }, 460);
