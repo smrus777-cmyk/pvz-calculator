@@ -1,14 +1,22 @@
 # Разрешить всем поисковым роботам сканирование
 User-agent: *
 Allow: /
-
-# Указание на карту сайта
-Sitemap: https://russ-volgograd.ru/sitemap.xml
-
-# Запрет на индексацию страницы 404 (она не нужна в поиске)
 Disallow: /404.html
-
-# Запрет на индексацию служебных страниц (если появятся)
 Disallow: /assets/
 Disallow: /css/
 Disallow: /js/
+Disallow: /pro-test/
+Disallow: /presentation/
+
+# Отдельная секция для Яндекса (рекомендация Я.Вебмастера)
+User-agent: Yandex
+Allow: /
+Disallow: /404.html
+Disallow: /assets/
+Disallow: /css/
+Disallow: /js/
+Disallow: /pro-test/
+Disallow: /presentation/
+
+# Карта сайта
+Sitemap: https://russ-volgograd.ru/sitemap.xml
