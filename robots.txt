@@ -11,6 +11,8 @@ Allow: /
 Disallow: /404.html
 Disallow: /pro-test/
 Disallow: /presentation/
+Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&_openstat
+Host: russ-volgograd.ru
 
 # Карта сайта
 Sitemap: https://russ-volgograd.ru/sitemap.xml
