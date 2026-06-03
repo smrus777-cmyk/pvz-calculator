@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.3.2
+  Продукт: ПВЗ Калькулятор Lite · v9.3.4
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -623,42 +623,48 @@
     .scroll-area { width: 100%; overflow-x: hidden; }
     .calculator { max-width: 480px; width: 100%; margin: 0 auto; padding: 0 12px; display:flex; flex-direction:column; gap:32px; }
 
-                    /* ═══════════════════════════════════════════════════════════════
-       ZOOM ПО ВЫСОТЕ ЭКРАНА · каскад от меньшего к большему
-       
-       Применяется ТОЛЬКО на мышиных устройствах (pointer: fine, hover: hover)
-       с минимальной шириной 768px (отсекаем планшеты/телефоны).
-       
-       Пороги (только высота):
-         ≤ 899px      → zoom 0.85   (ноутбук 1366×768 и ниже)
-         900–1099px   → zoom 1.0    (стандарт)
-         1100–1249px  → zoom 1.5    (1600×1200 и т.п.)
-         1250–1999px  → zoom 1.4    (1440p, 2K)
-         ≥2000px      → zoom 2.3    (4K)
-    ================================================================ */
+                       /* v9.3.9: ZOOM ПО 5 ДИАПАЗОНАМ ВЫСОТЫ — Maxim's real-world testing.
+       Лесенка из 5 ступеней (data-driven, физически проверено на 27" мониторе
+       через смену разрешения в настройках Windows).
 
-    /* Порог 0: низкие экраны (ноутбуки) — уменьшаем */
-    @media (pointer: fine) and (min-width: 768px) and (max-height: 899px) and (hover: hover) {
+       КАСКАД: каждый диапазон — изолированный (min-height + max-height),
+       взаимоисключающие условия. Порядок не критичен, но идём от меньшего
+       к большему для читаемости.
+
+       Диапазоны (выверены физически на 27" мониторе):
+         · ≤ 900px         (1366×768 HD ноуты)         → zoom 0.85 — было крупно
+         · 901–1100px      (1080p Full HD, 1440×900)    → zoom ВЫКЛ — база системы
+         · 1101–1250px     (1600×1200, редкие мониторы) → zoom 1.2  — было мелко
+         · 1251–1699px     (2K 1440 — экран Maxim)      → zoom 1.4  — привычный вид
+         · ≥ 1700px        (4K 2160 и выше)             → zoom 2.3  — заполнить пустоту
+
+       ⚠️ ВАЖНО: «крупно/мелко» зависит от РЕАЛЬНОГО размера монитора (дюймов)
+       и DPI, а не только от разрешения. Эти пороги настроены под 27" — типичный
+       офисный сценарий 2024. На 17"/15" будет иначе.
+
+       min-width:768px + hover:hover — отсекают планшеты/тач устройства.
+       Все пороги — гранитные константы. Не трогать без физического теста. */
+
+    /* Диапазон 1: ≤ 900px (1366×768 HD ноуты) — zoom 0.85 */
+    @media (pointer: fine) and (min-width: 768px) and (max-height: 900px) and (hover: hover) {
       body { zoom: 0.85; }
     }
 
-    /* Порог 1: стандартная высота — ничего не меняем */
-    @media (pointer: fine) and (min-width: 768px) and (min-height: 900px) and (max-height: 1099px) and (hover: hover) {
-      body { zoom: 1.0; }
+    /* Диапазон 2: 901–1100px (1080p, база) — zoom ВЫКЛ
+       Намеренно НЕТ правила. Отсутствие zoom = база системы. */
+
+    /* Диапазон 3: 1101–1250px (1600×1200) — zoom 1.2 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1101px) and (max-height: 1250px) and (hover: hover) {
+      body { zoom: 1.2; }
     }
 
-    /* Порог 2: высота 1100–1249px (например 1600×1200) — увеличенный zoom 1.5 */
-    @media (pointer: fine) and (min-width: 768px) and (min-height: 1100px) and (max-height: 1249px) and (hover: hover) {
-      body { zoom: 1.1; }
-    }
-
-    /* Порог 3: высота 1250–1999px (1440p, 2K) — zoom 1.4 (как было, но сдвинутый порог) */
-    @media (pointer: fine) and (min-width: 768px) and (min-height: 1250px) and (max-height: 1999px) and (hover: hover) {
+    /* Диапазон 4: 1251–1699px (2K 1440 — экран Maxim) — zoom 1.4 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1251px) and (max-height: 1699px) and (hover: hover) {
       body { zoom: 1.4; }
     }
 
-    /* Порог 4: высокие экраны (4K и выше) — zoom 2.3 */
-    @media (pointer: fine) and (min-width: 768px) and (min-height: 2000px) and (hover: hover) {
+    /* Диапазон 5: ≥ 1700px (4K 2160 и выше) — zoom 2.3 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1700px) and (hover: hover) {
       body { zoom: 2.3; }
     }
 
@@ -2620,7 +2626,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.3.2.D';
+    const APP_VERSION = 'v9.3.4';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
