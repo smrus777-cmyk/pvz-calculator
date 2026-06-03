@@ -3924,6 +3924,29 @@
         return;
       }
 	  
+	    // Создаём оверлей, чтобы скрыть дёрганье масштаба при снимке
+  const snapshotOverlay = document.createElement('div');
+  snapshotOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    opacity: 0;
+    z-index: 20000;
+    transition: opacity 0.1s ease;
+    pointer-events: none;
+  `;
+  document.body.appendChild(snapshotOverlay);
+  requestAnimationFrame(() => { snapshotOverlay.style.opacity = '1'; });
+	  
+	    // Сохраняем исходный zoom (если был установлен через CSS)
+  const originalZoom = document.body.style.zoom || getComputedStyle(document.body).zoom;
+  // Принудительно устанавливаем zoom = 1 для корректной работы html2canvas в Chromium
+  document.body.style.zoom = '1';
+	  
+	  
 	        // ── ЗАЩИТА PNG ОТ АНИМАЦИИ ПРЕСЕТОВ ──
       // Если жмём «снимок» сразу после клика по пресету — html2canvas может
       // поймать ячейки в момент scale(1.10) → визуальный брак (одни увеличены, другие нет).
@@ -3933,6 +3956,7 @@
         cell.style.removeProperty('--stagger-delay');
       });
 
+      
 
       resultCard.classList.add('shutter-flash');
       setTimeout(() => resultCard.classList.remove('shutter-flash'), 300);
@@ -4189,15 +4213,24 @@
         }
       } catch(err) {
         showToast('Ошибка создания снимка', 4000);
-      } finally {
-        if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
-        document.body.style.paddingBottom = savedPadding || '';
-        _snapInProgress = false;
-        // Возвращаем скролл точно туда где был — мгновенно, без анимации
-        window.scrollTo({ top: savedScroll, behavior: 'instant' });
-        snapshotBtn.dataset.busy = '0';
-        snapshotBtn.style.opacity = '1';
-      }
+         } finally {
+    if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
+    document.body.style.paddingBottom = savedPadding || '';
+    _snapInProgress = false;
+    window.scrollTo({ top: savedScroll, behavior: 'instant' });
+    // Восстанавливаем исходный zoom
+    if (originalZoom && originalZoom !== '1') {
+      document.body.style.zoom = originalZoom;
+    } else {
+      document.body.style.zoom = '';
+    }
+    // Удаляем временный оверлей
+    if (snapshotOverlay && snapshotOverlay.parentNode) {
+      snapshotOverlay.remove();
+    }
+    snapshotBtn.dataset.busy = '0';
+    snapshotBtn.style.opacity = '1';
+  }
     }
 
     function setupKeyboardLift() {
