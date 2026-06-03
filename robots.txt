@@ -4,6 +4,7 @@ Allow: /
 Disallow: /404.html
 Disallow: /pro-test/
 Disallow: /presentation/
+Disallow: /lite-test/
 
 # Отдельная секция для Яндекса (рекомендация Я.Вебмастера)
 User-agent: Yandex
@@ -11,6 +12,7 @@ Allow: /
 Disallow: /404.html
 Disallow: /pro-test/
 Disallow: /presentation/
+Disallow: /lite-test/
 Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&_openstat
 Host: russ-volgograd.ru
 
