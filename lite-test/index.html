@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.3.4
+  Продукт: ПВЗ Калькулятор Lite · v9.3.5.a
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -644,23 +644,35 @@
 
        min-width:768px + hover:hover — отсекают планшеты/тач устройства.
        Все пороги — гранитные константы. Не трогать без физического теста. */
-
-    /* Диапазон 1: ≤ 900px (1366×768 HD ноуты) — zoom 0.85 */
-    @media (pointer: fine) and (min-width: 768px) and (max-height: 900px) and (hover: hover) {
-      body { zoom: 0.85; }
+	   
+	       /* Диапазон 1: ≤ 770px (1366×768 HD ноуты) — zoom 0.85 */
+    @media (pointer: fine) and (min-width: 768px) and (max-height: 770px) and (hover: hover) {
+      body { zoom: 0.8; }
     }
 
-    /* Диапазон 2: 901–1100px (1080p, база) — zoom ВЫКЛ
-       Намеренно НЕТ правила. Отсутствие zoom = база системы. */
-
-    /* Диапазон 3: 1101–1250px (1600×1200) — zoom 1.2 */
-    @media (pointer: fine) and (min-width: 768px) and (min-height: 1101px) and (max-height: 1250px) and (hover: hover) {
-      body { zoom: 1.2; }
+          /* Диапазон 3: 771–950px (1600×1200) — zoom 1.1 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 771px) and (max-height: 950px) and (hover: hover) {
+      body { zoom: 0.95; }
+    }
+   	   
+	    /* Диапазон 3: 951–1090px (1600×1200) — zoom 1.1 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 951px) and (max-height: 1090px) and (hover: hover) {
+      body { zoom: 1.1; }
+    }
+	
+	    /* Диапазон 3: 1091–1250px (1600×1200) — zoom 1.1 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1091px) and (max-height: 1250px) and (hover: hover) {
+      body { zoom: 1.25; }
     }
 
-    /* Диапазон 4: 1251–1699px (2K 1440 — экран Maxim) — zoom 1.4 */
-    @media (pointer: fine) and (min-width: 768px) and (min-height: 1251px) and (max-height: 1699px) and (hover: hover) {
-      body { zoom: 1.4; }
+      /* Диапазон 4: 1251–1390px (2K 1440 — экран Maxim) — zoom 1.4 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1251px) and (max-height: 1390px) and (hover: hover) {
+      body { zoom: 1.35; }
+    }
+	
+	 /* Диапазон 4: 1391–1699px (2K 1440 — экран Maxim) — zoom 1.4 */
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1391px) and (max-height: 1699px) and (hover: hover) {
+      body { zoom: 1.5; }
     }
 
     /* Диапазон 5: ≥ 1700px (4K 2160 и выше) — zoom 2.3 */
@@ -2626,7 +2638,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.3.4';
+    const APP_VERSION = 'v9.3.5.a';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
