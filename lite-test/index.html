@@ -1530,7 +1530,14 @@
     .result-card.shutter-flash { animation:shutterFlash 0.3s ease-out; }
     @keyframes shutterFlash {
       0% { filter:brightness(1); } 50% { filter:brightness(1.9); } 100% { filter:brightness(1); }
-    }
+    }.result-card.shutter-flash {
+  animation: shutterFlash 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+@keyframes shutterFlash {
+  0% { filter: brightness(1); transform: scale(1); }
+  40% { filter: brightness(1.6); transform: scale(0.99); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
     .result-main { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
     .result-left { flex:1 1 auto; min-width:0; overflow:hidden; }
     .result-label { font-size:13px; font-weight:500; color:var(--text-secondary); text-transform:none; letter-spacing:0.2px; margin-bottom:4px; } /* v9.1.3: uppercase→none — единая система с card-title */
@@ -3924,23 +3931,25 @@
         return;
       }
 	  
-	    // Создаём оверлей, чтобы скрыть дёрганье масштаба при снимке
-  const snapshotOverlay = document.createElement('div');
-  snapshotOverlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    opacity: 0;
-    z-index: 20000;
-    transition: opacity 0.1s ease;
-    pointer-events: none;
-  `;
-  document.body.appendChild(snapshotOverlay);
-  requestAnimationFrame(() => { snapshotOverlay.style.opacity = '1'; });
-	  
+	// Apple‑style shutter effect — мгновенная вспышка, маскирующая дёрганье zoom
+const snapshotOverlay = document.createElement('div');
+snapshotOverlay.style.cssText = `
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.94);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  z-index: 20000;
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+`;
+document.body.appendChild(snapshotOverlay);
+// Мгновенно показываем оверлей (без таймера)
+snapshotOverlay.style.opacity = '0.94';
+
 	    // Сохраняем исходный zoom (если был установлен через CSS)
   const originalZoom = document.body.style.zoom || getComputedStyle(document.body).zoom;
   // Принудительно устанавливаем zoom = 1 для корректной работы html2canvas в Chromium
@@ -4213,24 +4222,33 @@
         }
       } catch(err) {
         showToast('Ошибка создания снимка', 4000);
-         } finally {
-    if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
-    document.body.style.paddingBottom = savedPadding || '';
-    _snapInProgress = false;
-    window.scrollTo({ top: savedScroll, behavior: 'instant' });
-    // Восстанавливаем исходный zoom
-    if (originalZoom && originalZoom !== '1') {
-      document.body.style.zoom = originalZoom;
-    } else {
-      document.body.style.zoom = '';
-    }
-    // Удаляем временный оверлей
-    if (snapshotOverlay && snapshotOverlay.parentNode) {
-      snapshotOverlay.remove();
-    }
-    snapshotBtn.dataset.busy = '0';
-    snapshotBtn.style.opacity = '1';
+        } finally {
+  if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
+  document.body.style.paddingBottom = savedPadding || '';
+  _snapInProgress = false;
+  window.scrollTo({ top: savedScroll, behavior: 'instant' });
+  
+  // Восстанавливаем исходный zoom
+  if (originalZoom && originalZoom !== '1') {
+    document.body.style.zoom = originalZoom;
+  } else {
+    document.body.style.zoom = '';
   }
+  
+  // Даём браузеру один кадр, чтобы zoom применился до удаления оверлея
+  requestAnimationFrame(() => {
+    // Плавно убираем оверлей
+    if (snapshotOverlay) {
+      snapshotOverlay.style.opacity = '0';
+      setTimeout(() => {
+        if (snapshotOverlay && snapshotOverlay.parentNode) snapshotOverlay.remove();
+      }, 200);
+    }
+  });
+  
+  snapshotBtn.dataset.busy = '0';
+  snapshotBtn.style.opacity = '1';
+}
     }
 
     function setupKeyboardLift() {
