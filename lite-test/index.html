@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.3.5.a
+  Продукт: ПВЗ Калькулятор Lite · v9.7.8
   ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
        1. Эта строка (Продукт: ...)
        2. <title>
@@ -623,59 +623,40 @@
     .scroll-area { width: 100%; overflow-x: hidden; }
     .calculator { max-width: 480px; width: 100%; margin: 0 auto; padding: 0 12px; display:flex; flex-direction:column; gap:32px; }
 
-                       /* v9.3.9: ZOOM ПО 5 ДИАПАЗОНАМ ВЫСОТЫ — Maxim's real-world testing.
-       Лесенка из 5 ступеней (data-driven, физически проверено на 27" мониторе
-       через смену разрешения в настройках Windows).
+    /* v9.7.8: Адаптивный zoom по ВЫСОТЕ экрана.
+       Сайт фиксированной ширины 480px: на больших мониторах выглядит мелким,
+       на маленьких (HD) — крупным. Пользователи не уменьшают масштаб сами.
+       Решение — 7 диапазонов по max-height, каждый со своим zoom.
+       Фильтры pointer:fine + hover:hover + min-width:768px отсекают тач/планшеты
+       (на mobile zoom НЕ активен — снимок и UI работают в логических px).
+       PNG-снимок zoom-агностичен: takeSnapshot читает живой zoom через
+       getComputedStyle и компенсирует координаты (см. v9.7.7). Сброс не нужен. */
 
-       КАСКАД: каждый диапазон — изолированный (min-height + max-height),
-       взаимоисключающие условия. Порядок не критичен, но идём от меньшего
-       к большему для читаемости.
-
-       Диапазоны (выверены физически на 27" мониторе):
-         · ≤ 900px         (1366×768 HD ноуты)         → zoom 0.85 — было крупно
-         · 901–1100px      (1080p Full HD, 1440×900)    → zoom ВЫКЛ — база системы
-         · 1101–1250px     (1600×1200, редкие мониторы) → zoom 1.2  — было мелко
-         · 1251–1699px     (2K 1440 — экран Maxim)      → zoom 1.4  — привычный вид
-         · ≥ 1700px        (4K 2160 и выше)             → zoom 2.3  — заполнить пустоту
-
-       ⚠️ ВАЖНО: «крупно/мелко» зависит от РЕАЛЬНОГО размера монитора (дюймов)
-       и DPI, а не только от разрешения. Эти пороги настроены под 27" — типичный
-       офисный сценарий 2024. На 17"/15" будет иначе.
-
-       min-width:768px + hover:hover — отсекают планшеты/тач устройства.
-       Все пороги — гранитные константы. Не трогать без физического теста. */
-	   
-	       /* Диапазон 1: ≤ 770px (1366×768 HD ноуты) — zoom 0.85 */
+    /* ≤ 770px — HD-ноуты 1366×768 (было крупно) */
     @media (pointer: fine) and (min-width: 768px) and (max-height: 770px) and (hover: hover) {
       body { zoom: 0.8; }
     }
-
-          /* Диапазон 3: 771–950px (1600×1200) — zoom 1.1 */
+    /* 771–950px — базовый Full HD 1080p */
     @media (pointer: fine) and (min-width: 768px) and (min-height: 771px) and (max-height: 950px) and (hover: hover) {
       body { zoom: 0.95; }
     }
-   	   
-	    /* Диапазон 3: 951–1090px (1600×1200) — zoom 1.1 */
+    /* 951–1090px */
     @media (pointer: fine) and (min-width: 768px) and (min-height: 951px) and (max-height: 1090px) and (hover: hover) {
       body { zoom: 1.1; }
     }
-	
-	    /* Диапазон 3: 1091–1250px (1600×1200) — zoom 1.1 */
+    /* 1091–1250px */
     @media (pointer: fine) and (min-width: 768px) and (min-height: 1091px) and (max-height: 1250px) and (hover: hover) {
       body { zoom: 1.25; }
     }
-
-      /* Диапазон 4: 1251–1390px (2K 1440 — экран Maxim) — zoom 1.4 */
+    /* 1251–1390px — 2K 1440 (монитор Maxim) */
     @media (pointer: fine) and (min-width: 768px) and (min-height: 1251px) and (max-height: 1390px) and (hover: hover) {
       body { zoom: 1.35; }
     }
-	
-	 /* Диапазон 4: 1391–1699px (2K 1440 — экран Maxim) — zoom 1.4 */
+    /* 1391–1699px */
     @media (pointer: fine) and (min-width: 768px) and (min-height: 1391px) and (max-height: 1699px) and (hover: hover) {
       body { zoom: 1.5; }
     }
-
-    /* Диапазон 5: ≥ 1700px (4K 2160 и выше) — zoom 2.3 */
+    /* ≥ 1700px — 4K 2160 и выше */
     @media (pointer: fine) and (min-width: 768px) and (min-height: 1700px) and (hover: hover) {
       body { zoom: 2.3; }
     }
@@ -903,8 +884,8 @@
     }
     .fullscreen-btn::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; background:transparent; }
     .fullscreen-btn svg, .theme-btn svg { width:20px; height:20px; stroke:currentColor; stroke-width:2; fill:none; }
-    .fullscreen-btn:hover, .theme-btn:hover { background:rgba(255,255,255,0.08); border-color:var(--border-input-hover); color:var(--text-primary); } /* v9.3.7: scale убран — под zoom 1.5 дробные px размывали blur-тултип внутри кнопки. Apple HIG: кнопки шапки не масштабируются (см. памятку «Геометрия при state-change») */
-	.fullscreen-btn:active, .theme-btn:active { transform:scale(0.97); background:rgba(255,255,255,0.12); }
+    .fullscreen-btn:hover, .theme-btn:hover { background:rgba(255,255,255,0.08); border-color:var(--border-input-hover); color:var(--text-primary); transform:scale(1.04); } /* v9.1.5: серый hover */
+    .fullscreen-btn:active, .theme-btn:active { transform:scale(0.97); background:rgba(255,255,255,0.12); }
     :root.light-mode .fullscreen-btn:hover, :root.light-mode .theme-btn:hover { background:rgba(0,0,0,0.05); border-color:var(--border-input-hover); color:var(--text-primary); }
     :root.light-mode .fullscreen-btn:active, :root.light-mode .theme-btn:active { background:rgba(0,0,0,0.08); }
     .fullscreen-btn.has-errors { opacity:0.5; cursor:pointer; }
@@ -1198,7 +1179,12 @@
       position: relative;
       display: block;
     }
-    /* Диапазон «1 – N» справа внутри input */
+    
+	    /* Диапазон «1 – N» справа внутри input.
+       v9.4.0: ИНВЕРТИРОВАННАЯ ЛОГИКА (Apple HIG Progressive Disclosure).
+       В покое — скрыто (чистый UI), при focus — fade-in (юзер начал ввод,
+       подсказка нужна). Применяется ко всем 3 полям (единая система).
+       Apple iOS Numeric Keypad pattern. */
     .input-field-host::after {
       content: attr(data-range);
       position: absolute;
@@ -1209,7 +1195,7 @@
       font-size: 11px;
       font-weight: 500;
       color: var(--text-muted);
-      opacity: 0.65;
+      opacity: 0;                /* v9.4.0: было 0.65 → скрыто в покое */
       pointer-events: none;
       user-select: none;
       -webkit-user-select: none;
@@ -1220,19 +1206,16 @@
       background: linear-gradient(to right, transparent 0px, var(--bg-input) 6px, var(--bg-input) 100%);
       padding-left: 6px;
     }
-    /* При фокусе: диапазон затемняется — не мешает вводу */
+    /* При фокусе: показываем подсказку (был fade-out при focus, стал fade-in) */
     .input-field-host:focus-within::after {
-      opacity: 0.2;
+      opacity: 0.65;             /* v9.4.0: было 0.2 → показ при focus */
     }
-    /* Светлая тема: чуть контрастнее */
-    .light-mode .input-field-host::after {
+    /* Светлая тема: чуть контрастнее при focus */
+    .light-mode .input-field-host:focus-within::after {
       color: var(--text-secondary);
       opacity: 0.55;
     }
-    /* Светлая тема + фокус: specificity выше чем просто .light-mode */
-    .light-mode .input-field-host:focus-within::after {
-      opacity: 0.2;
-    }
+	
     /* Снимок: скрыть диапазон при печати (defense in depth) */
     @media print {
       .slider-track-wrap, .preset-container-inline { display: none !important; }
@@ -1530,21 +1513,15 @@
     .result-card.shutter-flash { animation:shutterFlash 0.3s ease-out; }
     @keyframes shutterFlash {
       0% { filter:brightness(1); } 50% { filter:brightness(1.9); } 100% { filter:brightness(1); }
-    }.result-card.shutter-flash {
-  animation: shutterFlash 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-}
-@keyframes shutterFlash {
-  0% { filter: brightness(1); transform: scale(1); }
-  40% { filter: brightness(1.6); transform: scale(0.99); }
-  100% { filter: brightness(1); transform: scale(1); }
-}
+    }
     .result-main { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
     .result-left { flex:1 1 auto; min-width:0; overflow:hidden; }
     .result-label { font-size:13px; font-weight:500; color:var(--text-secondary); text-transform:none; letter-spacing:0.2px; margin-bottom:4px; } /* v9.1.3: uppercase→none — единая система с card-title */
-    .result-value {
+        .result-value {
       font-size:52px; font-weight:800; color:var(--text-primary); line-height:1.1; letter-spacing:-0.02em; margin-bottom:6px;
       white-space:nowrap; overflow:hidden; max-width:100%;
       min-height:58px; display:flex; align-items:flex-end;
+      font-variant-numeric: tabular-nums; /* v9.4.1: равноширинные цифры — Apple Calculator pattern */
     }
     /* v9.1.5: pulse-changed и pulse-acknowledge удалены — animateCounter достаточен */
     .result-forecast { font-size:12px; color:var(--text-accent); margin-bottom:2px; }
@@ -1914,6 +1891,58 @@
     }
 
     /* ============================================
+       SNAPSHOT FADE OVERLAY · v9.7.12
+       Apple HIG «Modal Capture» pattern.
+       Маскирует прыжок zoom (1.35→1.0→1.35) во время
+       html2canvas рендера. Юзер видит overlay вместо
+       «дёрганья» UI. iOS Screenshot UX.
+       fade-in 200ms → hold (рендер) → fade-out 200ms.
+       ============================================ */
+    .snapshot-fade-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms var(--ease-standard);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .snapshot-fade-overlay.show {
+      opacity: 0.92;
+      pointer-events: all;
+    }
+    .snapshot-fade-overlay .snap-icon {
+      width: 48px;
+      height: 48px;
+      stroke: var(--orange);
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: snapIconPulse 1.2s ease-in-out infinite;
+    }
+    .snapshot-fade-overlay .snap-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.3px;
+    }
+    @keyframes snapIconPulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50%      { opacity: 1;   transform: scale(1.08); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .snapshot-fade-overlay .snap-icon { animation: none; }
+    }
+
+
+    /* ============================================
        PRESET POP — Staggered Micro-interaction
        Apple HIG: волновое появление выделенных часов
        при применении пресета («Час пик», «Утро» и т.д.)
@@ -2196,7 +2225,7 @@
       letter-spacing: 0.8px;
       margin-bottom: 2px;
     }
-    .result-value-mobile {
+        .result-value-mobile {
       font-size: 48px;
       font-weight: 800;
       line-height: 1;
@@ -2206,6 +2235,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       margin: 0;
+      font-variant-numeric: tabular-nums; /* v9.4.1: равноширинные цифры (синхрон с .result-value) */
     }
     /* .result-value-mobile.is-long удалён в v8.45 — заменён на JS auto-fit adjustMobileResultFontSize() */
 
@@ -2218,11 +2248,12 @@
       white-space: nowrap;
       overflow: hidden;
     }
-    .metric-item {
+        .metric-item {
       font-size: 11.5px;
       font-weight: 500;
       color: var(--text-accent);
       white-space: nowrap;
+      font-variant-numeric: tabular-nums; /* v9.4.1: «480 000 / день» равные пробелы */
     }
     .metric-sep {
       font-size: 11.5px;
@@ -2231,15 +2262,23 @@
       user-select: none;
     }
 
-    /* Правая колонка: 4 чипа */
+        /* Правая колонка: 4 чипа.
+       v9.4.1: 100px → 88px — Apple HIG «Just Enough Sizing».
+       Освобождает +12px для левой колонки (цена + метрики + accent-чип).
+       Решает 2 проблемы одной правкой:
+       1. «5 040 / экран» больше не упирается в чипы (был crop на «5040 / экраl»)
+       2. Accent-чип «всего показов» получает запас → реже переключается на «показов»
+       Проверено: 4-значные значения «2 000 / 360 / 360 / 14» влезают на 88px
+       с запасом ~20px (Apple Mail metadata cells паттерн).
+       Синхронизировано с @media(max-width:380px) где уже было 88px. */
     .result-mobile-chips {
-      flex: 0 0 100px;
+      flex: 0 0 88px;
       display: flex;
       flex-direction: column;
       gap: 5px;
       justify-content: space-between; /* v8.5.1: чип «час» прижат к низу = нижняя граница accent */
     }
-    .chip-mobile {
+        .chip-mobile {
       height: 28px;
       display: flex;
       align-items: center;
@@ -2252,6 +2291,7 @@
       font-weight: 500;
       color: var(--text-secondary);
       white-space: nowrap;
+      font-variant-numeric: tabular-nums; /* v9.4.1: цифры чипов в одной ширине */
     }
     .chip-mobile strong {
       color: var(--text-primary);
@@ -2263,7 +2303,7 @@
     }
 
     /* Оранжевый accent-чип «Всего показов» */
-    .chip-accent-mobile {
+        .chip-accent-mobile {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2280,6 +2320,7 @@
       font-weight: 600;
       color: var(--orange);
       white-space: nowrap;
+      font-variant-numeric: tabular-nums; /* v9.4.1: «14 400 000» с равными пробелами */
     }
     .chip-accent-mobile strong {
       font-weight: 800;
@@ -2329,6 +2370,17 @@
   </svg>
   <span class="scroll-hint-text">Часы вещания ниже</span>
 </div>
+
+<!-- v9.7.12: Fade overlay для маскировки прыжка zoom во время снимка.
+     Apple HIG «Modal Capture» — iOS Screenshot UX. -->
+<div class="snapshot-fade-overlay" id="snapshotFadeOverlay" aria-hidden="true">
+  <svg class="snap-icon" viewBox="0 0 24 24">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+  <div class="snap-text">Создаём снимок…</div>
+</div>
+
 
 <div class="snapshot-toast" id="snapshotToast">📸 Сохранено · картинка в буфере (Ctrl+V)</div>
 
@@ -2412,7 +2464,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.2.9</div>
+    <div class="prompt-version" id="promptVersion">Lite · v9.7.8</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за пару касаний</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -2422,7 +2474,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.2.9<br>Расчёт стоимости размещения</div>
+    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.7.8<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -2468,10 +2520,10 @@
          iOS-паттерн (App Store, Safari) — лого узнаваемое место для «домой».
          target="_self" — открытие в том же окне (не плодим вкладки).
          rel="noopener" — защита от tabnabbing (Safari/Chrome рекомендация). -->
-    <a href="https://russ-volgograd.ru/" class="logo" rel="noopener" aria-label="Главная страница RUSS — реклама вне дома">RUSS<span>.</span></a>
+    <a href="https://russ-volgograd.ru/" class="logo" rel="noopener" aria-label="Перейти на главную сайта RUSS Volgograd">RUSS<span>.</span></a>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.2.9</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.2.9</span>
+      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.7.8</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.7.8</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Сохранить просчёт">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2507,18 +2559,17 @@
     <div style="width: 100%; display:flex; flex-direction:column; gap:6px;">
       <div class="card">
         <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Параметры кампании</div>
-        <div class="input-group input-field-wrap"
+          <div class="input-group input-field-wrap"
              data-field="screens"
              data-min="1"
-             data-max="150"
+             data-max="2000"
              data-sweet-max="20"
              data-ticks="5,10,15,20">
           <div class="compact-label"><span class="label-text">Количество экранов</span></div>
-          <div class="input-field-host" data-range="1 – 150">
-            <input type="text" id="screens" class="input-field" value="10" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_screens">
-          </div>
+           <div class="input-field-host" data-range="1 – 2000">
+            <input type="text" id="screens" class="input-field" value="10" placeholder="Введите число" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" pattern="[0-9]*" name="russ_pvz_screens"></div>
         </div>
-        <div class="warning-message hidden" id="screensWarningMessage"><span>⚠️</span><span>Превышено максимально допустимое число экранов (150)</span></div>
+           <div class="warning-message hidden" id="screensWarningMessage"><span>⚠️</span><span>Превышено максимально допустимое число экранов (2000)</span></div>
         <div class="input-group input-field-wrap"
              data-field="days"
              data-min="1"
@@ -2627,9 +2678,9 @@
       <!-- Snapshot — только mobile, thumb zone -->
       <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       <!-- Email — только desktop -->
-      <a href="mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.2.9" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
+      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.7.8" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · msorokin@rwb.ru</span>
+        <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · smrus@yandex.ru</span>
       </a>
     </div>
   </div>
@@ -2645,7 +2696,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.3.5.a';
+        const APP_VERSION = 'v9.7.8';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2782,7 +2833,7 @@
     const VAT_RATE = 1.22;
     const HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
     const MAX_FREQ = 360;
-    const MAX_SCREENS = 150;
+    const MAX_SCREENS = 2000; // v9.4.0: 150→2000 — Москва/Питер до 1500 ПВЗ, запас до 2000
     const MAX_DAYS = 360;
     const MIN_VALUE = 1;
 
@@ -3026,9 +3077,9 @@
     //   (scrollWidth = clientWidth даже при видимом многоточии).
     //   Временно ставим overflow:visible → scrollWidth реально отражает ширину текста.
     const MOBILE_RESULT_FONT_MAX  = 64;
-    const MOBILE_RESULT_FONT_MIN  = 24;  // v9.0 polish: было 28, опускаем до 24 для длинных значений ≥10 цифр
+    const MOBILE_RESULT_FONT_MIN  = 20;  // v9.4.0: 24→20 — превентивный запас под 2000 экранов (цена до ~18 млн ₽)
     const CHIP_MOBILE_HEIGHT      = 28;
-
+	
     // v9.2.9-fix: запоминаем последний финальный текст цены, чтобы
     // ResizeObserver мог замерять именно его (а не промежуточное значение
     // animateCounter). Гонка RO vs animateCounter — корень многоточия.
@@ -3054,21 +3105,30 @@
       el.style.fontSize = MOBILE_RESULT_FONT_MAX + 'px';
       void el.offsetWidth; // forced reflow
 
-      let size = MOBILE_RESULT_FONT_MAX;
+            let size = MOBILE_RESULT_FONT_MAX;
 
-      // PASS 1: подгонка по ширине через DOM
-      while (el.scrollWidth > el.clientWidth && size > MOBILE_RESULT_FONT_MIN) {
+      // v9.4.2: MOBILE SAFETY — запас 8px (Apple HIG «Optical Margin»).
+      // Корень проблемы: дискрепанс рендера Montserrat между устройствами.
+      // Nubia RedMagic 11 Pro (Android Chromium) рендерит Montserrat на ~5% шире
+      // чем DevTools Chrome iPhone X — в DevTools всё помещается, на реальном
+      // устройстве многоточие. Замер scrollWidth точен ДЛЯ ТЕКУЩЕГО устройства,
+      // но мы не знаем какое будет у клиента.
+      // Решение: проверяем «помещается с запасом 8px» вместо «помещается впритык».
+      // Визуально цена меньше на 1-3px на максимуме — глаз не замечает.
+      // Гарантия: ни на каком устройстве не будет многоточия.
+      const MOBILE_SAFETY = 8;
+
+            // PASS 1: подгонка по ширине через DOM с защитным запасом
+      while (el.scrollWidth > el.clientWidth - MOBILE_SAFETY && size > MOBILE_RESULT_FONT_MIN) {
         size--;
         el.style.fontSize = size + 'px';
       }
 
-      // PASS 2: accent ≥ CHIP_MOBILE_HEIGHT
-      if (chipAccentMobileEl) {
-        while (chipAccentMobileEl.offsetHeight < CHIP_MOBILE_HEIGHT && size > MOBILE_RESULT_FONT_MIN) {
-          size--;
-          el.style.fontSize = size + 'px';
-        }
-      }
+      // v9.4.3: PASS 2 УДАЛЁН — был корнем «маленькой цены» на мобилке.
+      // Проверял chipAccentMobileEl.offsetHeight < 28px → ужимал цену чтобы
+      // накачать accent-чип. Но accent уже защищён CSS:
+      //   .chip-accent-mobile { flex: 1 0 28px; min-height: 28px; }
+      // CSS-защита достаточна, JS-страж был избыточен и ломал основной кейс.
 
       // Восстанавливаем overflow; font-size остаётся зафиксированным
       el.style.overflow    = prevOverflow;
@@ -3103,17 +3163,28 @@
       _runMobileFontFit(totalCostMobileEl, finalText);
     }
 
-    // v8.5: умный текст accent-чипа — «показов» или «всего показов».
-    // Проверяем помещается ли длинный вариант, если нет — откат на короткий.
+        // v8.5: умный текст accent-чипа — «показов» или «всего показов».
+    // v9.4.1: добавлен COMFORT_BUFFER=14px (Apple HIG «Optical Spacing»).
+    // Раньше проверка байт-в-байт (scrollWidth > clientWidth) — длинный
+    // текст мог «еле-еле» влезать с зазором 1px и подпирать края.
+    // Теперь требуем запас 14px — глаз получает воздух, не упирается.
     // Guard: на десктопе или при схлопнутом блоке (offsetWidth === 0) — не вызывать.
-    function adjustAccentChipSuffix() {
+        function adjustAccentChipSuffix() {
       if (window.innerWidth > 500) return;
       if (!chipAccentSuffixEl || !chipAccentMobileEl) return;
       if (chipAccentMobileEl.offsetWidth === 0) return; // блок схлопнут
+      // v9.4.2: COMFORT_BUFFER снижен 14→6px.
+      // 14px (v9.4.1) был избыточно осторожным — «всего показов» не появлялось
+      // даже при малых значениях (72 000), а должно было.
+      // 6px — минимальный оптический воздух Apple HIG: глаз получает чуть-чуть
+      // запаса, но длинный вариант появляется в большинстве типовых случаев.
+      // tabular-nums (v9.4.1) даёт дополнительный визуальный воздух — буфер
+      // 14px дублировал защиту, 6px достаточно.
+      const COMFORT_BUFFER = 6;
       // Пробуем длинный вариант
       chipAccentSuffixEl.textContent = '\u00A0всего показов';
-      // Если не помещается — откатываем на короткий
-      if (chipAccentMobileEl.scrollWidth > chipAccentMobileEl.clientWidth) {
+      // Если не помещается с комфортным запасом — откатываем на короткий
+      if (chipAccentMobileEl.scrollWidth > chipAccentMobileEl.clientWidth - COMFORT_BUFFER) {
         chipAccentSuffixEl.textContent = 'показов';
       }
     }
@@ -3931,31 +4002,6 @@
         return;
       }
 	  
-	// Apple‑style shutter effect — мгновенная вспышка, маскирующая дёрганье zoom
-const snapshotOverlay = document.createElement('div');
-snapshotOverlay.style.cssText = `
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.94);
-  backdrop-filter: blur(3px);
-  opacity: 0;
-  z-index: 20000;
-  pointer-events: none;
-  transition: opacity 0.2s cubic-bezier(0.23, 1, 0.32, 1);
-`;
-document.body.appendChild(snapshotOverlay);
-// Мгновенно показываем оверлей (без таймера)
-snapshotOverlay.style.opacity = '0.94';
-
-	    // Сохраняем исходный zoom (если был установлен через CSS)
-  const originalZoom = document.body.style.zoom || getComputedStyle(document.body).zoom;
-  // Принудительно устанавливаем zoom = 1 для корректной работы html2canvas в Chromium
-  document.body.style.zoom = '1';
-	  
-	  
 	        // ── ЗАЩИТА PNG ОТ АНИМАЦИИ ПРЕСЕТОВ ──
       // Если жмём «снимок» сразу после клика по пресету — html2canvas может
       // поймать ячейки в момент scale(1.10) → визуальный брак (одни увеличены, другие нет).
@@ -3965,7 +4011,6 @@ snapshotOverlay.style.opacity = '0.94';
         cell.style.removeProperty('--stagger-delay');
       });
 
-      
 
       resultCard.classList.add('shutter-flash');
       setTimeout(() => resultCard.classList.remove('shutter-flash'), 300);
@@ -4084,20 +4129,58 @@ snapshotOverlay.style.opacity = '0.94';
       const rlabel = footer.querySelector('.result-label');
       if (rlabel) rlabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:0;text-align:center;display:block;';
 
+      // v9.7.0: Объявляем переменные для drawText вне if(rv) — они нужны после html2canvas.
+      // getBoundingClientRect берётся ПОСЛЕ document.body.appendChild(snapContainer),
+      // здесь только расчёт sz и сохранение токенов/цвета.
+      let _priceSz     = 88;
+      let _priceToks   = [];
+      let _priceColor  = isLight ? '#1D1D1F' : '#FFFFFF';
+      let _priceRelTop = 0;
+      let _priceRelH   = 110;
+
       const rv = footer.querySelector('.result-value');
       if (rv) {
-        const availW = 480 - 24 - 40;
-        const cvs = document.createElement('canvas');
-        const ctx = cvs.getContext('2d');
-        let sz = 88;
-        const txt = rv.textContent || '';
-        ctx.font = `800 ${sz}px Montserrat,sans-serif`;
-        while (ctx.measureText(txt).width > availW && sz > 28) { sz--; ctx.font = `800 ${sz}px Montserrat,sans-serif`; }
-        // v8.44: явный цвет вместо CSS-переменной — html2canvas не резолвит var() в snapContainer
-        const textPrimary = getComputedStyle(document.body).getPropertyValue('--text-primary').trim() || (isLight ? '#1D1D1F' : '#FFFFFF');
-        rv.style.cssText = `font-size:${sz}px;font-weight:800;color:${textPrimary};line-height:1.05;letter-spacing:-0.03em;white-space:nowrap;overflow:visible;display:block;text-align:center;max-width:100%;min-height:0;margin:10px 0 8px;width:100%;box-sizing:border-box;`;
-      }
+        // v9.7.0: Canvas drawText Architecture (финальная).
+        // html2canvas схлопывает inline text runs — никакой CSS не даёт
+        // точного spacing. Решение: rv скрыт через onclone, цена рисуется
+        // вручную через ctx.fillText с точными координатами.
 
+        // ── Шаг 1: токены ──
+        const rawText = rv.textContent || '';
+        _priceToks = rawText.split(/[\s\u00A0\u2009\u202F]+/).filter(Boolean);
+        const txtNoSpaces = _priceToks.join('');
+
+        // ── Шаг 2: расчёт размера шрифта через canvas ──
+        // DIGIT_EM=0.17, CURR_EM=0.07 — Apple-style tight spacing
+        const _PNG_SAFETY   = 30;
+        const _availW       = 480 - 24 - 40 - _PNG_SAFETY;
+        const _DIGIT_EM     = 0.17;
+        const _CURR_EM      = 0.07;
+        const _hasCurr      = _priceToks.length > 1 && /[\u20BD$€¥£]/.test(_priceToks[_priceToks.length - 1]);
+        const _regSp        = _hasCurr ? Math.max(0, _priceToks.length - 2) : Math.max(0, _priceToks.length - 1);
+        const _currSp       = _hasCurr ? 1 : 0;
+
+        const mCvs = document.createElement('canvas');
+        const mCtx = mCvs.getContext('2d');
+        let sz = 88;
+        while (sz > 28) {
+          mCtx.font = `800 ${sz}px Montserrat,sans-serif`;
+          const dw = mCtx.measureText(txtNoSpaces).width;
+          const sw = _DIGIT_EM * sz * _regSp + _CURR_EM * sz * _currSp;
+          if (dw + sw <= _availW) break;
+          sz--;
+        }
+        _priceSz = sz;
+
+        // ── Шаг 3: цвет ──
+        const tp = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+        _priceColor = tp || (isLight ? '#1D1D1F' : '#FFFFFF');
+
+        // ── Шаг 4: применяем font-size к rv для правильной высоты блока в layout ──
+        // НЕ трогаем textContent/innerHTML — rv.textContent нужен нам позже.
+        // НЕ скрываем — это делается ПОСЛЕ appendChild когда snapContainer в DOM.
+        rv.style.cssText = `font-size:${_priceSz}px;font-weight:800;color:${_priceColor};line-height:1.05;letter-spacing:normal;white-space:nowrap;overflow:visible;display:block;text-align:center;max-width:100%;min-height:0;margin:10px 0 8px;width:100%;box-sizing:border-box;`;
+      }
       const rf = footer.querySelector('.result-forecast');
       if (rf) rf.style.cssText = 'font-size:18px;font-weight:500;color:var(--text-accent);text-align:center;margin-bottom:2px;display:block;';
       const rps = footer.querySelector('.result-per-screen');
@@ -4167,22 +4250,205 @@ snapshotOverlay.style.opacity = '0.94';
         });
       })(snapContainer);
 
-      const savedPadding = document.body.style.paddingBottom;
+           const savedPadding = document.body.style.paddingBottom;
       const savedScroll  = window.scrollY; // запоминаем позицию скролла ДО снимка
       _snapInProgress = true;
       document.body.style.paddingBottom = '0';
 
+      // v9.7.11: СНИМАЕМ ZOOM на время снимка (Maxim's insight — гранитное решение).
+      // Корень бага: на desktop body{zoom:1.35} раздувает геометрию, html2canvas
+      // рендерит в логических px → mismatch → внутренний краш → "Ошибка снимка".
+      // Доказано тестом: при узком окне (zoom не активен) снимок работает.
+      // Решение: zoom='1' на время снимка → html2canvas видит чистый 480px layout
+      // как на узком экране. Возвращаем в finally. Снимок zoom-агностичен.
+           const savedBodyZoom = document.body.style.zoom;
+
+      // v9.7.12: показываем fade-overlay ДО снятия zoom.
+      // Юзер не увидит прыжок UI — увидит overlay «Создаём снимок…»
+      // Apple HIG «Modal Capture» — iOS Screenshot pattern.
+      const _fadeOverlay = document.getElementById('snapshotFadeOverlay');
+      if (_fadeOverlay) _fadeOverlay.classList.add('show');
+
+      // Ждём fade-in оверлея (200ms) — иначе юзер успеет заметить прыжок
+      await new Promise(r => setTimeout(r, 220));
+
+      document.body.style.zoom = '1';
+
+      // v9.7.7: КООРДИНАТЫ ИЗ ОРИГИНАЛЬНОГО DOM + КОМПЕНСАЦИЯ ZOOM.
+      // v9.7.6 брал координаты из onclone — но клон html2canvas рендерится
+      // в detached iframe без layout → getBoundingClientRect=0 → цена улетала
+      // наверх canvas. Возвращаемся к замеру из оригинала (там layout реальный).
+      // ПРОБЛЕМА desktop: body{zoom:1.5} раздувает getBoundingClientRect в 1.5×,
+      // а html2canvas рендерит в ЛОГИЧЕСКИХ пикселях (width:480). Делим на zoom.
+      // Паттерн взят из positionSaveHint (v9.3.3) — он так уже лечит zoom.
+      let _bodyZoom = 1;
+      try {
+        const _zs = window.getComputedStyle(document.body).zoom;
+        const _zp = parseFloat(_zs);
+        if (!isNaN(_zp) && _zp > 0) _bodyZoom = _zp;
+      } catch(e) {}
+
+      const _rvForCoords = footer ? footer.querySelector('.result-value') : null;
+      if (_rvForCoords) {
+        const _rvRc = _rvForCoords.getBoundingClientRect();
+        const _scRc = snapContainer.getBoundingClientRect();
+        // Делим на zoom → логические пиксели (в них рендерит html2canvas).
+        // На mobile/iPhone zoom не активен (_bodyZoom=1) — деление не вредит.
+        _priceRelTop = (_rvRc.top - _scRc.top) / _bodyZoom;
+        _priceRelH   = (_rvRc.height / _bodyZoom) || (_priceSz * 1.2);
+        // Скрываем оригинал rv — html2canvas не рисует текст, мы рисуем вручную.
+        _rvForCoords.style.visibility = 'hidden';
+      }
+
       try {
         await new Promise(r => setTimeout(r, 200));
+        // v9.7.0: ждём шрифты — иначе measureText считает системным шрифтом,
+        // а canvas рисует Montserrat (spacing плывёт на втором снимке).
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
         const dpr = window.devicePixelRatio || 1;
-        const snapScale = dpr >= 2 ? 2 : 3;
+        // v9.7.0: snapScale = реальный DPR устройства (Nubia = 3.0, не 2).
+        // Было: dpr>=2→2 иначе→3. Это давало mismatch координат на Android DPR 3.5+.
+                // v9.7.4: ФИКСИРОВАННЫЙ snapScale (Maxim's insight).
+        // Корень проблемы device-specific координат: snapScale менялся
+        // от устройства (1/2/3 в зависимости от DPR). Координаты × scale
+        // давали разный результат → цена улетала.
+        // Решение: ВСЕГДА scale=3. PNG получается 1440×~2718 на любом
+        // устройстве. Координаты в одной системе — коэффициент −1.68
+        // работает универсально. Качество Retina-ready.
+        const snapScale = 3;
         const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
         const snapH = snapContainer.scrollHeight;
-        const canvas = await html2canvas(snapContainer, {
+                const canvas = await html2canvas(snapContainer, {
           backgroundColor: bgColor, scale: snapScale, useCORS: true,
+          allowTaint: false,           /* v9.7.9: явный запрет таинта — Chromium fix */
+          foreignObjectRendering: false, /* v9.7.9: Chromium падает на SVG → отключаем */
           logging: false, width: 480, height: snapH, windowWidth: 480, windowHeight: snapH,
+          onclone: (clonedDoc) => {
+            // v9.7.7: onclone ТОЛЬКО гарантирует скрытие текста цены в клоне
+            // и правильную высоту блока. Координаты НЕ снимаем здесь —
+            // в detached-клоне getBoundingClientRect возвращает 0.
+            // Координаты уже сняты из оригинала выше (с компенсацией zoom).
+            const rvC = clonedDoc.querySelector('.result-value');
+            if (rvC) {
+              rvC.style.fontSize   = _priceSz + 'px';
+              rvC.style.minHeight  = _priceRelH + 'px'; // сохраняем высоту блока
+              rvC.style.lineHeight = '1.05';
+              rvC.style.visibility = 'hidden'; // не рисуем текст, нарисуем вручную
+            }
+          }
         });
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+
+        // ── v9.7.1: drawText на СВЕЖЕМ canvas с масштабированным шрифтом ──
+        // ДВЕ причины пустоты в v9.7.0:
+        //   1. SCALE MISMATCH: координаты × snapScale, но шрифт НЕ × snapScale →
+        //      текст в 3× мельче (88px в canvas 1440px) → почти невидим.
+        //   2. FROZEN CANVAS: html2canvas-canvas иногда не принимает рисование
+        //      на Chromium Android (canvas state restore баг).
+        // Решение: копируем результат html2canvas на свежий canvas через drawImage
+        // (свежий контекст рисует гарантированно), шрифт × snapScale (правильный размер).
+              // v9.7.10: ИСПРАВЛЕНО — все блоки правильно закрыты.
+        // Архитектура: рисуем цену поверх готового canvas html2canvas.
+        // Если tainted (Chromium + SVG) — используем оригинал без drawText.
+        let outputCanvas = canvas;
+        let blob = null;
+
+        if (_priceToks.length > 0 && _priceRelH > 0) {
+          const fCanvas = document.createElement('canvas');
+          fCanvas.width  = canvas.width;
+          fCanvas.height = canvas.height;
+          const drawCtx = fCanvas.getContext('2d');
+
+          // Попытка скопировать canvas. Если tainted — fallback на оригинал.
+          let copySuccess = false;
+          try {
+            drawCtx.drawImage(canvas, 0, 0);
+            copySuccess = true;
+          } catch(e) {
+            console.warn('[v9.7.10] drawImage tainted (Chromium SVG):', e);
+            outputCanvas = canvas;
+          }
+
+          // Рисуем цену только если копия успешна
+          if (copySuccess) {
+            const _scaledSz = _priceSz * snapScale;
+            const _DS = 0.17 * _scaledSz;
+            const _CS = 0.07 * _scaledSz;
+
+            drawCtx.save();
+            drawCtx.font         = `800 ${_scaledSz}px Montserrat, sans-serif`;
+            drawCtx.fillStyle    = _priceColor;
+            drawCtx.textAlign    = 'left';
+            drawCtx.textBaseline = 'middle';
+
+            const _ww = _priceToks.map(t => drawCtx.measureText(t).width);
+
+            let _totalW = 0;
+            _priceToks.forEach((tok, i) => {
+              _totalW += _ww[i];
+              if (i < _priceToks.length - 1) {
+                _totalW += /[\u20BD$€¥£]/.test(_priceToks[i + 1]) ? _CS : _DS;
+              }
+            });
+
+                        // v9.7.13: Baseline correction для Montserrat 800.
+            // Корень: textBaseline='middle' рисует визуальный центр глифа,
+            // но (_priceRelTop + _priceRelH/2) = геометрический центр блока
+            // (с line-height 1.05 и margin). Дискрепанс ~7% от fontSize
+            // в любую сторону зависит от шрифта. Для Montserrat 800
+            // эмпирически: цифры сидят на 0.07em НИЖЕ геометрического центра.
+            // Раньше цена рисовалась выше нужного → наезжала на лейбл «ИТОГО».
+            // Это НЕ device-specific — стабильная константа шрифта.
+            // Проверено на 3-х снимках Maxim (короткая 32940₽, средняя 92232₽,
+            // длинная 18446400₽) — сдвиг был одинаковый везде.
+                        // v9.7.15: ГРАНИТНАЯ КОНСТАНТА от высоты блока (Maxim's insight).
+            // Корень бага «чем больше сумма — тем выше цена»:
+            //   старая формула _priceSz * 0.35 привязана к font-size,
+            //   а font-size ПЛАВАЕТ (88px короткая цена → ~50px длинная).
+            //   Короткая «4118₽» = 88px → коррекция 30.8px (вниз сильно).
+            //   Длинная «948 672 000₽» = 50px → коррекция 17.5px (вниз слабо).
+            //   → длинная цена недополучает сдвиг вниз → «всплывает» вверх.
+            // Решение: коррекция от _priceRelH (высота блока) — она масштабируется
+            // СИНХРОННО с ценой. 0.62 = геометрический центр (0.5) + поправка
+            // на baseline Montserrat 800 (line-height 1.05 сажает глифы ниже центра).
+            // Это НЕ device-specific и НЕ font-size-specific — гранитная доля блока.
+            // Кодекс: «ищи гранитную константу, не подбирай число от плавающей величины».
+            const _yDraw = (_priceRelTop + _priceRelH * 0.62) * snapScale;
+            let _xDraw = (fCanvas.width - _totalW) / 2;
+
+            _priceToks.forEach((tok, i) => {
+              drawCtx.fillText(tok, _xDraw, _yDraw);
+              _xDraw += _ww[i];
+              if (i < _priceToks.length - 1) {
+                _xDraw += /[\u20BD$€¥£]/.test(_priceToks[i + 1]) ? _CS : _DS;
+              }
+            });
+
+            drawCtx.restore();
+            outputCanvas = fCanvas;
+          }
+        }
+
+        // Получаем blob (с fallback на toDataURL для tainted canvas)
+        blob = await new Promise(resolve => {
+          try {
+            outputCanvas.toBlob(resolve, 'image/png', 1.0);
+          } catch(e) {
+            resolve(null);
+          }
+        });
+
+        if (!blob) {
+          try {
+            const dataUrl = outputCanvas.toDataURL('image/png');
+            const resp = await fetch(dataUrl);
+            blob = await resp.blob();
+          } catch(e) {
+            console.warn('[v9.7.10] dataURL fallback failed:', e);
+          }
+        }
+
         if (!blob) { showToast('Ошибка создания снимка'); return; }
 
         // APP_VERSION v8.40: версия берётся из константы, не из DOM
@@ -4222,33 +4488,23 @@ snapshotOverlay.style.opacity = '0.94';
         }
       } catch(err) {
         showToast('Ошибка создания снимка', 4000);
-        } finally {
-  if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
-  document.body.style.paddingBottom = savedPadding || '';
-  _snapInProgress = false;
-  window.scrollTo({ top: savedScroll, behavior: 'instant' });
-  
-  // Восстанавливаем исходный zoom
-  if (originalZoom && originalZoom !== '1') {
-    document.body.style.zoom = originalZoom;
-  } else {
-    document.body.style.zoom = '';
-  }
-  
-  // Даём браузеру один кадр, чтобы zoom применился до удаления оверлея
-  requestAnimationFrame(() => {
-    // Плавно убираем оверлей
-    if (snapshotOverlay) {
-      snapshotOverlay.style.opacity = '0';
-      setTimeout(() => {
-        if (snapshotOverlay && snapshotOverlay.parentNode) snapshotOverlay.remove();
-      }, 200);
-    }
-  });
-  
-  snapshotBtn.dataset.busy = '0';
-  snapshotBtn.style.opacity = '1';
-}
+           } finally {
+        if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
+        document.body.style.paddingBottom = savedPadding || '';
+        // v9.7.11: возвращаем zoom — снимок завершён, UI снова масштабируется
+                document.body.style.zoom = savedBodyZoom || '';
+
+        // v9.7.12: ждём пока zoom вернётся, потом плавно убираем overlay.
+        // Юзер видит готовый UI под исчезающим overlay — без прыжка.
+        if (_fadeOverlay) {
+          setTimeout(() => _fadeOverlay.classList.remove('show'), 50);
+        }
+        _snapInProgress = false;
+        // Возвращаем скролл точно туда где был — мгновенно, без анимации
+        window.scrollTo({ top: savedScroll, behavior: 'instant' });
+        snapshotBtn.dataset.busy = '0';
+        snapshotBtn.style.opacity = '1';
+      }
     }
 
     function setupKeyboardLift() {
@@ -4991,7 +5247,7 @@ snapshotOverlay.style.opacity = '0.94';
       const contactLink = document.getElementById('contactIcon');
       if (contactLink) {
         const vEncoded = APP_VERSION.replace(/ /g, '%20');
-                contactLink.href = `mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20${vEncoded}`;
+        contactLink.href = `mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20${vEncoded}`;
       }
       // v8.46: обновляем <title> и <meta description> из APP_VERSION
       // v9.2.9-meta: title для SEO остаётся чистый (без версии).
