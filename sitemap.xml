@@ -2,31 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
-  <loc>https://russ-volgograd.ru/</loc>
-  <lastmod>2026-05-31</lastmod>
+  <loc>https://russregions.ru/</loc>
+  <lastmod>2026-01-15</lastmod>
   <changefreq>weekly</changefreq>
   <priority>1.00</priority>
 </url>
 
 <url>
-  <loc>https://russ-volgograd.ru/calculator-pro/</loc>
-  <lastmod>2026-05-31</lastmod>
+  <loc>https://russregions.ru/lite/</loc>
+  <lastmod>2026-01-15</lastmod>
   <changefreq>weekly</changefreq>
   <priority>0.90</priority>
 </url>
 
 <url>
-  <loc>https://russ-volgograd.ru/calculator-lite/</loc>
-  <lastmod>2026-05-31</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.90</priority>
-</url>
-
-<url>
-  <loc>https://russ-volgograd.ru/promotions/3plus1/</loc>
-  <lastmod>2026-05-31</lastmod>
+  <loc>https://russregions.ru/pro/</loc>
+  <lastmod>2026-01-15</lastmod>
   <changefreq>monthly</changefreq>
-  <priority>0.70</priority>
+  <priority>0.80</priority>
 </url>
 
 </urlset>
