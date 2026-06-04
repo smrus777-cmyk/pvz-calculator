@@ -1,20 +1,70 @@
-# Разрешить всем поисковым роботам сканирование
+# robots.txt · russregions.ru
+# Maxim: обновлено после ребрендинга russ-volgograd.ru → russregions.ru
+
+# ============================================
+# Для всех поисковых роботов (Google и др.)
+# ============================================
 User-agent: *
 Allow: /
+
+# Технические страницы
 Disallow: /404.html
+
+# Старые тестовые папки
 Disallow: /pro-test/
 Disallow: /presentation/
 Disallow: /lite-test/
 
-# Отдельная секция для Яндекса (рекомендация Я.Вебмастера)
+# Презентация для конференции (личное)
+Disallow: /show/
+
+# Внутренние инструменты для менеджеров RUSS
+Disallow: /promo/
+
+# Dev-версии (тесты в разработке)
+Disallow: /dev/
+
+# Старые папки — оставлены для сохранения SEO,
+# но новые URL: /lite/, /pro/, /promo/3plus1/
+Disallow: /calculator-lite/
+Disallow: /calculator-pro/
+Disallow: /promotions/
+
+# ============================================
+# Для Яндекса (отдельная секция — рекомендация Я.Вебмастера)
+# ============================================
 User-agent: Yandex
 Allow: /
+
+# Технические страницы
 Disallow: /404.html
+
+# Старые тестовые папки
 Disallow: /pro-test/
 Disallow: /presentation/
 Disallow: /lite-test/
-Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&_openstat
-Host: russ-volgograd.ru
 
+# Презентация для конференции (личное)
+Disallow: /show/
+
+# Внутренние инструменты для менеджеров RUSS
+Disallow: /promo/
+
+# Dev-версии (тесты в разработке)
+Disallow: /dev/
+
+# Старые папки — дубли (новые URL: /lite/, /pro/, /promo/3plus1/)
+Disallow: /calculator-lite/
+Disallow: /calculator-pro/
+Disallow: /promotions/
+
+# UTM-метки и трекинг — убираем дубли URL
+Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&_openstat
+
+# Основное зеркало (устарело с 2018, но не вредит)
+Host: russregions.ru
+
+# ============================================
 # Карта сайта
-Sitemap: https://russ-volgograd.ru/sitemap.xml
+# ============================================
+Sitemap: https://russregions.ru/sitemap.xml
