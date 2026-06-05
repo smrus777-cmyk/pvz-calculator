@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>RUSS Волгоград· Страница не найдена</title>
+  <title>RUSS · Страница не найдена</title>
+  <meta name="description" content="Страница не найдена. Вернитесь на главную RUSS — портал калькуляторов для ПВЗ.">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0A0A0C">
+
+  <!-- Open Graph для соцсетей -->
+  <meta property="og:title" content="RUSS · Страница не найдена">
+  <meta property="og:description" content="Возможно, ссылка устарела. Все калькуляторы на главной.">
+  <meta property="og:type" content="website">
 
   <!-- Maxim: Яндекс.Метрика 109395885 (невидимый скрипт-аналитика).
        На 404-странице ОСОБЕННО важно: даёт данные о битых ссылках,
@@ -99,12 +106,19 @@
       color: #EA580C;
       text-decoration: none;
       transition: all 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .home-btn:hover {
       background: rgba(234, 88, 12, 0.25);
       border-color: #EA580C;
       transform: translateY(-2px);
+    }
+
+    .home-btn:focus-visible {
+      outline: 2px solid #EA580C;
+      outline-offset: 4px;
     }
 
     .home-btn svg {
@@ -120,6 +134,12 @@
       .title { font-size: 24px; }
       .desc { font-size: 14px; }
     }
+
+    /* Maxim: уважение к prefers-reduced-motion - обязательно по Кодексу */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+      .home-btn:hover { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -128,8 +148,8 @@
   <div class="code">404</div>
   <div class="title">Страница не найдена</div>
   <div class="desc">
-    Возможно, страница была удалена,<br>
-    перемещена или вы перешли по неверной ссылке.
+    Возможно, ссылка устарела или была изменена.<br>
+    Все калькуляторы доступны на главной.
   </div>
   <a href="/" class="home-btn">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
