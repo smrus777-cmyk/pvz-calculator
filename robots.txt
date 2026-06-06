@@ -1,68 +1,36 @@
 # robots.txt · russregions.ru
-# Maxim: обновлено после ребрендинга russ-volgograd.ru → russregions.ru
+# Maxim: после ребрендинга russ-volgograd.ru → russregions.ru
 
 # ============================================
-# Для всех поисковых роботов (Google и др.)
+# Для всех роботов (Google и др.)
 # ============================================
 User-agent: *
 Allow: /
 
-# Технические страницы
-Disallow: /404.html
-
-# Старые тестовые папки
-Disallow: /pro-test/
-Disallow: /presentation/
-Disallow: /lite-test/
-
-# Презентация для конференции (личное)
-Disallow: /show/
-
-# Внутренние инструменты для менеджеров RUSS
-Disallow: /promo/
-
-# Dev-версии (тесты в разработке)
-Disallow: /dev/
-
-# Старые папки — оставлены для сохранения SEO,
-# но новые URL: /lite/, /pro/, /promo/3plus1/
+# Старые папки — оставлены, но не индексируются
 Disallow: /calculator-lite/
 Disallow: /calculator-pro/
-Disallow: /promotions/
+
+# Личное (акция, презентация, dev-версии)
+Disallow: /promo/
+Disallow: /show/
+Disallow: /dev/
 
 # ============================================
-# Для Яндекса (отдельная секция — рекомендация Я.Вебмастера)
+# Для Яндекса (отдельная секция)
 # ============================================
 User-agent: Yandex
 Allow: /
 
-# Технические страницы
-Disallow: /404.html
-
-# Старые тестовые папки
-Disallow: /pro-test/
-Disallow: /presentation/
-Disallow: /lite-test/
-
-# Презентация для конференции (личное)
-Disallow: /show/
-
-# Внутренние инструменты для менеджеров RUSS
-Disallow: /promo/
-
-# Dev-версии (тесты в разработке)
-Disallow: /dev/
-
-# Старые папки — дубли (новые URL: /lite/, /pro/, /promo/3plus1/)
 Disallow: /calculator-lite/
 Disallow: /calculator-pro/
-Disallow: /promotions/
 
-# UTM-метки и трекинг — убираем дубли URL
+Disallow: /promo/
+Disallow: /show/
+Disallow: /dev/
+
+# UTM-метки — убираем дубли URL
 Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&_openstat
-
-# Основное зеркало (устарело с 2018, но не вредит)
-Host: russregions.ru
 
 # ============================================
 # Карта сайта
