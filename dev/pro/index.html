@@ -1,1 +1,1156 @@
+<!-- 
+  ================================================
+  Автор: Maxim Sorokin
+  Компания: RUSS Volgograd
+  Продукт: Pro Calculator· v10.5
+  ================================================
+-->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>RUSS · Pro Calculator · v10.5</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A0A0C'/%3E%3Ctext x='50' y='72' font-family='Montserrat,Arial,sans-serif' font-size='70' font-weight='bold' fill='white' text-anchor='middle'%3ER%3C/text%3E%3Ccircle cx='78' cy='78' r='18' fill='%23EA580C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0A0A0C; font-family: 'Montserrat', sans-serif; color: #FFFFFF;
+      min-height: 100vh; display: flex; justify-content: center; align-items: center;
+      padding: 24px; overflow: auto;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    body::-webkit-scrollbar { display: none; }
+    .onboarding-overlay {
+      position: fixed; inset: 0; background: #0A0A0C; z-index: 1000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px; text-align: center; transition: opacity 0.4s, visibility 0.4s;
+    }
+    .onboarding-overlay.fade-out { opacity: 0; visibility: hidden; }
+    .onboard-logo { font-size: 72px; font-weight: 900; letter-spacing: -2px; margin-bottom: 16px; }
+    .onboard-logo span { color: #EA580C; }
+    .onboard-badge {
+      background: #EA580C; color: #0A0A0C; font-weight: 700; font-size: 14px; padding: 6px 20px;
+      border-radius: 30px; display: inline-block; margin-bottom: 10px; letter-spacing: 1px;
+    }
+    .onboard-version { font-size: 14px; color: #9A9AA4; margin-bottom: 28px; }
+    .onboard-features { display: flex; gap: 24px; margin-bottom: 40px; }
+    .onboard-feat {
+      background: #121218; border: 1px solid #242424; border-radius: 10px; padding: 20px 24px;
+      width: 200px; text-align: center;
+    }
+    .onboard-feat svg { width: 32px; height: 32px; stroke: #EA580C; stroke-width: 1.5; fill: none; margin-bottom: 12px; }
+    .onboard-feat h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .onboard-feat p { font-size: 13px; color: #9A9AA4; line-height: 1.4; }
+    .btn-primary {
+      background: #EA580C; border: none; border-radius: 8px; padding: 22px 48px;
+      font-weight: 700; font-size: 20px; color: #0A0A0C; cursor: pointer; transition: 0.2s;
+    }
+    .btn-primary:hover { background: #C2410C; }
+
+    .vpro-dashboard {
+      max-width: 1440px; width: 100%; background: #0C0C10; border: 1px solid #242424;
+      border-radius: 10px; padding: 28px; display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5); margin: auto; position: relative;
+    }
+
+    .top-toolbar { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+    .brand-block { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .brand-title { font-weight: 800; font-size: 18px; color: #FFF; letter-spacing: -0.4px; white-space: nowrap; }
+    .brand-title span { color: #EA580C; }
+    .brand-version { font-size: 10px; color: #6A6A78; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    .format-switch { display: flex; gap: 4px; background: #121218; border: 1px solid #242424; border-radius: 8px; padding: 4px; flex-shrink: 0; }
+    .fmt-btn {
+      background: transparent; border: none; border-radius: 6px; padding: 10px 20px;
+      font-weight: 700; font-size: 15px; color: #7A7A82; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .fmt-btn.active { background: #EA580C; color: #000; }
+    .fmt-btn:hover:not(.active) { color: #FFF; background: rgba(234,88,12,0.12); }
+    .client-field { flex: 1; min-width: 120px; }
+    .client-field input {
+      width: 100%; background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 12px 18px;
+      font-size: 16px; font-weight: 600; color: #FFF; outline: none; transition: border-color 0.2s, background-color 0.2s;
+      line-height: 1.4;
+    }
+    .client-field input::placeholder { color: rgba(106,106,120,0.5); font-weight: 400; }
+    .client-field input:hover { border-color: #3A3A3A; }
+    .client-field input:focus { border-color: #EA580C; }
+
+    .dur-block { flex-shrink: 0; width: 150px; }
+    .dur-block .input-label {
+      display: block; font-size: 10px; font-weight: 500; color: #888892;
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+    }
+    .dur-switch { display: flex; gap: 0; background: #121218; border: 1px solid #242424; border-radius: 8px; padding: 4px; width: 100%; }
+    .dur-btn {
+      background: transparent; border: none; border-radius: 6px; padding: 10px 0;
+      font-weight: 700; font-size: 15px; color: #7A7A82; cursor: pointer; transition: all 0.2s;
+      white-space: nowrap; flex: 1; text-align: center;
+    }
+    .dur-btn.active { background: #EA580C; color: #000; }
+    .dur-btn:hover:not(.active):not(.static) { color: #FFF; background: rgba(234,88,12,0.12); }
+    .dur-btn.static { cursor: pointer; }
+
+    .freq-field, .screens-field, .days-field { flex: 0 0 130px; position: relative; }
+    .freq-field .input-label, .screens-field .input-label, .days-field .input-label {
+      display: block; font-size: 10px; font-weight: 500; color: #888892;
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+    }
+    .freq-field input, .screens-field input, .days-field input {
+      width: 100%; background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 12px 10px;
+      font-size: 16px; font-weight: 600; color: #FFF; outline: none; text-align: center; transition: border-color 0.2s, background-color 0.2s;
+      line-height: 1.4;
+      -moz-appearance: textfield; appearance: textfield;
+    }
+    .freq-field input::placeholder, .screens-field input::placeholder, .days-field input::placeholder { color: rgba(106,106,120,0.4); font-weight: 400; font-size: 13px; }
+    .freq-field input::-webkit-outer-spin-button,
+    .freq-field input::-webkit-inner-spin-button,
+    .screens-field input::-webkit-outer-spin-button,
+    .screens-field input::-webkit-inner-spin-button,
+    .days-field input::-webkit-outer-spin-button,
+    .days-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .freq-field input:hover, .screens-field input:hover, .days-field input:hover { border-color: #3A3A3A; }
+    .freq-field input:focus, .screens-field input:focus, .days-field input:focus { border-color: #EA580C; }
+
+    input.invalid { border-color: #D32F2F !important; background-color: rgba(211, 47, 47, 0.15) !important; box-shadow: 0 0 0 1px #D32F2F; }
+    input.valid-flash { animation: validFlash 0.6s ease; }
+    @keyframes validFlash { 0% { background-color: rgba(46, 125, 50, 0.25); border-color: #2E7D32; } 100% { background-color: #121218; border-color: #242424; } }
+
+    .field-hint { position: absolute; top: calc(100% + 2px); left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 500; color: rgba(234,88,12,0.7); white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 5; }
+    .freq-field input:focus ~ .field-hint, .screens-field input:focus ~ .field-hint { opacity: 1; }
+
+    input[readonly] { cursor: default; opacity: 0.8; }
+    input[readonly]:hover, input[readonly]:focus { border-color: #242424 !important; }
+
+    .fullscreen-toggle {
+      position: absolute !important; top: 8px; right: 8px; left: auto; width: 24px; height: 24px;
+      border: none; background: transparent; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0.25; transition: opacity 0.2s, stroke 0.2s; z-index: 15; margin: 0; padding: 0;
+    }
+    .fullscreen-toggle:hover { opacity: 0.9; stroke: #EA580C; color: #EA580C; }
+    .fullscreen-toggle svg { width: 16px; height: 16px; stroke: #FFF; stroke-width: 1.5; fill: none; transition: stroke 0.2s; }
+    .fullscreen-toggle:hover svg { stroke: #EA580C; }
+
+    .grid-main { display: grid; grid-template-columns: 1fr 320px; gap: 24px; flex: 1; }
+    .preset-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .chip {
+      background: #121218; border: 1px solid #242424; border-radius: 6px; padding: 8px 18px;
+      font-size: 13px; font-weight: 600; color: #B0B0B8; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px; white-space: nowrap; opacity: 1;
+    }
+    .chip svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .chip:hover { background: rgba(234,88,12,0.15); border-color: #EA580C; color: #FFF; }
+    .chip.active-preset { background: rgba(234,88,12,0.12); border-color: #EA580C; color: #EA580C; }
+
+    .week-summary { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .week-summary-text { color: #C0C0C8; font-size: 14px; line-height: 1.6; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .day-summary-chip {
+      background: rgba(234,88,12,0.08); border: 1px solid rgba(234,88,12,0.15); border-radius: 6px;
+      padding: 0 10px; font-weight: 500; color: #EAEAF0; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 4px; height: 38px; box-sizing: border-box;
+    }
+    .day-summary-chip b { color: #EA580C; font-weight: 700; margin-right: 2px; }
+    .expand-btn {
+      background: transparent; border: 1px solid #242424; border-radius: 6px; padding: 0 16px;
+      font-size: 13px; font-weight: 600; color: #B0B0B8; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+      height: 38px; box-sizing: border-box;
+    }
+    .expand-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .expand-btn:hover { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.08); }
+
+    .schedule-container {
+      overflow: hidden; max-height: 0;
+      transition: max-height 0.8s cubic-bezier(0.4, 0.0, 0.2, 1), margin-top 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+      margin-top: 0;
+    }
+    .schedule-container.expanded { max-height: 1500px; margin-top: 16px; }
+    .week-grid { display: flex; flex-direction: column; gap: 8px; }
+    .tariff-legend {
+      font-size: 12px; color: #9A9AA4; display: flex; align-items: center;
+      padding: 8px 12px; border: 1px solid #242424; border-radius: 6px;
+      background: #121218; margin-top: 12px; white-space: nowrap; opacity: 1;
+    }
+    .tariffs-group { flex: 1; display: flex; justify-content: center; gap: 16px; }
+    .tariff-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .tariff-legend .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: inline-block; border: 1px solid rgba(234,88,12,0.2); }
+
+    .day-row { display: flex; align-items: stretch; gap: 10px; border: 1px solid transparent; border-radius: 6px; padding: 0; transition: 0.2s; background: transparent; }
+    .day-label { width: 36px; font-weight: 700; font-size: 14px; color: #C0C0C8; text-align: right; flex-shrink: 0; user-select: none; background: transparent; padding: 6px 0; display: flex; align-items: center; justify-content: flex-end; cursor: pointer; }
+    .hours-row { display: flex; gap: 6px; flex: 1; background: #121218; border-radius: 4px; padding: 6px 12px; transition: background 0.2s; align-items: center; }
+    .day-row:hover .hours-row, .day-row:hover .day-stats { background: #16161C; }
+    .hour-chip {
+      background: #1b1f2a; border: 1px solid #242424; border-radius: 4px; padding: 6px 0;
+      font-size: 12px; font-weight: 600; color: #8a9bb5; text-align: center; cursor: pointer;
+      transition: all 0.15s; flex: 1; user-select: none;
+    }
+    .hour-chip:hover { background: #232838; border-color: rgba(234,88,12,0.2); color: #b0c0d8; }
+    .hour-chip.night-tariff { border-color: rgba(234,88,12,0.22); background: #221a18; color: #c99e7b; }
+    .hour-chip.selected { background: #1B4332; border-color: #2D6A4F; color: #B7E4C7; }
+    .hour-chip.unavailable-flash { animation: unavailableFlash 0.3s ease; }
+    @keyframes unavailableFlash { 0% { background-color: rgba(234, 88, 12, 0.5); } 100% { background-color: #1b1f2a; } }
+    .day-stats {
+      min-width: 56px; text-align: right; font-size: 12px; font-weight: 600; color: #EA580C;
+      flex-shrink: 0; padding: 0 12px; background: #121218; border-radius: 4px; margin-left: 8px;
+      transition: background 0.2s; display: flex; align-items: center; justify-content: flex-end;
+      white-space: nowrap; height: 38px; box-sizing: border-box;
+    }
+
+    .chip-tooltip {
+      position: absolute; z-index: 300; background: rgba(28, 28, 36, 0.85); backdrop-filter: blur(8px);
+      color: #D0D0D8; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 500;
+      padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(234, 88, 12, 0.25);
+      white-space: normal; max-width: 220px; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .chip-tooltip.visible { opacity: 1; }
+
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::after {
+      content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%); background: rgba(28, 28, 36, 0.85); backdrop-filter: blur(8px);
+      color: #D0D0D8; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 500;
+      padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(234, 88, 12, 0.25);
+      white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
+      z-index: 200; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    [data-tooltip]:hover::after { opacity: 1; visibility: visible; }
+    [data-tooltip]:focus-within::after, [data-tooltip]:focus::after { opacity: 1; visibility: visible; }
+
+    .right-panel { display: flex; flex-direction: column; gap: 16px; overflow: visible; }
+    .right-panel .period-block { flex-shrink: 0; }
+    .right-panel .snapshot-btn { flex-shrink: 0; margin-top: auto; }
+
+    .period-block {
+      display: flex; align-items: center; gap: 0; width: 320px; background: #121218;
+      border: 1px solid #242424; border-radius: 6px; padding: 10px 16px; font-weight: 600;
+      transition: 0.2s; cursor: pointer; position: relative;
+    }
+    .period-block:hover { border-color: #3A3A3A; background: #18181E; }
+    .period-dates { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .period-dates input[type="text"] {
+      background: transparent; border: none; color: #FFF; font-weight: 600; font-size: 14px;
+      outline: none; font-family: inherit; width: 100px; text-align: center; cursor: pointer; line-height: 1.4;
+    }
+    .period-dates span { color: #9A9AA4; font-weight: 500; }
+    .calendar-icon { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; flex-shrink: 0; cursor: pointer; }
+
+    .calendar-dropdown {
+      position: absolute; top: 100%; left: 0; margin-top: 6px; background: #1C1C24;
+      border: 1px solid #242424; border-radius: 8px; padding: 12px; display: none; z-index: 100;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.6); width: 320px; box-sizing: border-box;
+    }
+    .calendar-dropdown.active { display: block; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #EA580C; font-weight: 700; font-size: 14px; }
+    .calendar-header button { background: none; border: 1px solid #242424; border-radius: 4px; color: #FFF; cursor: pointer; width: 28px; height: 28px; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .calendar-header button:hover { background: #EA580C; border-color: #EA580C; color: #000; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+    .calendar-day-name { font-size: 11px; color: #9A9AA4; font-weight: 600; padding: 4px 0; }
+    .calendar-day { padding: 6px 0; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; color: #D0D0D8; transition: 0.15s; user-select: none; }
+    .calendar-day:hover { background: rgba(234,88,12,0.2); color: #FFF; }
+    .calendar-day.selected-start, .calendar-day.selected-end { background: #EA580C; color: #000; font-weight: 700; }
+    .calendar-day.in-range { background: rgba(234,88,12,0.3); color: #FFF; }
+    .calendar-day.other-month { color: #4A4A52; pointer-events: none; }
+    .calendar-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .calendar-ok-btn, .calendar-cancel-btn { flex: 1; background: #EA580C; border: none; border-radius: 6px; padding: 8px 0; font-weight: 700; font-size: 14px; color: #000; cursor: pointer; text-align: center; transition: 0.2s; }
+    .calendar-ok-btn:hover { background: #C2410C; }
+    .calendar-cancel-btn { background: transparent; border: 1px solid #242424; color: #B0B0B8; }
+    .calendar-cancel-btn:hover { background: #242424; color: #FFF; }
+
+    .assistant-panel {
+      background: #121218; border: 1px solid #242424; border-radius: 8px; padding: 24px;
+      width: 320px; display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 200px; overflow-y: auto;
+    }
+    .assistant-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #9A9AA4; display: flex; align-items: center; gap: 10px; }
+    .assistant-title svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .assistant-message {
+      background: #1C1C24; border: 1px solid #242424; border-radius: 6px; padding: 16px;
+      font-size: 14px; line-height: 1.5; color: #B0B0B8; display: flex; gap: 12px; align-items: flex-start;
+      transition: background-color 0.2s, border-color 0.2s; flex-shrink: 0;
+    }
+    .assistant-message.warning { border-color: rgba(234, 88, 12, 0.3); background-color: rgba(234, 88, 12, 0.08); }
+    .assistant-message.error { border-color: rgba(211, 47, 47, 0.3); background-color: rgba(211, 47, 47, 0.08); }
+    .assistant-message svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; flex-shrink: 0; margin-top: 2px; }
+    .assistant-message .accent { color: #EA580C; font-weight: 600; }
+    .assistant-hint { font-size: 12px; color: #6A6A78; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; }
+    .assistant-hint svg { width: 20px; height: 20px; stroke: #EA580C; stroke-width: 1.5; fill: none; flex-shrink: 0; margin-top: 2px; }
+
+    .snapshot-btn { background: transparent; border: 1px solid #242424; border-radius: 6px; padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #B0B0B8; transition: 0.2s; width: 320px; justify-content: center; opacity: 1; }
+    .snapshot-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.5; fill: none; }
+    .snapshot-btn:hover { border-color: #EA580C; color: #FFF; background: rgba(234,88,12,0.1); }
+
+    .result-bar {
+      background: linear-gradient(145deg, #1A1A24 0%, #14141C 100%); border: 1px solid #242424;
+      border-radius: 8px; padding: 24px 28px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;
+    }
+    .result-price-block { display: flex; flex-direction: column; align-items: flex-start; flex-shrink: 0; }
+    .result-vat-label { font-size: 12px; color: #8A8A92; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; white-space: nowrap; }
+    .result-price { font-size: 64px; font-weight: 900; color: #EA580C; line-height: 1; white-space: nowrap; }
+    .result-meta { display: flex; gap: 30px; align-items: flex-start; }
+    .meta-column { display: flex; flex-direction: column; gap: 8px; color: #A0A0AC; font-size: 14px; }
+    .meta-column strong { font-size: 16px; color: #F19A5C; opacity: 0.7; }
+    .meta-column > div { white-space: nowrap; text-align: right; }
+
+    .central-toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(28, 28, 36, 0.92); backdrop-filter: blur(10px);
+      border: 1px solid rgba(234, 88, 12, 0.35); border-radius: 10px; padding: 16px 28px;
+      font-size: 15px; font-weight: 600; color: #EAEAF0; z-index: 9999;
+      opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+      pointer-events: none; white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .central-toast.show { opacity: 1; visibility: visible; }
+
+    .snapshot-toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      background: rgba(28, 28, 36, 0.9); backdrop-filter: blur(8px);
+      border: 1px solid rgba(234, 88, 12, 0.3); border-radius: 8px; padding: 12px 24px;
+      font-size: 14px; font-weight: 500; color: #D0D0D8; z-index: 999; opacity: 0; transition: opacity 0.25s; pointer-events: none;
+    }
+    .snapshot-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="onboarding-overlay" id="onboardingOverlay">
+  <div class="onboard-logo">RUSS<span>.</span></div>
+  <div class="onboard-badge">PROFESSIONAL CALCULATOR</div>
+  <div class="onboard-version">v10.5</div>
+  <div class="onboard-features">
+    <div class="onboard-feat">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="1" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/></svg>
+      <h3>7 дней</h3><p>Индивидуальная настройка каждого дня недели</p>
+    </div>
+    <div class="onboard-feat">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <h3>Тарифы<br>день/ночь</h3><p>Автоматический расчёт по времени суток</p>
+    </div>
+    <div class="onboard-feat">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <h3>Скриншот</h3><p>Мгновенный скриншот для фиксации просчёта</p>
+    </div>
+  </div>
+  <button class="btn-primary" id="startOnboarding">Начать расчёт в полном экране</button>
+</div>
+
+<div class="vpro-dashboard" id="vproDashboard">
+  <div class="fullscreen-toggle" id="fullscreenToggle" data-tooltip="Полноэкранный режим">
+    <svg viewBox="0 0 24 24" id="fullscreenIconExpand"><polyline points="8 3 3 3 3 8"/><polyline points="16 3 21 3 21 8"/><polyline points="21 16 21 21 16 21"/><polyline points="3 16 3 21 8 21"/></svg>
+    <svg viewBox="0 0 24 24" id="fullscreenIconCompress" style="display:none;"><polyline points="4 8 8 8 8 4"/><polyline points="16 4 16 8 20 8"/><polyline points="20 16 16 16 16 20"/><polyline points="8 20 8 16 4 16"/></svg>
+  </div>
+
+  <div class="top-toolbar">
+    <div class="brand-block">
+      <div class="brand-title">RUSS<span>.</span></div>
+      <div class="brand-version">Pro Calculator · v10.5</div>
+    </div>
+    <div class="format-switch">
+      <button class="fmt-btn active" data-format="PVZ">ПВЗ</button>
+      <button class="fmt-btn" data-format="DBB">DBB</button>
+      <button class="fmt-btn" data-format="RW">RW</button>
+    </div>
+    <div class="client-field">
+      <input type="text" id="clientName" placeholder="Введите название вашей организации" value="">
+    </div>
+    <div class="dur-block">
+      <div class="input-label">Длина ролика</div>
+      <div class="dur-switch" id="durSwitch"></div>
+    </div>
+    <div class="freq-field">
+      <div class="input-label">Выходов в час</div>
+      <input type="number" id="freqInput" value="30" min="1" max="360" step="1" placeholder="Введите значение" data-tooltip="Доступно: 1–360">
+      <div class="field-hint">от 1 до 360</div>
+    </div>
+    <div class="screens-field">
+      <div class="input-label">Кол. экранов</div>
+      <input type="number" id="screensInput" value="10" min="1" max="150" step="1" placeholder="Введите значение" data-tooltip="Доступно: 1–150 (ПВЗ)">
+      <div class="field-hint">от 1 до 150</div>
+    </div>
+    <div class="days-field">
+      <div class="input-label">Дней размещения</div>
+      <input type="number" id="daysInput" value="16" min="1" max="360" step="1" readonly data-tooltip="Измените период через календарь">
+    </div>
+  </div>
+
+  <div class="grid-main" id="gridMain">
+    <div class="left-content" id="leftContent">
+      <div class="preset-bar" id="presetBar">
+        <div class="chip" data-preset="weekdays"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="1" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/></svg> Будни</div>
+        <div class="chip" data-preset="weekends"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Выходные</div>
+        <div class="chip" data-preset="peak-weekdays"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Час пик будни</div>
+        <div class="chip" data-preset="peak-weekends"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Час пик вых.</div>
+        <div class="chip" data-preset="clear" data-tooltip="Сбросить все выбранные часы"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Сброс</div>
+      </div>
+      <div class="week-summary">
+        <span class="week-summary-text" id="weekSummaryText"></span>
+        <button class="expand-btn" id="expandWeekBtn" data-tooltip="Свернуть таблицу">Скрыть</button>
+      </div>
+      <div class="schedule-container expanded" id="scheduleContainer">
+        <div class="week-grid" id="weekGrid"></div>
+        <div class="tariff-legend" id="tariffLegend"></div>
+      </div>
+    </div>
+
+    <div class="right-panel" id="rightPanel">
+      <div class="period-block" id="periodBlock" data-tooltip="Нажмите, чтобы выбрать даты">
+        <div class="period-dates">
+          <input type="text" id="startDateDisplay" value="01.05.2026" readonly>
+          <span>–</span>
+          <input type="text" id="endDateDisplay" value="16.05.2026" readonly>
+        </div>
+        <svg class="calendar-icon" viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+        <div class="calendar-dropdown" id="calendarDropdown"></div>
+      </div>
+      <div class="assistant-panel" id="assistantPanel">
+        <div class="assistant-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Помощник и подсказки</div>
+        <div class="assistant-message" id="assistantMsg"></div>
+        <div class="assistant-hint" id="assistantHint"></div>
+      </div>
+      <button class="snapshot-btn" id="snapshotBtn" data-tooltip="Скриншот просчёта · в буфере (Ctrl+V)">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Скриншот просчёта
+      </button>
+    </div>
+  </div>
+
+  <div class="result-bar" id="resultBar">
+    <div class="result-price-block">
+      <div class="result-vat-label">Итого стоимость с НДС 22%</div>
+      <div class="result-price" id="totalPrice">0,00 ₽</div>
+    </div>
+    <div class="result-meta">
+      <div class="meta-column">
+        <div>Период: <strong id="metaPeriod">01.05.2026 – 16.05.2026</strong></div>
+        <div>Дней размещения: <strong id="metaDays">16</strong></div>
+        <div>Длина ролика: <strong id="metaDur">10 сек.</strong></div>
+      </div>
+      <div class="meta-column">
+        <div>Кол. экранов: <strong id="metaScreens">10</strong></div>
+        <div>Среднее часов в день: <strong id="metaAvgHours">0</strong></div>
+        <div>Общее часов за период: <strong id="metaTotalHours">0</strong></div>
+      </div>
+      <div class="meta-column">
+        <div>Прогноз выходов: <strong id="totalOutputs">0</strong></div>
+        <div>Дневных: <strong id="dayOutputs">0</strong></div>
+        <div id="nightBlock">Ночных: <strong id="nightOutputs">0</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="chip-tooltip" id="chipTooltip"></div>
+<div class="central-toast" id="centralToast"></div>
+<div class="snapshot-toast" id="snapshotToast">📸 Сохранено · в буфере (Ctrl+V)</div>
+
+<script>
+  (function() {
+    const onboarding = document.getElementById('onboardingOverlay');
+    document.getElementById('startOnboarding').addEventListener('click', () => {
+      onboarding.classList.add('fade-out');
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    });
+
+    const formatLimits = {
+      PVZ: { start: 8, end: 21, night: false, nightPrice: null, dayPrice: 0.60, maxOutputs: 360, maxScreens: 150, durFixed: true, dur: 10 },
+      DBB: { start: 0, end: 23, night: true, nightPrice: 0.40, dayPrice5: 1.40, dayPrice10: 2.40, maxOutputs5: 720, maxOutputs10: 360, maxScreens: 500, durFixed: false },
+      RW:  { start: 0, end: 23, night: true, nightPrice: 0.20, dayPrice: 0.65, maxOutputs: 720, maxScreens: 50, durFixed: true, dur: 5 },
+    };
+    let currentFormat = 'PVZ';
+    let currentDur = formatLimits.PVZ.dur;
+    let currentPresetState = {};
+
+    const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    const NIGHT_HOURS = [0, 1, 2, 3, 4, 5];
+    const TOTAL_HOURS = 24;
+
+    const formatSchedules = { PVZ: {}, DBB: {}, RW: {} };
+    for (let fmt in formatSchedules) {
+      DAYS.forEach(day => { formatSchedules[fmt][day] = new Set(); });
+    }
+    let schedule = formatSchedules['PVZ'];
+
+    const formatPresetStates = { PVZ: {}, DBB: {}, RW: {} };
+
+    let startDate = new Date(2026, 4, 1);
+    let endDate = new Date(2026, 4, 16);
+    const startDisplay = document.getElementById('startDateDisplay');
+    const endDisplay = document.getElementById('endDateDisplay');
+    const daysInput = document.getElementById('daysInput');
+    const calendarDropdown = document.getElementById('calendarDropdown');
+    const periodBlock = document.getElementById('periodBlock');
+    const durSwitch = document.getElementById('durSwitch');
+    const fullscreenToggle = document.getElementById('fullscreenToggle');
+    const fullscreenIconExpand = document.getElementById('fullscreenIconExpand');
+    const fullscreenIconCompress = document.getElementById('fullscreenIconCompress');
+    const chipTooltip = document.getElementById('chipTooltip');
+    const assistantMsg = document.getElementById('assistantMsg');
+    const expandBtn = document.getElementById('expandWeekBtn');
+    const centralToast = document.getElementById('centralToast');
+    const clearChip = document.querySelector('.chip[data-preset="clear"]');
+    const rightPanel = document.getElementById('rightPanel');
+    const leftContent = document.getElementById('leftContent');
+    const scheduleContainer = document.getElementById('scheduleContainer');
+    const tariffLegend = document.getElementById('tariffLegend');
+
+    const weekGrid = document.getElementById('weekGrid');
+    const weekSummaryText = document.getElementById('weekSummaryText');
+    const assistantHint = document.getElementById('assistantHint');
+    const nightBlock = document.getElementById('nightBlock');
+    const totalOutputs = document.getElementById('totalOutputs');
+    const dayOutputs = document.getElementById('dayOutputs');
+    const nightOutputs = document.getElementById('nightOutputs');
+    const totalPrice = document.getElementById('totalPrice');
+    const metaPeriod = document.getElementById('metaPeriod');
+    const metaDays = document.getElementById('metaDays');
+    const metaDur = document.getElementById('metaDur');
+    const metaScreens = document.getElementById('metaScreens');
+    const metaAvgHours = document.getElementById('metaAvgHours');
+    const metaTotalHours = document.getElementById('metaTotalHours');
+    const snapshotBtn = document.getElementById('snapshotBtn');
+
+    function alignRightPanelHeight() {
+      if (!leftContent || !rightPanel) return;
+      const leftHeight = leftContent.offsetHeight;
+      if (leftHeight > 0) rightPanel.style.height = leftHeight + 'px';
+    }
+    window.addEventListener('load', alignRightPanelHeight);
+    window.addEventListener('resize', alignRightPanelHeight);
+
+    function showCentralToast(text, duration = 3000) {
+      centralToast.textContent = text;
+      centralToast.classList.add('show');
+      clearTimeout(centralToast._timeout);
+      centralToast._timeout = setTimeout(() => centralToast.classList.remove('show'), duration);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          fullscreenIconExpand.style.display = 'none'; fullscreenIconCompress.style.display = 'block';
+          fullscreenToggle.setAttribute('data-tooltip', 'Выйти из полноэкранного режима');
+        }).catch(() => {});
+      } else {
+        document.exitFullscreen().then(() => {
+          fullscreenIconExpand.style.display = 'block'; fullscreenIconCompress.style.display = 'none';
+          fullscreenToggle.setAttribute('data-tooltip', 'Полноэкранный режим');
+        }).catch(() => {});
+      }
+    }
+    fullscreenToggle.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        fullscreenIconExpand.style.display = 'none'; fullscreenIconCompress.style.display = 'block';
+        fullscreenToggle.setAttribute('data-tooltip', 'Выйти из полноэкранного режима');
+      } else {
+        fullscreenIconExpand.style.display = 'block'; fullscreenIconCompress.style.display = 'none';
+        fullscreenToggle.setAttribute('data-tooltip', 'Полноэкранный режим');
+      }
+    });
+
+    function updateClearChipState() {
+      let totalHours = 0;
+      DAYS.forEach(d => { totalHours += schedule[d].size; });
+      if (totalHours === 0) clearChip.setAttribute('data-tooltip', 'Нет выбранных часов для сброса');
+      else clearChip.setAttribute('data-tooltip', 'Сбросить все выбранные часы');
+    }
+
+    function updateTooltips() {
+      document.getElementById('screensInput').setAttribute('data-tooltip', `Доступно: 1–${formatLimits[currentFormat].maxScreens} (${currentFormat})`);
+      document.getElementById('freqInput').setAttribute('data-tooltip', `Доступно: 1–${getMaxOutputs()}`);
+    }
+
+    function getMaxOutputs() {
+      if (currentFormat === 'PVZ') return formatLimits.PVZ.maxOutputs;
+      if (currentFormat === 'RW') return formatLimits.RW.maxOutputs;
+      if (currentFormat === 'DBB') return currentDur === 5 ? formatLimits.DBB.maxOutputs5 : formatLimits.DBB.maxOutputs10;
+      return 9999;
+    }
+    function getDayPrice() {
+      if (currentFormat === 'DBB') return currentDur === 5 ? formatLimits.DBB.dayPrice5 : formatLimits.DBB.dayPrice10;
+      return formatLimits[currentFormat].dayPrice;
+    }
+    function getNightPrice() { return formatLimits[currentFormat].nightPrice || 0; }
+
+    function countWeekdayInRange(dayIndex, start, end) {
+      let count = 0;
+      let current = new Date(start);
+      while (current <= end) {
+        if (current.getDay() === dayIndex) count++;
+        current.setDate(current.getDate() + 1);
+      }
+      return count;
+    }
+
+    function isInRange(d) { return d >= startDate && d <= endDate; }
+    function isStart(d) { return d.getTime() === startDate.getTime(); }
+    function isEnd(d) { return d.getTime() === endDate.getTime(); }
+
+    function buildCalendar(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const today = new Date(); today.setHours(0,0,0,0);
+      let html = `<div class="calendar-header"><button class="prev-month">‹</button><span>${date.toLocaleString('ru', {month:'long', year:'numeric'})}</span><button class="next-month">›</button></div><div class="calendar-grid">`;
+      ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => html += `<div class="calendar-day-name">${d}</div>`);
+      for (let i = 0; i < adjustedFirstDay; i++) html += '<div class="calendar-day other-month"></div>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const current = new Date(year, month, d);
+        let cls = 'calendar-day';
+        if (isStart(current)) cls += ' selected-start';
+        else if (isEnd(current)) cls += ' selected-end';
+        else if (isInRange(current)) cls += ' in-range';
+        if (current.getTime() === today.getTime()) cls += ' today';
+        html += `<div class="${cls}" data-day="${d}" data-month="${month}" data-year="${year}">${d}</div>`;
+      }
+      html += '</div><div class="calendar-actions"><button class="calendar-ok-btn">ОК</button><button class="calendar-cancel-btn">Отмена</button></div>';
+      calendarDropdown.innerHTML = html;
+
+      calendarDropdown.querySelector('.prev-month')?.addEventListener('click', (e) => { e.stopPropagation(); calendarViewDate.setMonth(calendarViewDate.getMonth()-1); buildCalendar(calendarViewDate); });
+      calendarDropdown.querySelector('.next-month')?.addEventListener('click', (e) => { e.stopPropagation(); calendarViewDate.setMonth(calendarViewDate.getMonth()+1); buildCalendar(calendarViewDate); });
+      calendarDropdown.querySelector('.calendar-ok-btn')?.addEventListener('click', (e) => { e.stopPropagation(); closeCalendar(); });
+      calendarDropdown.querySelector('.calendar-cancel-btn')?.addEventListener('click', (e) => { e.stopPropagation(); closeCalendar(); });
+
+      const dayEls = calendarDropdown.querySelectorAll('.calendar-day:not(.other-month)');
+      dayEls.forEach(el => {
+        const d = parseInt(el.dataset.day); const m = parseInt(el.dataset.month); const y = parseInt(el.dataset.year);
+        const dateVal = new Date(y, m, d);
+        el.addEventListener('mousedown', (e) => { e.preventDefault(); dragSelecting = true; dragStartDate = dateVal; dragMoved = false; });
+        el.addEventListener('mousemove', () => {
+          if (dragSelecting && dragStartDate) {
+            dragMoved = true;
+            if (dateVal < dragStartDate) { startDate = dateVal; endDate = dragStartDate; } else { startDate = dragStartDate; endDate = dateVal; }
+            updateDisplayFromDates(); fullUpdate(); buildCalendar(calendarViewDate);
+          }
+        });
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (dragMoved) return;
+          if (!clickSelectStart) { clickSelectStart = dateVal; startDate = dateVal; endDate = dateVal; }
+          else { if (dateVal < clickSelectStart) { startDate = dateVal; endDate = clickSelectStart; } else { startDate = clickSelectStart; endDate = dateVal; } clickSelectStart = null; }
+          updateDisplayFromDates(); fullUpdate(); buildCalendar(calendarViewDate);
+        });
+      });
+      document.addEventListener('mouseup', () => { if (dragSelecting) { dragSelecting = false; dragMoved = false; dragStartDate = null; } });
+    }
+
+    let calendarOpen = false, calendarViewDate = new Date(startDate), dragSelecting = false, dragStartDate = null, dragMoved = false, clickSelectStart = null;
+
+    function openCalendar() { if (calendarOpen) return; calendarOpen = true; calendarViewDate = new Date(startDate); buildCalendar(calendarViewDate); calendarDropdown.classList.add('active'); }
+    function closeCalendar() { calendarOpen = false; calendarDropdown.classList.remove('active'); }
+    periodBlock.addEventListener('click', () => { if (calendarOpen) closeCalendar(); else openCalendar(); });
+
+    function updateDisplayFromDates() {
+      startDisplay.value = formatDateDMY(startDate);
+      endDisplay.value = formatDateDMY(endDate);
+      daysInput.value = Math.min(Math.round((endDate - startDate) / (1000*60*60*24)) + 1, 360);
+    }
+    function setDatesFromDays(days) {
+      if (isNaN(days) || days < 1) return;
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + Math.min(days, 360) - 1);
+      updateDisplayFromDates();
+      fullUpdate();
+    }
+    daysInput.addEventListener('input', () => {
+      let days = parseInt(daysInput.value, 10);
+      if (isNaN(days) || days < 1) days = 1;
+      else if (days > 360) days = 360;
+      daysInput.value = days;
+      setDatesFromDays(days);
+    });
+
+    function isFieldValid(input) {
+      const val = parseInt(input.value, 10);
+      const min = parseInt(input.min || 1, 10);
+      const max = parseInt(input.max || 9999, 10);
+      return !isNaN(val) && val >= min && val <= max;
+    }
+    function setFieldInvalid(input, isInvalid, message = '') {
+      if (isInvalid) { input.classList.add('invalid'); if (message) input.setAttribute('data-tooltip', message); }
+      else { input.classList.remove('invalid'); input.removeAttribute('data-tooltip'); }
+    }
+    function getInvalidFields() {
+      const inputs = [
+        { el: document.getElementById('freqInput'), name: 'Выходов в час', max: getMaxOutputs() },
+        { el: document.getElementById('screensInput'), name: 'Количество экранов', max: formatLimits[currentFormat].maxScreens }
+      ];
+      const invalid = [];
+      inputs.forEach(({ el, name, max }) => {
+        const val = parseInt(el.value, 10);
+        const min = parseInt(el.min || 1, 10);
+        if (el.value.trim() === '') { setFieldInvalid(el, false); return; }
+        if (isNaN(val) || val < min || val > max) {
+          const message = val < min ? `Минимальное значение: ${min}` : val > max ? `Максимальное значение: ${max}` : `Введите число от ${min} до ${max}`;
+          invalid.push({ el, name, min, max, val, message });
+          setFieldInvalid(el, true, message);
+        } else setFieldInvalid(el, false);
+      });
+      return invalid;
+    }
+
+    function formatDateDMY(d) { return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+
+    function addWheelAndValidation(inputElem) {
+      let previousValidState = true;
+      inputElem.addEventListener('focus', () => { previousValidState = isFieldValid(inputElem); });
+      inputElem.addEventListener('wheel', (e) => {
+        e.preventDefault(); const delta = e.deltaY > 0 ? -1 : 1; let newVal = parseInt(inputElem.value, 10); if (isNaN(newVal)) newVal = parseInt(inputElem.min) || 1;
+        newVal += delta; const min = parseInt(inputElem.min || 1, 10); const max = parseInt(inputElem.max || 9999, 10);
+        if (newVal < min) newVal = min; if (newVal > max) newVal = max; inputElem.value = newVal;
+        const valid = isFieldValid(inputElem);
+        if (!previousValidState && valid) { inputElem.classList.add('valid-flash'); setTimeout(() => inputElem.classList.remove('valid-flash'), 600); }
+        setFieldInvalid(inputElem, !valid, valid ? '' : `Допустимо: ${min}–${max}`);
+        previousValidState = valid; fullUpdate();
+      });
+      inputElem.addEventListener('keydown', (e) => { if (!((e.key >= '0' && e.key <= '9') || e.key === 'Backspace' || e.key === 'Delete' || e.key.startsWith('Arrow') || e.key === 'Tab' || e.key === 'Enter' || e.key === 'Escape')) e.preventDefault(); });
+      inputElem.addEventListener('input', () => {
+        let val = inputElem.value.replace(/\D/g, '');
+        if (val === '') { inputElem.value = ''; setFieldInvalid(inputElem, false); }
+        else {
+          const num = parseInt(val, 10); const min = parseInt(inputElem.min || 1, 10); const max = parseInt(inputElem.max || 9999, 10); inputElem.value = val;
+          const valid = num >= min && num <= max;
+          if (!previousValidState && valid) { inputElem.classList.add('valid-flash'); setTimeout(() => inputElem.classList.remove('valid-flash'), 600); }
+          setFieldInvalid(inputElem, !valid, valid ? '' : `Допустимо: ${min}–${max}`); previousValidState = valid;
+        }
+        fullUpdate();
+      });
+      inputElem.addEventListener('blur', () => {
+        if (inputElem.value.trim() === '') { setFieldInvalid(inputElem, false); fullUpdate(); return; }
+        const val = parseInt(inputElem.value, 10); const min = parseInt(inputElem.min || 1, 10); const max = parseInt(inputElem.max || 9999, 10);
+        const valid = isFieldValid(inputElem);
+        if (!previousValidState && valid) { inputElem.classList.add('valid-flash'); setTimeout(() => inputElem.classList.remove('valid-flash'), 600); }
+        if (isNaN(val) || val < min || val > max) setFieldInvalid(inputElem, true, `Допустимо: ${min}–${max}`);
+        else setFieldInvalid(inputElem, false);
+        previousValidState = valid; fullUpdate();
+      });
+    }
+    addWheelAndValidation(document.getElementById('freqInput'));
+    addWheelAndValidation(document.getElementById('screensInput'));
+
+    function updateDurSwitch() {
+      durSwitch.innerHTML = '';
+      if (formatLimits[currentFormat].durFixed) {
+        const staticBtn = document.createElement('button');
+        staticBtn.className = 'dur-btn active static';
+        staticBtn.textContent = formatLimits[currentFormat].dur + ' сек';
+        staticBtn.addEventListener('click', () => {
+          showCentralToast(`Длительность ролика фиксирована для формата ${currentFormat}`);
+          assistantMsg.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><div><span class="accent">Формат ${currentFormat}</span> использует ролики только длительностью ${formatLimits[currentFormat].dur} секунд. Изменить нельзя.</div>`;
+        });
+        durSwitch.appendChild(staticBtn);
+        currentDur = formatLimits[currentFormat].dur;
+      } else {
+        const btn5 = document.createElement('button'); btn5.className = 'dur-btn active'; btn5.dataset.dur = '5'; btn5.textContent = '5 сек';
+        const btn10 = document.createElement('button'); btn10.className = 'dur-btn'; btn10.dataset.dur = '10'; btn10.textContent = '10 сек';
+        durSwitch.appendChild(btn5); durSwitch.appendChild(btn10);
+        currentDur = 5;
+        durSwitch.querySelectorAll('.dur-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            if (this.classList.contains('static')) return;
+            durSwitch.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentDur = parseInt(this.dataset.dur);
+            fullUpdate();
+          });
+        });
+      }
+    }
+
+    function getDayIdx(day) { return DAYS.indexOf(day); }
+
+    function getPresetDefinition(preset) {
+      const lim = formatLimits[currentFormat];
+      if (preset === 'weekdays') return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: range(lim.start, lim.end) };
+      if (preset === 'weekends') return { days: ['Сб','Вс'], hours: range(lim.start, lim.end) };
+      if (preset === 'peak-weekdays') {
+        if (currentFormat === 'DBB') return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: [8,9,10,17,18,19,20] };
+        if (currentFormat === 'RW') return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: range(10, 18) };
+        return { days: ['Пн','Вт','Ср','Чт','Пт'], hours: [16,17,18,19,20] };
+      }
+      if (preset === 'peak-weekends') {
+        if (currentFormat === 'DBB') return { days: ['Сб','Вс'], hours: [12,13,14,15,16,17] };
+        if (currentFormat === 'RW') return { days: ['Сб','Вс'], hours: range(10, 18) };
+        return { days: ['Сб','Вс'], hours: [12,13,14,15,16,17] };
+      }
+      return null;
+    }
+    function range(start, end) { const arr = []; for (let i = start; i <= end; i++) arr.push(i); return arr; }
+
+    function canSelect(day, hour) {
+      const lim = formatLimits[currentFormat];
+      if (hour < lim.start || hour > lim.end) return false;
+      const jsDayIndex = (DAYS.indexOf(day) + 1) % 7;
+      return countWeekdayInRange(jsDayIndex, startDate, endDate) > 0;
+    }
+
+    function toggleChip(chip, forceState = null) {
+      const day = chip.dataset.day;
+      const hour = parseInt(chip.dataset.hour);
+      if (!canSelect(day, hour)) {
+        chip.classList.add('unavailable-flash');
+        setTimeout(() => chip.classList.remove('unavailable-flash'), 300);
+        let tooltipText = '', assistantText = '';
+        const lim = formatLimits[currentFormat];
+        if (hour < lim.start || hour > lim.end) {
+          tooltipText = currentFormat === 'PVZ' ? `ПВЗ работает с ${lim.start}:00 до ${lim.end+1}:00` : `${currentFormat} доступен круглосуточно`;
+          assistantText = currentFormat === 'PVZ'
+            ? `<span class="accent">Пожалуйста, обратите внимание</span> — вещание на ПВЗ доступно с ${lim.start}:00 до ${lim.end+1}:00. Давайте выберем время в этом интервале.`
+            : `<span class="accent">Пожалуйста, обратите внимание</span> — формат ${currentFormat} поддерживает размещение 24/7. Вы можете выбрать любое время.`;
+        } else {
+          tooltipText = `${day} нет в выбранных датах`;
+          assistantText = `<span class="accent">Пожалуйста, обратите внимание</span> — день недели «${day}» отсутствует в выбранном периоде (${startDisplay.value} – ${endDisplay.value}). Расширьте диапазон дат, чтобы этот день стал доступен.`;
+        }
+        showChipTooltip(chip, tooltipText);
+        setAssistantWarning(`<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="16" r="1.5" fill="#EA580C" stroke="none"/><polyline points="12 2 12 12"/><line x1="12" y1="2" x2="12" y2="2"/></svg><div>${assistantText}</div>`);
+        return;
+      }
+      hideChipTooltip();
+      let newState = forceState !== null ? forceState : !chip.classList.contains('selected');
+      if (newState) { schedule[day].add(hour); chip.classList.add('selected'); }
+      else { schedule[day].delete(hour); chip.classList.remove('selected'); }
+    }
+
+    let isMouseDown = false, startDayIdx = -1, startHour = -1, currentTargetState = null;
+
+    document.addEventListener('click', (e) => {
+      const label = e.target.closest('.day-label');
+      if (!label) { if (!e.target.closest('.hour-chip')) hideChipTooltip(); return; }
+      const row = label.parentNode;
+      if (!row || !row.dataset.day) return;
+      const day = row.dataset.day;
+      const lim = formatLimits[currentFormat];
+      const availableHours = [];
+      for (let h = lim.start; h <= lim.end; h++) { if (canSelect(day, h)) availableHours.push(h); }
+      const allSelected = availableHours.every(h => schedule[day].has(h));
+      if (allSelected) availableHours.forEach(h => schedule[day].delete(h));
+      else availableHours.forEach(h => schedule[day].add(h));
+      renderAllDays();
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.calendar-dropdown') || e.target.closest('.day-label')) return;
+      const chip = e.target.closest('.hour-chip');
+      if (!chip) return;
+      e.preventDefault();
+      isMouseDown = true; startDayIdx = getDayIdx(chip.dataset.day); startHour = parseInt(chip.dataset.hour);
+      currentTargetState = !chip.classList.contains('selected');
+      toggleChip(chip, currentTargetState);
+    });
+
+    document.addEventListener('mouseover', (e) => {
+      if (!isMouseDown) return;
+      const chip = e.target.closest('.hour-chip');
+      if (!chip) return;
+      const dayIdx = getDayIdx(chip.dataset.day); const hour = parseInt(chip.dataset.hour);
+      if (!canSelect(chip.dataset.day, hour)) return;
+      const rowStart = Math.min(startDayIdx, dayIdx); const rowEnd = Math.max(startDayIdx, dayIdx);
+      const colStart = Math.min(startHour, hour); const colEnd = Math.max(startHour, hour);
+      for (let d = rowStart; d <= rowEnd; d++) {
+        const row = weekGrid.children[d]; if (!row) continue;
+        const chips = row.querySelectorAll('.hour-chip');
+        for (let h = colStart; h <= colEnd; h++) { if (h >= 0 && h < chips.length) toggleChip(chips[h], currentTargetState); }
+      }
+    });
+
+    document.addEventListener('mouseup', () => { if (isMouseDown) { isMouseDown = false; startDayIdx = -1; startHour = -1; currentTargetState = null; fullUpdate(); } });
+
+    let tooltipTimer = null;
+    function showChipTooltip(chip, text) {
+      const rect = chip.getBoundingClientRect();
+      chipTooltip.textContent = text;
+      chipTooltip.style.top = (rect.top + window.scrollY - chipTooltip.offsetHeight - 8) + 'px';
+      chipTooltip.style.left = (rect.left + window.scrollX + rect.width/2 - chipTooltip.offsetWidth/2) + 'px';
+      chipTooltip.classList.add('visible');
+      if (tooltipTimer) clearTimeout(tooltipTimer);
+      tooltipTimer = setTimeout(() => chipTooltip.classList.remove('visible'), 3500);
+    }
+    function hideChipTooltip() { if (tooltipTimer) clearTimeout(tooltipTimer); chipTooltip.classList.remove('visible'); }
+    function setAssistantWarning(html, duration = 4000) {
+      assistantMsg.innerHTML = html;
+      assistantMsg.classList.add('warning');
+      clearTimeout(assistantMsg._warningTimeout);
+      assistantMsg._warningTimeout = setTimeout(() => assistantMsg.classList.remove('warning'), duration);
+    }
+
+    function renderAllDays() {
+      weekGrid.innerHTML = '';
+      DAYS.forEach(day => {
+        const row = document.createElement('div');
+        row.className = 'day-row'; row.dataset.day = day;
+        row.innerHTML = `<div class="day-label">${day}</div><div class="hours-row"></div><div class="day-stats" id="stats-${day}">0 ч.</div>`;
+        const hoursRow = row.querySelector('.hours-row');
+        for (let h = 0; h < TOTAL_HOURS; h++) {
+          const chip = document.createElement('div');
+          chip.className = 'hour-chip'; chip.dataset.hour = h; chip.dataset.day = day;
+          if (NIGHT_HOURS.includes(h)) chip.classList.add('night-tariff');
+          if (!canSelect(day, h)) chip.classList.add('disabled');
+          if (schedule[day].has(h)) chip.classList.add('selected');
+          chip.textContent = h.toString().padStart(2, '0');
+          hoursRow.appendChild(chip);
+        }
+        weekGrid.appendChild(row);
+      });
+      fullUpdate(); updatePresetButtons(); updateClearChipState(); alignRightPanelHeight();
+    }
+
+    function updateDayStats() { DAYS.forEach(day => { const el = document.getElementById(`stats-${day}`); if (el) el.textContent = `${schedule[day].size} ч.`; }); }
+    function updateSummary() {
+      const chips = DAYS.map(day => {
+        const hours = [...schedule[day]].sort((a,b)=>a-b);
+        if (hours.length === 0) return `<span class="day-summary-chip"><b>${day}</b> 0 ч.</span>`;
+        const ranges = []; let start = hours[0], end = hours[0];
+        for (let i=1; i<hours.length; i++) {
+          if (hours[i] === end+1) end = hours[i];
+          else { ranges.push(start===end ? `${start}` : `${start}-${end}`); start = hours[i]; end = hours[i]; }
+        }
+        ranges.push(start===end ? `${start}` : `${start}-${end}`);
+        return `<span class="day-summary-chip"><b>${day}</b> ${ranges.join(', ')}</span>`;
+      });
+      weekSummaryText.innerHTML = chips.join('') || '—';
+    }
+
+    function fullUpdate() {
+      const invalidFields = getInvalidFields();
+      updateDayStats(); updateSummary(); updateClearChipState();
+      if (invalidFields.length > 0) {
+        totalOutputs.textContent = '0'; dayOutputs.textContent = '0'; nightOutputs.textContent = '0'; totalPrice.textContent = '0,00 ₽';
+        snapshotBtn.setAttribute('data-tooltip', 'Пожалуйста, проверьте поля перед созданием скриншота');
+        const messages = invalidFields.map(f => `Поле «${f.name}» содержит недопустимое значение (${f.val}). Укажите число от ${f.min} до ${f.max}.`).join('<br>');
+        assistantMsg.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="16" r="1.5" fill="#EA580C" stroke="none"/><polyline points="12 2 12 12"/><line x1="12" y1="2" x2="12" y2="2"/></svg><div><span class="accent">Пожалуйста, проверьте</span> — ${messages}</div>`;
+        assistantMsg.classList.add('error');
+        assistantHint.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div>Исправьте выделенные поля, чтобы продолжить расчёт.</div>`;
+        return;
+      }
+      snapshotBtn.setAttribute('data-tooltip', 'Скриншот просчёта · в буфере (Ctrl+V)');
+      recalculate(); updateTariffLegend(); updateMetaParams(); checkPresets();
+      if (!assistantMsg.classList.contains('warning') && !assistantMsg.classList.contains('error')) {
+        updateAssistantMessages(parseInt(freqInput.value,10), parseInt(screensInput.value,10));
+      }
+    }
+
+    function updateMetaParams() {
+      const days = parseInt(daysInput.value, 10) || 0;
+      const screens = parseInt(screensInput.value, 10) || 0;
+      let totalPeriodHours = 0;
+      DAYS.forEach((day, index) => {
+        const repeats = countWeekdayInRange((index+1)%7, startDate, endDate);
+        totalPeriodHours += schedule[day].size * repeats;
+      });
+      metaPeriod.textContent = `${startDisplay.value} – ${endDisplay.value}`;
+      metaDays.textContent = days;
+      metaDur.textContent = (currentFormat === 'DBB') ? `${currentDur} сек.` : `${formatLimits[currentFormat].dur} сек.`;
+      metaScreens.textContent = screens;
+      metaAvgHours.textContent = formatNumber(days ? totalPeriodHours/days : 0);
+      metaTotalHours.textContent = formatNumber(totalPeriodHours);
+    }
+    function formatNumber(num) { return Number.isInteger(num) ? num.toString() : num.toFixed(2).replace(/\.?0+$/, ''); }
+
+    function recalculate() {
+      const freq = parseInt(freqInput.value,10)||0, screens = parseInt(screensInput.value,10)||0;
+      let dayOut=0, nightOut=0;
+      if (!freq || !screens) { totalOutputs.textContent='0'; dayOutputs.textContent='0'; nightOutputs.textContent='0'; totalPrice.textContent='0,00 ₽'; return; }
+      DAYS.forEach((day, index) => {
+        const repeats = countWeekdayInRange((index+1)%7, startDate, endDate);
+        if (!repeats) return;
+        schedule[day].forEach(h => { if (NIGHT_HOURS.includes(h)) nightOut+=freq*repeats; else dayOut+=freq*repeats; });
+      });
+      totalOutputs.textContent = (dayOut+nightOut).toLocaleString('ru-RU');
+      dayOutputs.textContent = dayOut.toLocaleString('ru-RU');
+      nightOutputs.textContent = nightOut.toLocaleString('ru-RU');
+      nightBlock.style.display = currentFormat === 'PVZ' ? 'none' : 'block';
+      const price = (dayOut*getDayPrice() + nightOut*getNightPrice()) * 1.22 * screens;
+      const formatted = price.toFixed(2).replace('.', ',');
+      totalPrice.textContent = parseInt(formatted.split(',')[0]).toLocaleString('ru-RU') + ',' + formatted.split(',')[1] + ' ₽';
+    }
+
+    function updateAssistantMessages(freq, screens) {
+      const maxFreq = getMaxOutputs(), maxScreens = formatLimits[currentFormat].maxScreens;
+      let msg = '', hint = '';
+      if (freq > maxFreq || freq <= 0 || screens <= 0 || screens > maxScreens) {
+        msg = `<span class="accent">Давайте уточним</span> — максимум выходов в час для этого формата ${maxFreq}. Экранов можно выбрать от 1 до ${maxScreens}. Проверьте, пожалуйста, эти значения.`;
+        hint = 'Проверьте введённые значения.';
+      } else {
+        const overfilled = DAYS.filter(d => schedule[d].size > 7).join(', ');
+        if (overfilled) {
+          msg = `<span class="accent">Рекомендация:</span> в днях (${overfilled}) выбрано больше 7 часов. Для оптимального баланса бюджета и эффективности советуем сузить до часов пик.`;
+          hint = 'Используйте пресеты «Час пик» для будней и выходных.';
+        } else {
+          if (currentFormat === 'PVZ') { msg = `<span class="accent">Формат ПВЗ.</span> Обычно ПВЗ работают с 8 до 22 часов. Рекомендуем сверяться с графиком конкретной точки.`; hint = 'Рекомендация: используйте пресет «Будни» для быстрой настройки.'; }
+          else if (currentFormat === 'DBB') { msg = `<span class="accent">Формат DBB (щиты 3×6).</span> Вещание круглосуточное. Вы можете выбрать длительность ролика 5 или 10 секунд.`; hint = 'Час пик будни: 8-10 и 17-20. Выходные: 12-18.'; }
+          else if (currentFormat === 'RW') { msg = `<span class="accent">Формат RW (вокзал/сити‑экран).</span> Ролики по 5 секунд. Минимальная ставка без НДС: 0.65 ₽ днём и 0.20 ₽ ночью.`; hint = 'Час пик будни и выходные: 10-18.'; }
+        }
+      }
+      assistantMsg.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0"/></svg><div>${msg}</div>`;
+      assistantHint.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><div>${hint}</div>`;
+    }
+
+    function updateTariffLegend() {
+      const dayPrice = getDayPrice(), nightPrice = getNightPrice();
+      tariffLegend.innerHTML = formatLimits[currentFormat].night
+        ? `<span class="tariffs-group"><span class="tariff-item"><span class="dot" style="background:#8a9bb5;"></span> День выход min ставка (без НДС) – ${dayPrice.toFixed(2)} ₽</span><span class="tariff-item"><span class="dot" style="background:#c99e7b;"></span> Ночь выход (без НДС) – ${nightPrice.toFixed(2)} ₽</span></span>`
+        : `<span class="tariffs-group"><span class="tariff-item"><span class="dot" style="background:#8a9bb5;"></span> День выход min ставка (без НДС) – ${dayPrice.toFixed(2)} ₽</span></span>`;
+    }
+
+    const presetConflicts = { 'weekdays': ['peak-weekdays'], 'peak-weekdays': ['weekdays'], 'weekends': ['peak-weekends'], 'peak-weekends': ['weekends'] };
+    function updatePresetButtons() {
+      document.querySelectorAll('.chip').forEach(chip => {
+        const p = chip.dataset.preset;
+        if (p === 'clear') return;
+        chip.classList.toggle('active-preset', !!currentPresetState[p]);
+      });
+    }
+    function checkPresets() {
+      Object.keys(currentPresetState).forEach(p => {
+        const def = getPresetDefinition(p);
+        if (!def) { delete currentPresetState[p]; return; }
+        // Проверяем, что все часы, которые могли быть добавлены (доступные), присутствуют
+        const allAvailableExist = def.days.every(day =>
+          def.hours.every(h => {
+            if (!canSelect(day, h)) return true; // если не доступен, не учитываем
+            return schedule[day].has(h);
+          })
+        );
+        if (!allAvailableExist) {
+          delete currentPresetState[p];
+          document.querySelector(`.chip[data-preset="${p}"]`)?.classList.remove('active-preset');
+        }
+      });
+    }
+
+    document.getElementById('presetBar').addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      const preset = chip.dataset.preset;
+      if (preset === 'clear') {
+        if (!Object.values(schedule).reduce((s,set)=>s+set.size,0)) {
+          showCentralToast('Нет выбранных часов для сброса');
+          assistantMsg.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><div>Вы пока не выбрали ни одного часа. Добавьте часы через таблицу или пресеты.</div>`;
+          assistantMsg.classList.add('warning'); clearTimeout(assistantMsg._warningTimeout);
+          assistantMsg._warningTimeout = setTimeout(() => assistantMsg.classList.remove('warning'), 4000);
+        } else {
+          DAYS.forEach(d => schedule[d].clear());
+          Object.keys(currentPresetState).forEach(k => delete currentPresetState[k]);
+          document.querySelectorAll('.chip').forEach(c => c.classList.remove('active-preset'));
+          renderAllDays();
+        }
+        return;
+      }
+      const def = getPresetDefinition(preset);
+      if (!def) return;
+      const isActive = currentPresetState[preset];
+      if (isActive) {
+        def.days.forEach(day => def.hours.forEach(h => { if (canSelect(day, h)) schedule[day].delete(h); }));
+        delete currentPresetState[preset]; chip.classList.remove('active-preset');
+        assistantMsg.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><div>Пресет «${chip.textContent.trim()}» отключён. Часы для этого пресета удалены из расписания.</div>`;
+      } else {
+        (presetConflicts[preset]||[]).forEach(conf => {
+          if (currentPresetState[conf]) {
+            const cDef = getPresetDefinition(conf);
+            if (cDef) cDef.days.forEach(day => cDef.hours.forEach(h => { if (canSelect(day, h)) schedule[day].delete(h); }));
+            delete currentPresetState[conf];
+            document.querySelector(`.chip[data-preset="${conf}"]`)?.classList.remove('active-preset');
+          }
+        });
+        def.days.forEach(day => def.hours.forEach(h => { if (canSelect(day, h)) schedule[day].add(h); }));
+        currentPresetState[preset] = true; chip.classList.add('active-preset');
+      }
+      renderAllDays();
+    });
+
+    expandBtn.addEventListener('click', () => {
+      scheduleContainer.classList.toggle('expanded');
+      expandBtn.innerHTML = scheduleContainer.classList.contains('expanded')
+        ? '<svg width="16" height="16" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> Скрыть'
+        : '<svg width="16" height="16" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg> Настроить дни';
+      expandBtn.setAttribute('data-tooltip', scheduleContainer.classList.contains('expanded') ? 'Свернуть таблицу' : 'Развернуть таблицу');
+    });
+
+    // Скриншот
+    async function takeScreenshot() {
+      const dashboard = document.getElementById('vproDashboard');
+      const replacements = [];
+      const snapshotBtnEl = document.getElementById('snapshotBtn');
+      const hadTooltip = snapshotBtnEl.hasAttribute('data-tooltip');
+      const tooltipText = snapshotBtnEl.getAttribute('data-tooltip');
+      if (hadTooltip) snapshotBtnEl.removeAttribute('data-tooltip');
+      dashboard.querySelectorAll('input').forEach(input => {
+        const div = document.createElement('div'); div.textContent = input.value || input.placeholder || '';
+        const cs = getComputedStyle(input);
+        Object.assign(div.style, { width:cs.width, height:cs.height, backgroundColor:cs.backgroundColor, color:cs.color, fontFamily:cs.fontFamily, fontSize:cs.fontSize, fontWeight:cs.fontWeight, border:cs.border, borderRadius:cs.borderRadius, padding:cs.padding, boxSizing:cs.boxSizing, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', whiteSpace:'nowrap', height:'auto', minHeight:cs.height });
+        input.style.display = 'none'; input.parentNode.insertBefore(div, input);
+        replacements.push({ input, div });
+      });
+      try { return await html2canvas(dashboard, { backgroundColor:'#0C0C10', scale:3 }); }
+      finally {
+        replacements.forEach(({input, div}) => { div.remove(); input.style.display = ''; });
+        if (hadTooltip) snapshotBtnEl.setAttribute('data-tooltip', tooltipText);
+      }
+    }
+    let snapshotThrottle = false;
+    snapshotBtn.addEventListener('click', async () => {
+      const invalidFields = getInvalidFields();
+      if (snapshotThrottle || invalidFields.length) {
+        if (invalidFields.length) {
+          showCentralToast('Пожалуйста, исправьте ошибки перед созданием снимка');
+          assistantMsg.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#EA580C;stroke-width:1.5;fill:none;"><circle cx="12" cy="16" r="1.5" fill="#EA580C" stroke="none"/><polyline points="12 2 12 12"/><line x1="12" y1="2" x2="12" y2="2"/></svg><div><span class="accent">Ошибка</span> — ${invalidFields.map(f=>`Поле «${f.name}»: недопустимое значение ${f.val}. Допустимый диапазон: ${f.min} – ${f.max}.`).join('<br>')}</div>`;
+          assistantMsg.classList.add('error');
+        }
+        return;
+      }
+      snapshotThrottle = true; snapshotBtn.disabled = true;
+      setTimeout(() => { snapshotThrottle = false; snapshotBtn.disabled = false; }, 4200);
+      try {
+        const canvas = await takeScreenshot();
+        canvas.toBlob(blob => {
+          if (!blob) return;
+          try { navigator.clipboard.write([new ClipboardItem({'image/png':blob})]); } catch(e){}
+          const url = URL.createObjectURL(blob), a = document.createElement('a');
+          a.href = url; a.download = `RUSS_pro_${(document.getElementById('clientName').value.trim()||'просчёт').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.png`;
+          a.click(); URL.revokeObjectURL(url);
+          document.getElementById('snapshotToast').classList.add('show');
+          setTimeout(() => document.getElementById('snapshotToast').classList.remove('show'), 4000);
+        }, 'image/png');
+      } catch(e) { console.error('Скриншот не удался', e); }
+    });
+
+    document.querySelectorAll('.fmt-btn').forEach(btn => btn.addEventListener('click', function() {
+      formatPresetStates[currentFormat] = Object.assign({}, currentPresetState);
+      formatSchedules[currentFormat] = deepCloneSchedule(schedule);
+      document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentFormat = this.dataset.format;
+      schedule = formatSchedules[currentFormat] || (formatSchedules[currentFormat] = DAYS.reduce((o,d) => { o[d]=new Set(); return o; }, {}));
+      currentPresetState = formatPresetStates[currentFormat] || {};
+      document.getElementById('screensInput').max = formatLimits[currentFormat].maxScreens;
+      updateDurSwitch(); getInvalidFields().forEach(f => setFieldInvalid(f.el, false));
+      updateTooltips(); fullUpdate(); renderAllDays();
+    }));
+
+    function deepCloneSchedule(src) { return DAYS.reduce((o,d) => { o[d] = new Set(src[d]||[]); return o; }, {}); }
+
+    // Старт
+    updateDurSwitch();
+    updateDisplayFromDates();
+    updateTooltips();
+    renderAllDays();
+    updateClearChipState();
+    alignRightPanelHeight();
+  })();
+</script>
+<!-- 
+  ================================================
+  Автор: Maxim Sorokin
+  Компания: RUSS Volgograd
+  Продукт: Pro Calculator· v10.5
+  ================================================
+-->
+</body>
+</html>
 
