@@ -4664,7 +4664,35 @@
             // Осталась систематическая поправка: поднимаем 0.62 → 0.56 (ближе к
             // геометрическому центру 0.50, но с запасом на baseline Montserrat 800).
             // Это НЕ device/font-size-specific — гранитная доля высоты блока.
-            const _yDraw = (_priceRelTop + _priceRelH * 0.50) * snapScale;
+                       // v9.8.7: ГРАНИТНОЕ РЕШЕНИЕ — центр между соседями (Maxim's vision).
+            // ДАННЫЕ DIAG v9.8.6 (Nubia DPR3 + Mi Note DPR2.75):
+            //   priceRelTop ПЛАВАЕТ (376.3 ↔ 395.5) — устройство-зависимая дрянь.
+            //   НО «истинный центр» = (label_низ + forecast_верх)/2 — СТАБИЛЕН
+            //   относительно соседей. Текущая формула давала +20px НИЖЕ центра
+            //   на ОБОИХ устройствах (441.5 vs 421.5 = +20; 460.7 vs 440.7 = +20).
+            // РЕШЕНИЕ: рисуем цену в МАТЕМАТИЧЕСКОМ центре между реальным низом
+            // лейбла «ИТОГО» и реальным верхом «показов/день». Это НЕ зависит от
+            // прошивки — центр между двумя физическими точками одинаков везде.
+            // priceRelTop / +19 / ×0.50 ВЫБРОШЕНЫ — были магией от плавающей величины.
+            // Кодекс: «центр между реальными соседями — гранит, не подгонка».
+            let _yDraw;
+            {
+              const _scC = snapContainer.getBoundingClientRect();
+              const _lblC = footer ? footer.querySelector('.result-label') : null;
+              const _fcC  = footer ? footer.querySelector('.result-forecast') : null;
+              if (_lblC && _fcC) {
+                const _lblBot = (_lblC.getBoundingClientRect().bottom - _scC.top) / _bodyZoom;
+                const _fcTop  = (_fcC.getBoundingClientRect().top - _scC.top) / _bodyZoom;
+                const _trueCenter = (_lblBot + _fcTop) / 2;
+                // Baseline-поправка Montserrat 800: глиф визуально чуть выше
+                // геометрического центра при textBaseline='middle'. +0.06em вниз —
+                // гранитная доля шрифта (НЕ устройства, НЕ font-size масштаб).
+                _yDraw = (_trueCenter + _priceSz * 0.06) * snapScale;
+              } else {
+                // Fallback (если соседей нет): старая формула.
+                _yDraw = (_priceRelTop + _priceRelH * 0.50) * snapScale;
+              }
+            }
             let _xDraw = (fCanvas.width - _totalW) / 2;
 
             _priceToks.forEach((tok, i) => {
@@ -4732,7 +4760,9 @@
             // v9.8.6-fix: плашку ОПУСКАЕМ ниже цены (Maxim — цена не должна перекрываться).
             // _padY привязан к низу блока цены: priceRelTop + priceRelH + запас 20px.
             // × scale — переводим в координаты canvas. Так плашка ВСЕГДА под ценой.
-            const _padY = (_priceRelTop + _priceRelH + 20) * snapScale;
+                        // v9.8.6-fix2: плашку ещё ниже (Maxim — высоковато было).
+            // +80px вместо +20 → плашка уходит под forecast, цена чистая.
+            const _padY = (_priceRelTop + _priceRelH + 80) * snapScale;
             const _lineH = 24 * snapScale;  // было 30 → сжали межстрочье
             const _fSz = 18 * snapScale;    // было 22 → мельче шрифт = компактнее
             const _boxW = outputCanvas.width - _padX * 2;
