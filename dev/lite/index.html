@@ -4693,28 +4693,48 @@
             const _diagPW   = Math.round(window.screen.width  * _diagDPR);
             const _diagPH   = Math.round(window.screen.height * _diagDPR);
             const _diagUA   = (navigator.userAgent || '').replace(/^.*\(([^)]*)\).*$/, '$1').slice(0, 60);
-            const _diagYDraw = (_priceRelTop + _priceRelH * 0.50);
+                       const _diagYDraw = (_priceRelTop + _priceRelH * 0.50);
+
+            // v9.8.6-fix: КООРДИНАТЫ СОСЕДЕЙ для ГЛОБАЛЬНОГО решения (Maxim's vision).
+            // Ловим реальный низ лейбла «ИТОГО» (rlabel) и верх «показов/день» (rf)
+            // из КЛОНА footer. Центр между ними = device-agnostic точка (не зависит
+            // от priceRelTop, который плавает между прошивками). По этим числам
+            // построим формулу «центр между соседями» — убьёт magic-fix +19.
+            let _diagLabelBot = -1, _diagForecastTop = -1, _diagTrueCenter = -1;
+            try {
+              const _scForDiag = snapContainer.getBoundingClientRect();
+              const _lblEl = footer ? footer.querySelector('.result-label') : null;
+              const _fcEl  = footer ? footer.querySelector('.result-forecast') : null;
+              if (_lblEl) _diagLabelBot = (_lblEl.getBoundingClientRect().bottom - _scForDiag.top) / _bodyZoom;
+              if (_fcEl)  _diagForecastTop = (_fcEl.getBoundingClientRect().top - _scForDiag.top) / _bodyZoom;
+              if (_diagLabelBot >= 0 && _diagForecastTop >= 0) {
+                _diagTrueCenter = (_diagLabelBot + _diagForecastTop) / 2;
+              }
+            } catch(e) {}
 
             const _diagLines = [
               'DIAG v9.8.6 · УДАЛИТЬ ПОСЛЕ ТЕСТА',
               'DPR: ' + _diagDPR,
-              'screen logical: ' + _diagSW + ' x ' + _diagSH,
-              'screen physical: ' + _diagPW + ' x ' + _diagPH,
-              'snapScale: ' + snapScale,
               'priceRelTop: ' + _priceRelTop.toFixed(1),
               'priceRelH: ' + _priceRelH.toFixed(1),
               'priceSz: ' + _priceSz,
-              'yDraw (logical): ' + _diagYDraw.toFixed(1),
-              'yDraw (×scale): ' + (_diagYDraw * snapScale).toFixed(0),
-              'canvas: ' + outputCanvas.width + ' x ' + outputCanvas.height,
+              'yDraw (текущий +19): ' + ((_priceRelTop + 19 + _priceRelH * 0.50)).toFixed(1),
+              '── ГЛОБАЛЬНОЕ ──',
+              'label низ: ' + _diagLabelBot.toFixed(1),
+              'forecast верх: ' + _diagForecastTop.toFixed(1),
+              'ИСТИННЫЙ центр: ' + _diagTrueCenter.toFixed(1),
+              'canvas: ' + outputCanvas.width + 'x' + outputCanvas.height,
               'UA: ' + _diagUA,
             ];
 
-            const _dctx = outputCanvas.getContext('2d');
+                       const _dctx = outputCanvas.getContext('2d');
             const _padX = 24 * snapScale;
-            const _padY = 60 * snapScale;
-            const _lineH = 30 * snapScale;
-            const _fSz = 22 * snapScale;
+            // v9.8.6-fix: плашку ОПУСКАЕМ ниже цены (Maxim — цена не должна перекрываться).
+            // _padY привязан к низу блока цены: priceRelTop + priceRelH + запас 20px.
+            // × scale — переводим в координаты canvas. Так плашка ВСЕГДА под ценой.
+            const _padY = (_priceRelTop + _priceRelH + 20) * snapScale;
+            const _lineH = 24 * snapScale;  // было 30 → сжали межстрочье
+            const _fSz = 18 * snapScale;    // было 22 → мельче шрифт = компактнее
             const _boxW = outputCanvas.width - _padX * 2;
             const _boxH = _lineH * _diagLines.length + 20 * snapScale;
 
