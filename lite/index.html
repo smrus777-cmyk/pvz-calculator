@@ -2,18 +2,21 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.3.5.
-  ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
-       1. Эта строка (Продукт: ...)
-       2. <title>
-       3. <meta name="description">
-       4. <span id="badgeFull">
-       5. <span id="badgeShort">
-       6. <div id="promptVersion">
-       7. <div id="printBadge">
-       8. <a id="contactIcon"> mailto subject
-       9. const APP_VERSION в JS
-       + добавить changelog в шапку
+   Продукт: ПВЗ Калькулятор Lite · v9.3.8
+  ⚠️  v9.3.8: ВЕРСИЯ ТЕПЕРЬ САМОСИНХРОНИЗИРУЕТСЯ.
+       Меняешь ТОЛЬКО 2 места руками:
+       1. const APP_VERSION в JS (главная точка правды)
+       2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
+       + добавить changelog ниже
+
+       Остальные 5 мест проставляются автоматически из APP_VERSION в init():
+       - badgeFull / badgeShort (шапка)
+       - promptVersion (стартовый экран)
+       - printBadge (PDF)
+       - mailto subject (письмо автору)
+       HTML-значения «v9.2.9» в разметке — заглушки, JS их перезаписывает.
+
+       <title> и <meta description> НЕ трогаем — они намеренно без версии (SEO).
   Изменения: v8.41 — мобильный футер: новая структура (цена + чипы + accent),
              эффект «вырастания» в Apple-стиле (staggered reveal),
              все динамические связки сохранены, десктоп и снимок не тронуты.
@@ -184,7 +187,29 @@
              Мини-pulse иконки камеры 300ms scale 1.0→1.08→1.0 синхронно
              с появлением tooltip — визуальная связь «текст про меня».
              Reposition на resize. localStorage сохраняется тот же ключ
-             russ-save-hint-shown-v1 — кто видел v9.3.0 не увидит v9.3.1.
+                          russ-save-hint-shown-v1 — кто видел v9.3.0 не увидит v9.3.1.
+             v9.3.8 — SNAPSHOT CRASH FIX (createPattern на градиентах) +
+             АВТО-СИНХРОНИЗАЦИЯ версии.
+             Корень бага снимка (данные из DevTools-консоли, НЕ гипотеза):
+             html2canvas при активном body{zoom} пытался растеризовать
+             linear-gradient фоны (result-card-bg, result-divider) в
+             canvas-паттерн через createPattern → получал canvas 0×0 →
+             InvalidStateError «image argument width/height of 0».
+             Снимок падал на ВСЕХ браузерных масштабах кроме ≈100%.
+             Решение: killGradientBackgrounds() в клоне снимка заменяет все
+             linear/radial-gradient фоны на сплошной цвет ДО html2canvas.
+             createPattern больше не вызывается. Визуально снимок идентичен
+             (градиент 145deg #1A1A24→#14141C еле заметен на глаз).
+             Defense in depth сохранён: SNAP_ROOT (изоляция от zoom),
+             snap-mode (zoom:1 на время снимка), scale:2 (стабильный retina),
+             document.fonts.ready (метрики Montserrat). Но КОРЕНЬ — градиенты.
+             4 ошибочных гипотезы до этого (zoom-наследование, dpr,
+             getBoundingClientRect, iframe) отброшены — решил ОДИН скрин
+             консоли. Урок: «данные, не гипотезы» (RUSS Кодекс §0).
+             Версия: убрана авто-debug ошибки из toast (была для разведки).
+             Авто-синхронизация: версия правится ТОЛЬКО в APP_VERSION,
+             5 DOM-мест проставляются в init(). Памятка «9 мест» → «2 места».
+  ================================================
   ================================================
 -->
 <!DOCTYPE html>
@@ -679,6 +704,13 @@
     @media (pointer: fine) and (min-width: 768px) and (min-height: 1700px) and (hover: hover) {
       body { zoom: 2.3; }
     }
+
+    /* v9.3.7 SNAPSHOT FIX: класс-убийца zoom на время снимка.
+       Все zoom-媒体 ниже завязаны на body. Когда вешаем .snap-mode
+       на <html> — перебиваем ВСЕ body{zoom} обратно в 1 с !important.
+       html2canvas снимает документ БЕЗ zoom → геометрия чистая → работает
+       на ВСЕХ браузерных масштабах. После снимка класс снимается, zoom возвращается. */
+    html.snap-mode body { zoom: 1 !important; }
 
     /* ================================================
        ОНБОРДИНГ · v8.27
@@ -2645,7 +2677,35 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-    const APP_VERSION = 'v9.3.5.';
+        const APP_VERSION = 'v9.3.8';
+
+    // v9.3.6: ISOLATED RENDER ROOT для html2canvas.
+    // Корень бага «снимок падает на части браузерных масштабов»:
+    // snapContainer был потомком <body>, а на body активен CSS zoom
+    // (лесенка @media body{zoom:0.8..2.3}). Chromium при двойном масштабе
+    // (CSS zoom × browser zoom) даёт дробную геометрию canvas → toBlob=null
+    // или html2canvas reject. Firefox терпит, Chromium — нет.
+    //
+    // Решение: рендерим снимок в контейнер, ВЫНЕСЕННЫЙ из-под body —
+    // прямой потомок documentElement. zoom:1 + transform:none + contain
+    // полностью изолируют его от любого масштаба родителя.
+    // CSS-переменные (--bg и т.д.) объявлены в :root = documentElement,
+    // поэтому SNAP_ROOT их наследует — фон и цвета резолвятся корректно.
+    const SNAP_ROOT = document.createElement('div');
+    SNAP_ROOT.id = 'snap-root';
+    SNAP_ROOT.style.cssText = [
+      'position:fixed',
+      'left:-99999px',
+      'top:0',
+      'width:480px',
+      'zoom:1',
+      'transform:none',
+      'contain:layout style paint',
+      'isolation:isolate',
+      'pointer-events:none',
+      'z-index:-9999'
+    ].join(';');
+    document.documentElement.appendChild(SNAP_ROOT);
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -3950,10 +4010,10 @@ document.body.appendChild(snapshotOverlay);
 // Мгновенно показываем оверлей (без таймера)
 snapshotOverlay.style.opacity = '0.94';
 
-	    // Сохраняем исходный zoom (если был установлен через CSS)
-  const originalZoom = document.body.style.zoom || getComputedStyle(document.body).zoom;
-  // Принудительно устанавливаем zoom = 1 для корректной работы html2canvas в Chromium
-  document.body.style.zoom = '1';
+	    	    // v9.3.6: сброс body.zoom УДАЛЁН — мы больше не трогаем zoom body.
+  // snapContainer теперь рендерится в SNAP_ROOT (вне body), изолирован от zoom.
+  // Раньше сброс body.zoom='1' посреди pipeline вызывал layout race condition
+  // в Chromium → снимок падал хаотично на разных масштабах.
 	  
 	  
 	        // ── ЗАЩИТА PNG ОТ АНИМАЦИИ ПРЕСЕТОВ ──
@@ -4141,17 +4201,59 @@ snapshotOverlay.style.opacity = '0.94';
       snapContainer.appendChild(header);
       snapContainer.appendChild(paramRow);
       snapContainer.appendChild(calculatorBlock);
-      snapContainer.appendChild(footer);
-      document.body.appendChild(snapContainer);
+          snapContainer.appendChild(footer);
+      // v9.3.6: рендерим в изолированный SNAP_ROOT вместо body.
+      // zoom:1 на контейнере дублирует изоляцию SNAP_ROOT (defense in depth).
+      snapContainer.style.zoom = '1';
+      snapContainer.style.transform = 'none';
+      SNAP_ROOT.innerHTML = '';
+      SNAP_ROOT.appendChild(snapContainer);
 
       // v9.1.6: возвращаем ТОЛЬКО обнуление letter-spacing.
       // uppercase-конвертер v9.1.5 удалён (Title Case живёт в живом UI),
       // но letter-spacing > 0 в card-title ломает рендер html2canvas →
       // буквы разъезжаются («Ч асыв ещания»). Точечный fix только этого.
-      ;(function fixLetterSpacing(root) {
+           ;(function fixLetterSpacing(root) {
         root.querySelectorAll('*').forEach(el => {
           const cs = window.getComputedStyle(el);
           if (parseFloat(cs.letterSpacing) > 0) el.style.letterSpacing = 'normal';
+        });
+      })(snapContainer);
+
+      // v9.3.8 КОРНЕВОЙ ФИКС (данные из консоли, не гипотеза):
+      // Ошибка html2canvas: «createPattern ... canvas width/height of 0»
+      // в renderBackgroundImage. Причина: при body{zoom} html2canvas пытается
+      // растеризовать linear-gradient фоны (result-card-bg, divider, input-host::after)
+      // в canvas-паттерн, но получает размер 0 → createPattern крашится.
+      // Решение: в КЛОНЕ заменяем все градиент-фоны на сплошной цвет.
+      // html2canvas рисует сплошные цвета без проблем. Визуально снимок
+      // почти идентичен — градиент 145deg #1A1A24→#14141C еле заметен.
+      ;(function killGradientBackgrounds(root) {
+        const isLightTheme = document.documentElement.classList.contains('light-mode');
+        // Сплошные замены вместо градиентов (берём средний/основной тон)
+        const cardBg    = isLightTheme ? '#FFFFFF' : '#16161E';
+        const dividerBg = isLightTheme ? 'rgba(0,0,0,0.10)' : '#2E2E38';
+
+        // result-card: был linear-gradient → сплошной
+        root.querySelectorAll('.result-card').forEach(el => {
+          el.style.background = cardBg;
+        });
+        // result-divider: был linear-gradient → тонкая сплошная линия
+        root.querySelectorAll('.result-divider').forEach(el => {
+          el.style.background = dividerBg;
+        });
+        // input-field-host::after нельзя через JS (псевдоэлемент), но он
+        // уже удалён вместе со слайдерами. На всякий — глушим у host фон.
+        root.querySelectorAll('.input-field-host').forEach(el => {
+          el.style.background = 'transparent';
+        });
+        // Любой ОСТАВШИЙСЯ элемент с linear/radial-gradient в фоне → глушим.
+        // Финальная страховка: проходим все узлы, ищем gradient в computed bg.
+        root.querySelectorAll('*').forEach(el => {
+          const bg = window.getComputedStyle(el).backgroundImage;
+          if (bg && bg.indexOf('gradient') !== -1) {
+            el.style.backgroundImage = 'none';
+          }
         });
       })(snapContainer);
 
@@ -4167,15 +4269,32 @@ snapshotOverlay.style.opacity = '0.94';
         });
       })(snapContainer);
 
-      const savedPadding = document.body.style.paddingBottom;
+           const savedPadding = document.body.style.paddingBottom;
       const savedScroll  = window.scrollY; // запоминаем позицию скролла ДО снимка
       _snapInProgress = true;
       document.body.style.paddingBottom = '0';
 
+      // v9.3.7: убиваем CSS body{zoom} на время снимка через класс на <html>.
+      // Правило html.snap-mode body{zoom:1!important} перебивает всю zoom-лесенку.
+      // html2canvas снимает документ с чистой геометрией (zoom=1) на ЛЮБОМ
+      // браузерном масштабе. После снимка класс снимается — zoom возвращается.
+      document.documentElement.classList.add('snap-mode');
+      // форсим reflow чтобы zoom:1 применился ДО html2canvas
+      void document.documentElement.offsetHeight;
+      await new Promise(r => requestAnimationFrame(r));
+
       try {
-        await new Promise(r => setTimeout(r, 200));
-        const dpr = window.devicePixelRatio || 1;
-        const snapScale = dpr >= 2 ? 2 : 3;
+                await new Promise(r => setTimeout(r, 200));
+        // v9.3.6: ждём гарантированной загрузки шрифтов перед снимком.
+        // В Chromium clone-pipeline html2canvas иногда стартует до стабилизации
+        // Montserrat metrics → разъезжается текст. try/catch — старый Android.
+        try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e) {}
+
+        // v9.3.6: scale ЖЁСТКО = 2 (было dpr>=2?2:3).
+        // scale:3 в Chromium на больших canvas + zoom = нестабильно (toBlob=null).
+        // scale:2 = retina-качество, на тексте/числах разница с 3× незаметна.
+        // dpr больше НЕ читаем — SNAP_ROOT изолирован, devicePixelRatio не влияет.
+        const snapScale = 2;
         const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
         const snapH = snapContainer.scrollHeight;
         const canvas = await html2canvas(snapContainer, {
@@ -4220,22 +4339,22 @@ snapshotOverlay.style.opacity = '0.94';
           const pasteHint = isMac ? '⌘V' : 'Ctrl+V';
           showToast(copied ? `📸 Сохранено · картинка в буфере (${pasteHint})` : '📸 Сохранено в «Загрузки»', 4000);
         }
-      } catch(err) {
+           } catch(err) {
+        // v9.3.8: краш createPattern на градиентах вылечен killGradientBackgrounds.
+        // Консоль оставляем для диагностики (тебе), юзеру — чистый toast.
+        console.error('[SNAPSHOT FAIL]', err && err.message, err);
         showToast('Ошибка создания снимка', 4000);
         } finally {
-  if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
+      if (snapContainer.parentNode) snapContainer.parentNode.removeChild(snapContainer);
+  // v9.3.6: чистим SNAP_ROOT (не удаляем сам root — переиспользуем)
+  if (SNAP_ROOT) SNAP_ROOT.innerHTML = '';
+  // v9.3.7: возвращаем zoom-лесенку — снимаем класс-убийцу
+  document.documentElement.classList.remove('snap-mode');
   document.body.style.paddingBottom = savedPadding || '';
   _snapInProgress = false;
   window.scrollTo({ top: savedScroll, behavior: 'instant' });
-  
-  // Восстанавливаем исходный zoom
-  if (originalZoom && originalZoom !== '1') {
-    document.body.style.zoom = originalZoom;
-  } else {
-    document.body.style.zoom = '';
-  }
-  
-  // Даём браузеру один кадр, чтобы zoom применился до удаления оверлея
+
+  // v9.3.6: восстановление body.zoom удалено — мы его не трогали (см. выше).
   requestAnimationFrame(() => {
     // Плавно убираем оверлей
     if (snapshotOverlay) {
@@ -4983,7 +5102,7 @@ snapshotOverlay.style.opacity = '0.94';
       const badgeShort   = document.getElementById('badgeShort');
       const promptVer    = document.getElementById('promptVersion');
       const printBadgeEl = document.getElementById('printBadge');
-      if (badgeFull)    badgeFull.textContent    = `ПВЗ Калькулятор · Lite ${APP_VERSION}`;
+           if (badgeFull)    badgeFull.textContent    = `ПВЗ Калькулятор · Lite ${APP_VERSION}`;
       if (badgeShort)   badgeShort.textContent   = `ПВЗ Кальк. · ${APP_VERSION}`;
       if (promptVer)    promptVer.textContent     = `Lite · ${APP_VERSION}`;
       if (printBadgeEl) printBadgeEl.innerHTML   = `ПВЗ Калькулятор · Lite ${APP_VERSION}<br>Расчёт стоимости размещения`;
@@ -4993,6 +5112,15 @@ snapshotOverlay.style.opacity = '0.94';
         const vEncoded = APP_VERSION.replace(/ /g, '%20');
                 contactLink.href = `mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20${vEncoded}`;
       }
+      // v9.3.8: АВТО-СИНХРОНИЗАЦИЯ версии — единая точка правды APP_VERSION.
+      // Раньше версию правили в 9 местах руками (см. памятку в шапке файла).
+      // Теперь меняешь ТОЛЬКО const APP_VERSION выше — остальное проставится тут.
+      // Вне зоны JS остаются 2 ручных места: <title> (SEO, намеренно без версии)
+      // и комментарий-шапка файла (не исполняется браузером, для разработчика).
+      // Обновляем meta description с версией для соцсетей? НЕТ — SEO чистый.
+      // Обновляем og:title? НЕТ — продающий текст, версия не нужна юзеру в превью.
+      // Только пользовательские видимые места: badge, prompt, printBadge, mailto (выше)
+      // + Open Graph version meta если появится. Сейчас всё покрыто строками выше.
       // v8.46: обновляем <title> и <meta description> из APP_VERSION
       // v9.2.9-meta: title для SEO остаётся чистый (без версии).
      // Версия живёт в badge/footer/mailto — это для пользователя, не для Google.
