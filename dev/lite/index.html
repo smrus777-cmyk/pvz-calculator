@@ -2,18 +2,16 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.7.8
-  ⚠️  ВАЖНО — ПРИ СМЕНЕ ВЕРСИИ МЕНЯТЬ В 9 МЕСТАХ:
-       1. Эта строка (Продукт: ...)
-       2. <title>
-       3. <meta name="description">
-       4. <span id="badgeFull">
-       5. <span id="badgeShort">
-       6. <div id="promptVersion">
-       7. <div id="printBadge">
-       8. <a id="contactIcon"> mailto subject
-       9. const APP_VERSION в JS
-       + добавить changelog в шапку
+  Продукт: ПВЗ Калькулятор Lite · v9.8.3
+    ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
+       1. const APP_VERSION в JS (главная точка правды)
+       2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
+       + добавить changelog ниже
+
+       Остальные 5 мест проставляются АВТОМАТИЧЕСКИ из APP_VERSION в init():
+       badgeFull / badgeShort / promptVersion / printBadge / mailto subject.
+       HTML-значения «v9.7.8» в разметке — заглушки, JS их перезаписывает.
+       <title> и <meta> НЕ трогаем — намеренно без версии (SEO).
   Изменения: v8.41 — мобильный футер: новая структура (цена + чипы + accent),
              эффект «вырастания» в Apple-стиле (staggered reveal),
              все динамические связки сохранены, десктоп и снимок не тронуты.
@@ -185,8 +183,111 @@
              с появлением tooltip — визуальная связь «текст про меня».
              Reposition на resize. localStorage сохраняется тот же ключ
              russ-save-hint-shown-v1 — кто видел v9.3.0 не увидит v9.3.1.
+             v9.3.3 — Save Hint Zoom Fix: на desktop body{zoom:1.5} ломал
+             getBoundingClientRect — tooltip уезжал в 1.5× от кнопки за границы
+             калькулятора. Решение: детект активного zoom через
+             getComputedStyle(body).zoom, деление всех координат на bodyZoom →
+             логические px (в них работает CSS). Границы — от .calculator
+             (логические 480px), не от края экрана. На mobile zoom нет → деление на 1.
+             v9.3.4-3.5 — Save Hint Ambient Glow: «тёмное на тёмном» решено БЕЗ
+             смены фона (остаётся в TOOLTIP STANDARD v1). Двухслойная тень
+             14px+4px = «парение» над футером (Apple HIG Material.Glass).
+             Устранён дубль CSS-блока хвостика tail-up (copy-paste из tail-down).
+             v9.4.0 — Big Numbers Support: MAX_SCREENS 150→2000 (Москва/Питер
+             до 1500 ПВЗ). MOBILE_RESULT_FONT_MIN 24→20 (запас под цену ~18 млн ₽).
+             Диапазон «1 – N» в полях: инвертированная логика (Apple HIG Progressive
+             Disclosure) — скрыт в покое, fade-in при focus. tabular-nums на всех
+             числах (равноширинные цифры — Apple Calculator pattern).
+             v9.4.1-4.3 — Mobile Layout Polish: правая колонка чипов 100px→88px
+             (+12px левой колонке, «5 040 / экран» не упирается). accent-чип
+             COMFORT_BUFFER 14→6px («всего показов» появляется при малых значениях).
+             MOBILE_SAFETY=8px (дискрепанс рендера Montserrat между устройствами:
+             Nubia рендерит ~5% шире DevTools). УДАЛЁН PASS 2 в _runMobileFontFit
+             (ужимал цену ради accent — был корнем «маленькой цены», CSS-защита
+             flex:1 0 28px достаточна).
+
+             ═══ PNG SNAPSHOT — ZOOM-АГНОСТИЧНОСТЬ (эпопея v9.7.x) ═══
+             КОНТЕКСТ: главная боль проекта. На desktop body{zoom:0.8…2.3}
+             (адаптив по высоте экрана, v9.7.8) ломал html2canvas: цена
+             улетала, наезжала на лейбл, снимок крашился. Прошли путь от
+             гипотез к ГРАНИТНЫМ КОНСТАНТАМ (данные из консоли, не догадки).
+
+             v9.7.0-7.1 — Canvas drawText Architecture: html2canvas схлопывает
+             inline text-runs цены (никакой CSS не даёт точный spacing).
+             Решение: rv скрывается (visibility:hidden в onclone), цена рисуется
+             ВРУЧНУЮ через ctx.fillText с DIGIT_EM=0.17 / CURR_EM=0.07 spacing.
+             Рисуем на свежем canvas (drawImage копия) — шрифт × snapScale.
+             v9.7.4 — ФИКСИРОВАННЫЙ snapScale=3 (Maxim's insight): раньше scale
+             менялся от DPR устройства (1/2/3) → координаты × scale давали разный
+             результат → цена улетала. Теперь ВСЕГДА 3 → одна система координат
+             на любом устройстве. PNG 1440×~2718, Retina-ready.
+             v9.7.7 — координаты из ОРИГИНАЛЬНОГО DOM (не из onclone — там
+             detached iframe без layout → getBoundingClientRect=0) + компенсация
+             zoom (делим на bodyZoom, паттерн из positionSaveHint v9.3.3).
+             v9.7.9 — Chromium fix: allowTaint:false + foreignObjectRendering:false
+             (Chromium падал на SVG-рендеринге через foreignObject).
+             v9.7.10 — tainted-canvas guard: try/catch на drawImage, fallback на
+             toDataURL→fetch→blob если canvas «запачкан». Снимок не крашится.
+             v9.7.11 — ★ ГРАНИТНОЕ РЕШЕНИЕ (Maxim's insight): СНИМАЕМ zoom='1'
+             на время снимка. Корень: zoom раздувает геометрию, html2canvas
+             рендерит в логических px → mismatch → краш. Доказано тестом:
+             при узком окне (zoom не активен) снимок ВСЕГДА работал. Решение:
+             body.zoom='1' перед html2canvas, возврат в finally. Снимок видит
+             чистый 480px layout как на узком экране — на ЛЮБОМ мониторе.
+             v9.7.12 — Fade Overlay: маскирует прыжок zoom (1.35→1→1.35) во время
+             рендера. Юзер видит «Создаём снимок…» вместо дёрганья UI (Apple HIG
+             «Modal Capture», iOS Screenshot UX). fade-in 200ms → рендер → fade-out.
+             v9.7.13-7.15 — ★ ГРАНИТНАЯ КОНСТАНТА вертикали цены (Maxim's insight):
+             баг «чем больше сумма — тем выше цена». Корень: коррекция baseline
+             была привязана к _priceSz (font-size ПЛАВАЕТ: 88px короткая → ~50px
+             длинная) → короткая получала сильный сдвиг, длинная слабый → длинная
+             «всплывала». РЕШЕНИЕ: коррекция от _priceRelH (высота блока, она
+             масштабируется СИНХРОННО с ценой). Формула _priceRelH × 0.62 =
+             геометрический центр 0.5 + поправка baseline Montserrat 800.
+             НЕ device-specific, НЕ font-size-specific — гранитная доля блока.
+             Кодекс: «ищи гранитную константу, не подбирай число от плавающей величины».
+             ИТОГ v9.7.x: снимок делается ПРАВИЛЬНО на любом zoom, любом
+             устройстве, при любой длине цены. Знания зафиксированы в комментариях
+             takeSnapshot — НЕ ТРОГАТЬ без переноса знаний (магические коэффициенты
+             были тупиком, гранитные константы — решением).
+
+             ═══ UX-УНИФИКАЦИЯ ИНТЕРФЕЙСА (v9.8.x) ═══
+             v9.8.0-8.1 — Camera & Email Re-architecture (Maxim's UX vision):
+             КОНТЕКСТ: исторически камера жила в шапке, email в футере. Maxim
+             вскрыл логическую ошибку: на mobile email пропадал НЕ потому что
+             не нужен, а потому что на его место физически вставала камера
+             (старая логика «одна позиция — одна кнопка»).
+             РЕШЕНИЕ — обмен местами на ОБЕИХ версиях:
+             • Камера #snapshotBtnMobile → в футер (desktop + mobile, единое место).
+               Шапочная #snapshotBtn скрыта (@media min-width:501px display:none).
+             • Email #contactIcon → в шапку (класс contact-icon-header, 36px,
+               семья .fullscreen-btn/.theme-btn). Виден на ОБЕИХ версиях —
+               связь с автором не зависит от размера экрана.
+             v9.8.2 — ★ КРИТИЧЕСКИЙ ФИКС adjustPopup (Maxim заметил «прилипший»
+             tooltip). Корень: при правке направления tooltip переменная
+             isFooterElement удалилась в верхнем блоке, но осталась в нижнем
+             (height>30) → ReferenceError → adjustPopup обрывался → tooltip
+             камеры «прилипал» без отступа. РЕШЕНИЕ: единая переменная isUpper
+             (направление по геометрии: элемент в верхней половине экрана →
+             tooltip вниз, в нижней → вверх). GAP=8px единый для всех кнопок —
+             симметрия стиля (камера/email/fullscreen/тема дышат одинаково).
+             Отступ считается от высоты кнопки (anchorRect.height+GAP), не хардкод.
+             Почта обновлена smrus@yandex.ru → msorokin@rwb.ru (HTML mailto +
+             текст tooltip + JS init, который перебивает HTML при загрузке).
+             v9.8.3 — Save Hint на DESKTOP (паритет с mobile):
+             КОНТЕКСТ: подсказка «Сохраните просчёт / Нажмите на камеру» после
+             первого валидного расчёта работала только на mobile.
+             Корень 1: findTargetButton искал #snapshotBtn (шапка) — но он теперь
+             display:none → offsetParent===null → save-hint молчал на desktop.
+             Корень 2: positionSaveHint на desktop ставил плашку ПОД кнопкой
+             (tail-up) — логика «камера в шапке», но камера переехала в футер.
+             РЕШЕНИЕ: findTargetButton целится в #snapshotBtnMobile (футерная
+             камера = единая цель обеих версий). positionSaveHint — плашка ВСЕГДА
+             над кнопкой, хвостик ВНИЗ (tail-down) — единый паттерн mobile+desktop.
+             Текст «Нажмите на камеру» корректен для обеих версий (камера в футере).
   ================================================
 -->
+  
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -891,6 +992,12 @@
     .fullscreen-btn.has-errors { opacity:0.5; cursor:pointer; }
     .fullscreen-btn.has-errors:hover { background:rgba(234,88,12,0.05); }
     .fullscreen-btn.shake { animation:shake 0.3s ease; }
+	    /* v9.8.1: камера #snapshotBtn скрыта на desktop — переехала в футер.
+       На mobile она уже скрыта через #snapshotBtn{display:none} в @media(max-width:500px).
+       Итог: шапочная камера не видна нигде, её роль играет футерная кнопка. */
+    @media (min-width: 501px) {
+      #snapshotBtn { display: none !important; }
+    }
     @keyframes shake {
       0%,100% { transform:translateX(0); }
       20% { transform:translateX(-4px); }
@@ -934,7 +1041,14 @@
       text-transform:none; letter-spacing:normal; display:block; bottom:-34px; top:auto;
     }
     .tooltip.show { opacity:1; }
-    .reset-inline-btn .tooltip, .contact-icon .tooltip { top:-34px; bottom:auto; }
+      /* v9.8.1: tooltip футерной камеры — хвостик ВНИЗ (кнопка внизу экрана).
+       .snapshot-btn-mobile .tooltip добавлен в семью «хвостик вверх над кнопкой».
+       Базовый .tooltip имеет bottom:-34px (вниз), но эти 3 элемента в футере →
+       подсказка должна быть НАД ними → top:-34px. */
+       /* v9.8.1: направление tooltip теперь решает JS adjustPopup по геометрии.
+       CSS задаёт только дефолт для футерных кнопок (камера, сброс часов) —
+       хвостик вверх. Email в шапке перебивается через JS (top положительный). */
+    .reset-inline-btn .tooltip, .snapshot-btn-mobile .tooltip { top:-34px; bottom:auto; }
     .contact-tooltip { max-width:280px; white-space:nowrap; }
     @media (max-width:500px) {
       .tooltip { white-space:normal; word-wrap:break-word; max-width:90vw; }
@@ -1545,8 +1659,49 @@
     .disclaimer-text .accent { color: var(--text-accent); font-weight: 600; }
     .light-mode .disclaimer-text .accent { color: var(--text-secondary); }
    /* === v9.0.1 polish: mobile/desktop разделение футера === */
-    .disclaimer-mobile { display: none; }
+       .disclaimer-mobile { display: none; }
     .snapshot-btn-mobile { display: none; }
+
+    /* v9.8.1: камера переехала в футер на ОБЕИХ версиях (Maxim UX-unification).
+       Desktop (>500px): кнопка снимка живёт внизу справа, рядом с ценой —
+       единое расположение с mobile. Стиль нейтральный (как иконки шапки),
+       т.к. на desktop она в одной семье с email/fullscreen.
+       Mobile-стиль (mid-orange) задаётся ниже в @media(max-width:500px). */
+    @media (min-width: 501px) {
+      .snapshot-btn-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 34px;
+        width: 34px;
+        height: 34px;
+        align-self: center;
+        position: relative;                          /* для tooltip с хвостиком (Шаг 3) */
+        border-radius: var(--radius-icon-btn);
+        background: var(--inverse-bg);
+        border: var(--border-thin) solid rgba(234,88,12,0.25);
+        cursor: pointer;
+        color: rgba(234,88,12,0.75);
+        transition: background var(--dur-fast) var(--ease-standard),
+                    border-color var(--dur-fast) var(--ease-standard),
+                    color var(--dur-fast) var(--ease-standard),
+                    transform var(--dur-fast) var(--ease-standard);
+      }
+      .snapshot-btn-mobile svg { pointer-events: none; width: 18px; height: 18px; }
+      .snapshot-btn-mobile:hover {
+        background: rgba(234,88,12,0.10);
+        border-color: rgba(234,88,12,0.45);
+        color: var(--orange);
+        transform: scale(1.04);
+      }
+      .snapshot-btn-mobile:active {
+        transform: scale(0.97);
+        background: rgba(234,88,12,0.14);
+      }
+      /* has-errors на desktop-камере (защита «исправь данные перед снимком») */
+      .snapshot-btn-mobile.has-errors { opacity: 0.5; }
+      .snapshot-btn-mobile.shake { animation: shake 0.3s ease; }
+    }
 
     @media (max-width: 500px) {
       .disclaimer-desktop { display: none; }
@@ -1588,7 +1743,12 @@
       /* v9.0.5: 18px — компенсация 40→34, сохраняем визуальный вес SVG */
       .snapshot-btn-mobile svg { pointer-events: none; width: 18px; height: 18px; }
 
-      .contact-icon { display: none !important; }   /* v9.0.3: !important — CSS order перебивал media */
+           /* v9.8.1: email переехал в шапку и виден на mobile (Maxim).
+         Старое правило скрывало .contact-icon в футере. Теперь email в шапке
+         с классом contact-icon-header — его НЕ скрываем. Уточняем селектор:
+         скрываем только футерный .contact-icon БЕЗ класса header (страховка,
+         в футере его уже нет физически). */
+      .contact-icon:not(.contact-icon-header) { display: none !important; }
       /* v9.0.2: убираем дубль snapshot на mobile — основная кнопка в футере */
       #snapshotBtn { display: none !important; }
     }
@@ -1599,6 +1759,18 @@
       width:34px; height:34px; background:var(--inverse-bg); border:var(--border-thin) solid var(--border-btn);
       border-radius:var(--radius-icon-btn); cursor:pointer; transition:all var(--dur-fast) var(--ease-standard); flex-shrink:0; color:var(--text-muted); /* v9.2.2 */
     }
+	    /* v9.8.1: email-кнопка в шапке (переехала с футера, Maxim UX-unification).
+       Desktop: 36px — в одной семье с .fullscreen-btn/.theme-btn (ритм шапки).
+       Mobile (≤500px): скрыта — на телефоне контакт не нужен (есть в снимке),
+       место занимает камера в футере. tooltip вниз настраивается в Шаге 3. */
+    .contact-icon-header {
+      width: 36px;
+      height: 36px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--text-secondary);
+    }
+   
     .contact-icon svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; fill:none; }
     .contact-icon:hover { background:rgba(255,255,255,0.08); border-color:var(--border-input-hover); color:var(--text-primary); opacity:1; transform:scale(1.03); } /* v9.1.6: серый hover — Color Discipline завершена */
     :root.light-mode .contact-icon:hover { background:rgba(0,0,0,0.05); border-color:var(--border-input-hover); color:var(--text-primary); }
@@ -2532,6 +2704,14 @@
       </svg>
       <span class="tooltip" id="snapshotTooltip">Сохранить просчёт</span>
     </button>
+	    <!-- v9.8.1: email переехал в шапку на место камеры (Maxim UX-unification).
+         Узел тот же #contactIcon — JS (mailto в init(), tooltip-обработчики)
+         работает без правок. На mobile скрыт через CSS (контакт есть в снимке).
+         data-header — флаг что email теперь header-элемент (для tooltip вниз). -->
+        <a href="mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.7.8" class="contact-icon contact-icon-header" id="contactIcon" aria-label="Связаться с автором">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · msorokin@rwb.ru</span>
+    </a>
     <button class="fullscreen-btn" id="fullscreenBtn">
       <svg id="fullscreenIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -2675,14 +2855,12 @@
       <div class="disclaimer-text disclaimer-mobile">
         Просчёт ознакомительный · <strong>min ставка</strong> за выход <strong>0,60 ₽ (без НДС)</strong>, при загрузке ставка выше.<span class="info-tooltip-trigger" id="infoTriggerMobile" role="button" tabindex="0" aria-label="Информация о ставке">i<span class="info-popover" id="infoPopoverMobile">Базовая ставка за выход — <span class="accent">0,60 ₽ (без НДС)</span>. При высокой загрузке эфира действует аукцион: преимущество у заявок с наибольшей ценой. Можно задать любую ставку выше минимальной. Средства не сгорают — показ переносится. Окончательные параметры фиксируются по итогам обсуждения с менеджером.</span></span>
       </div>
-      <!-- Snapshot — только mobile, thumb zone -->
-      <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
-      <!-- Email — только desktop -->
-      <a href="mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.7.8" class="contact-icon" id="contactIcon" aria-label="Связаться с автором">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · smrus@yandex.ru</span>
-      </a>
-    </div>
+            <!-- Snapshot — камера в футере (обе версии с v9.8.1).
+           v9.8.1: добавлен tooltip «Сохранить просчёт» с хвостиком ВНИЗ.
+           Кнопка внизу экрана → подсказка появляется НАД ней (top:-34px).
+           Desktop hover показывает (mouse), mobile тач не триггерит — норма. -->
+      <button id="snapshotBtnMobile" class="snapshot-btn-mobile" aria-label="Сделать снимок результата"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="tooltip" id="snapshotMobileTooltip">Сохранить просчёт</span></button>
+	  </div>
   </div>
   <!-- snapshotErrorHint удалён v8.46 -->
 </div>
@@ -2696,7 +2874,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-        const APP_VERSION = 'v9.7.8';
+        const APP_VERSION = 'v9.8.3';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -2844,13 +3022,31 @@
       return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F');
     }
 
-    function adjustPopup(popup, anchor) {
+       function adjustPopup(popup, anchor) {
       if (!popup || !anchor) return;
       popup.style.transform = 'translateX(-50%)';
       popup.style.left = '50%';
-      const isFooterElement = anchor.classList.contains('reset-inline-btn') || anchor.classList.contains('contact-icon');
-      if (isFooterElement) { popup.style.top = '-34px'; popup.style.bottom = 'auto'; }
-      else { popup.style.bottom = '-34px'; popup.style.top = 'auto'; }
+
+      // v9.8.2: ЕДИНЫЙ отступ tooltip от кнопки (Maxim — симметрия стиля).
+      // Корень бага v9.8.1: переменная isFooterElement удалялась в верхнем
+      // блоке, но осталась в нижнем (height>30) → ReferenceError → tooltip
+      // камеры «прилипал». Теперь направление в ОДНОЙ переменной isUpper,
+      // используется и сверху и снизу. Отступ GAP=8px — единый для всех
+      // (как у fullscreen/тема): хвостик не прилипает, дышит.
+      const GAP = 8;
+      const anchorRect = anchor.getBoundingClientRect();
+      const isUpper = anchorRect.top < window.innerHeight / 2;
+
+      if (isUpper) {
+        // Элемент в шапке (email, сброс вверху) → подсказка ВНИЗ под ним
+        popup.style.top = (anchorRect.height + GAP) + 'px';
+        popup.style.bottom = 'auto';
+      } else {
+        // Элемент в футере (камера, сброс часов) → подсказка ВВЕРХ над ним
+        popup.style.top = 'auto';
+        popup.style.bottom = (anchorRect.height + GAP) + 'px';
+      }
+
       void popup.offsetHeight;
       requestAnimationFrame(() => {
         const popupRect = popup.getBoundingClientRect();
@@ -2861,11 +3057,17 @@
         if (overflowLeft > 0) shiftX = overflowLeft + 20;
         else if (overflowRight > 0) shiftX = -overflowRight - 20;
         if (shiftX !== 0) popup.style.transform = `translateX(calc(-50% + ${shiftX}px))`;
+
+        // v9.8.2: многострочный tooltip — добавляем место, направление через isUpper
+        // (НЕ через удалённую isFooterElement — это и был баг).
         const singleLineHeight = 30;
         if (popupRect.height > singleLineHeight) {
-          const extraSpace = Math.ceil(popupRect.height - singleLineHeight) + 10;
-          if (isFooterElement) popup.style.top = `-${34 + extraSpace}px`;
-          else popup.style.bottom = `-${34 + extraSpace}px`;
+          const extraSpace = Math.ceil(popupRect.height - singleLineHeight);
+          if (isUpper) {
+            popup.style.top = (anchorRect.height + GAP) + 'px';
+          } else {
+            popup.style.bottom = (anchorRect.height + GAP + extraSpace) + 'px';
+          }
         }
       });
     }
@@ -3700,13 +3902,14 @@
     let _saveHintActive = false;
     let _saveHintRepositionHandler = null;
 
-    function findTargetButton() {
-      // На mobile (≤500px) основная кнопка — снизу в футере
-      if (window.innerWidth <= 500) {
-        const btn = document.getElementById('snapshotBtnMobile');
-        if (btn && btn.offsetParent !== null) return btn;
-      }
-      // Desktop — кнопка в шапке
+        function findTargetButton() {
+      // v9.8.3: камера переехала в футер на ОБЕИХ версиях (Maxim UX-unification).
+      // Раньше desktop искал #snapshotBtn (шапка) — но он теперь display:none
+      // (offsetParent===null) → save-hint не показывался. Теперь и mobile,
+      // и desktop целятся в #snapshotBtnMobile (футерная камера = единая цель).
+      const btn = document.getElementById('snapshotBtnMobile');
+      if (btn && btn.offsetParent !== null) return btn;
+      // Fallback (страховка): если футерная вдруг скрыта — шапочная.
       const btnDesktop = document.getElementById('snapshotBtn');
       if (btnDesktop && btnDesktop.offsetParent !== null) return btnDesktop;
       return null;
@@ -3738,14 +3941,13 @@
         const p = parseFloat(zs);
         if (!isNaN(p) && p > 0) bodyZoomTop = p;
       } catch(e) {}
+           // v9.8.3: камера в футере на ОБЕИХ версиях → плашка ВСЕГДА над кнопкой,
+      // хвостик ВНИЗ (tail-down). Раньше desktop ставил плашку ПОД кнопкой
+      // (tail-up) — это была логика «камера в шапке». Кнопка внизу экрана →
+      // плашка над ней (то же поведение что mobile). Единый паттерн.
       let top, tailClass;
-      if (isMobile) {
-        top = (btnRect.top / bodyZoomTop) - (hintH / bodyZoomTop) - GAP;
-        tailClass = 'tail-down';
-      } else {
-        top = (btnRect.bottom / bodyZoomTop) + GAP;
-        tailClass = 'tail-up';
-      }
+      top = (btnRect.top / bodyZoomTop) - (hintH / bodyZoomTop) - GAP;
+      tailClass = 'tail-down';
 
           // v9.3.3: ФИКС zoom: body{zoom:1.5} ломает getBoundingClientRect на desktop.
       // rect возвращает координаты ДО зума, но position:fixed применяется ПОСЛЕ зума.
@@ -4238,6 +4440,37 @@
         });
       })(snapContainer);
 
+            // v9.7.8-FIX: КОРНЕВОЙ ФИКС createPattern (перенос знаний v9.3.8).
+      // html2canvas при body{zoom} растеризует linear-gradient фоны в
+      // canvas-паттерн через createPattern → canvas 0×0 → InvalidStateError
+      // «image argument width/height of 0» → «Ошибка создания снимка».
+      // Решение (данные из консоли v9.3.8, НЕ гипотеза): в КЛОНЕ заменяем
+      // все градиент-фоны на сплошной цвет ДО html2canvas. Визуально
+      // снимок идентичен — градиент 145deg #1A1A24→#14141C еле заметен.
+      ;(function killGradientBackgrounds(root) {
+        const isLightTheme = document.documentElement.classList.contains('light-mode');
+        const cardBg    = isLightTheme ? '#FFFFFF' : '#16161E';
+        const dividerBg = isLightTheme ? 'rgba(0,0,0,0.10)' : '#2E2E38';
+
+        root.querySelectorAll('.result-card').forEach(el => {
+          el.style.background = cardBg;
+        });
+        root.querySelectorAll('.result-divider').forEach(el => {
+          el.style.background = dividerBg;
+        });
+        root.querySelectorAll('.input-field-host').forEach(el => {
+          el.style.background = 'transparent';
+        });
+        // Финальная страховка: любой узел с gradient в computed bg → глушим
+        root.querySelectorAll('*').forEach(el => {
+          const bg = window.getComputedStyle(el).backgroundImage;
+          if (bg && bg.indexOf('gradient') !== -1) {
+            el.style.backgroundImage = 'none';
+          }
+        });
+      })(snapContainer);
+
+
       // Фикс: inputs → divs
       ;(function replaceInputsWithDivs(root) {
         root.querySelectorAll('input').forEach(inp => {
@@ -4414,7 +4647,15 @@
             // на baseline Montserrat 800 (line-height 1.05 сажает глифы ниже центра).
             // Это НЕ device-specific и НЕ font-size-specific — гранитная доля блока.
             // Кодекс: «ищи гранитную константу, не подбирай число от плавающей величины».
-            const _yDraw = (_priceRelTop + _priceRelH * 0.62) * snapScale;
+                        // v9.8.4: КОРРЕКЦИЯ ВЕРТИКАЛИ ЦЕНЫ (Maxim — оптический центр).
+            // 0.62 (v9.7.15) давал систематическое «провисание»: цена стабильно
+            // на ~12% ниже центра, расстояние до лейбла «ИТОГО» больше чем до
+            // «показов/день». Доказано на 4 градациях (6.5М → 2.6млрд) — смещение
+            // одинаковое (гранитная константа от _priceRelH работает, длина не влияет).
+            // Осталась систематическая поправка: поднимаем 0.62 → 0.56 (ближе к
+            // геометрическому центру 0.50, но с запасом на baseline Montserrat 800).
+            // Это НЕ device/font-size-specific — гранитная доля высоты блока.
+            const _yDraw = (_priceRelTop + _priceRelH * 0.50) * snapScale;
             let _xDraw = (fCanvas.width - _totalW) / 2;
 
             _priceToks.forEach((tok, i) => {
@@ -5247,7 +5488,7 @@
       const contactLink = document.getElementById('contactIcon');
       if (contactLink) {
         const vEncoded = APP_VERSION.replace(/ /g, '%20');
-        contactLink.href = `mailto:smrus@yandex.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20${vEncoded}`;
+                contactLink.href = `mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20${vEncoded}`;
       }
       // v8.46: обновляем <title> и <meta description> из APP_VERSION
       // v9.2.9-meta: title для SEO остаётся чистый (без версии).
@@ -5458,6 +5699,17 @@
       snapshotBtn.addEventListener('mouseenter', () => showTooltip(snapshotTooltip));
       snapshotBtn.addEventListener('mouseleave', () => hideTooltip(snapshotTooltip));
       snapshotBtn.addEventListener('mousedown',  () => hideTooltip(snapshotTooltip));
+	        // v9.8.1: hover-tooltip на футерной камере (desktop).
+      // Кнопка переехала в футер → tooltip живёт на ней (snapshotBtnMobile).
+      // showTooltip сам вызовет adjustPopup → хвостик вниз через CSS top:-34px.
+      // На mobile hover нет (тач) — tooltip не мешает.
+      const snapshotMobileTooltip = document.getElementById('snapshotMobileTooltip');
+      const snapshotBtnMobileEl = document.getElementById('snapshotBtnMobile');
+      if (snapshotBtnMobileEl && snapshotMobileTooltip) {
+        snapshotBtnMobileEl.addEventListener('mouseenter', () => showTooltip(snapshotMobileTooltip));
+        snapshotBtnMobileEl.addEventListener('mouseleave', () => hideTooltip(snapshotMobileTooltip));
+        snapshotBtnMobileEl.addEventListener('mousedown',  () => hideTooltip(snapshotMobileTooltip));
+      }
       fullscreenBtn.addEventListener('mouseenter', () => showTooltip(fullscreenTooltip));
       fullscreenBtn.addEventListener('mouseleave', () => hideTooltip(fullscreenTooltip));
       fullscreenBtn.addEventListener('mousedown',  () => hideTooltip(fullscreenTooltip));
@@ -5800,4 +6052,3 @@
 </script>
 </body>
 </html>
-
