@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.9.1
+    Продукт: ПВЗ Калькулятор Lite · v10.0
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -274,7 +274,7 @@
              Отступ считается от высоты кнопки (anchorRect.height+GAP), не хардкод.
              Почта обновлена smrus@yandex.ru → msorokin@rwb.ru (HTML mailto +
              текст tooltip + JS init, который перебивает HTML при загрузке).
-             v9.8.3 — Save Hint на DESKTOP (паритет с mobile):
+                          v9.8.3 — Save Hint на DESKTOP (паритет с mobile):
              КОНТЕКСТ: подсказка «Сохраните просчёт / Нажмите на камеру» после
              первого валидного расчёта работала только на mobile.
              Корень 1: findTargetButton искал #snapshotBtn (шапка) — но он теперь
@@ -285,6 +285,57 @@
              камера = единая цель обеих версий). positionSaveHint — плашка ВСЕГДА
              над кнопкой, хвостик ВНИЗ (tail-down) — единый паттерн mobile+desktop.
              Текст «Нажмите на камеру» корректен для обеих версий (камера в футере).
+
+             ═══ ЭПОПЕЯ ВЕРТИКАЛИ ЦЕНЫ · ФИНАЛ (v9.8.4 → v10.0) ═══
+             v9.8.4 → v9.9.12 — 9 версий формулы baseline для PNG-снимка:
+             ratio 0.62 → 0.56 → центр соседей → cap-height → digitVisual...
+             КАЖДАЯ работала на desktop, но «всплывала» на Nubia RedMagic 11 Pro
+             (Android Chromium / FreeType, DPR 3) на ~28px вверх. Промах был
+             ИДЕНТИЧЕН на 4 градациях суммы (6.5М → 2.6млрд) → не font-size,
+             не device-bug. Подбирал коэффициент от плавающей величины =
+             магия. Кодекс ломался на каждой итерации.
+
+             v9.9.13 → v9.9.24 — DIAG-эпопея:
+             Перешли от гадания к замерам. Через 12 итераций DIAG-плашки
+             (цветные линии границ + computed styles) сравнили DOM-геометрию
+             desktop (DPR1) vs Nubia (DPR3) ВНУТРИ snapContainer'а:
+                snapContainer: 480×939 desktop → 480×911 mobile (−28px)
+                header.h:       36 → 32  (−4)
+                calcBlock.h:    250 → 227 (−23)
+                calc.gap:       32px → 24px  (mobile-значение)
+                card.padT:      16px → 12px  (mobile-значение)
+                card.padX:      18px → 12px  (mobile-значение)
+                priceRelTop:    404.0 → 376.3 (−27.7 = ровно сумма ужатий)
+
+             КОРЕНЬ (доказан 3/3 на двух устройствах):
+             snapContainer создан с width:480px (desktop-ширина), но
+             @media(max-width:500px) смотрит на ширину VIEWPORT (Nubia 372px),
+             НЕ на ширину контейнера. На любом mobile mobile-стили
+             применяются ВНУТРИ desktop-снимка → padding/gap ужимаются →
+             весь result-card едет вверх на 28px → цена визуально наезжает.
+
+             v9.9.25 — ГРАНИТНОЕ РЕШЕНИЕ:
+             CSS-override через класс .is-snap-mode на snapContainer'е.
+             7 правил с !important перебивают @media(max-width:500px) —
+             возвращают desktop-геометрию ВНУТРИ snapshot.
+             JS в takeSnapshot() добавляет class="is-snap-mode" ДО html2canvas.
+             Live UI на mobile не тронут — работает как обычно.
+             Подтверждено: calc.gap 32px ✅, card.padT 16px ✅, card.padX 18px ✅
+             на ОБОИХ устройствах. Зазор сверху/снизу цены = 23.9/21.9 px
+             идентичен desktop и Nubia. Остаточная дельта 5.3 px (header.h 56→52
+             из @media(max-width:380px)) — невидима глазу.
+
+             УРОК НА БУДУЩЕЕ (зафиксирован в системном промпте):
+             «Не подбирай число — замеряй среду». Если на 2 устройствах разный
+             результат при «одинаковом» коде — корень в РАЗНОЙ СРЕДЕ исполнения
+             (media-query, computed style, font hinting, DPR-rendering).
+             Первая диагностика должна сравнивать НЕ результат (что нарисовалось),
+             а ВХОДНЫЕ ДАННЫЕ DOM (что пришло в формулу).
+
+             v10.0 — Финальная чистка:
+             Удалён весь диагностический код (DIAG-плашка, цветные линии,
+             ЗАЗОР-плашка, замеры computed styles, console.log) — ~300 строк.
+             Оставлен ТОЛЬКО гранитный фикс .is-snap-mode. Чистый продакшн.
   ================================================
 -->
   
@@ -2519,10 +2570,95 @@
        Раскрытие управляется только CSS transition контейнера (900ms expand).
        FAIL-SAFE блок сохранён как защита для будущих правок. */
 
-    /* ── FAIL-SAFE · v8.46.3 ────────────────────────────────────────
+       /* ── FAIL-SAFE · v8.46.3 ────────────────────────────────────────
        Элементы всегда opacity:1 transform:none по умолчанию.
        Скрытие только через CSS transition контейнера (.result-mobile-layout).
     ─────────────────────────────────────────────────────────────── */
+
+    /* ════════════════════════════════════════════════════════════
+       SNAPSHOT MODE OVERRIDE · v9.9.25 (Maxim — гранитный фикс).
+       ════════════════════════════════════════════════════════════
+
+       КОНТЕКСТ (история эпопеи v9.7.x→v9.9.x):
+       После v9.7.15 цена правильно центрировалась на desktop, но на mobile
+       стабильно «всплывала» наверх на ~28px. Прошли через 9 версий формулы
+       baseline (v9.8.4 → v9.9.12), ни одна не дала идеал на обоих устройствах.
+
+       КОРЕНЬ НАЙДЕН (DIAG v9.9.23 + v9.9.24 на desktop+Nubia DPR3):
+       Не canvas, не baseline, не html2canvas. Не glyph metrics. НЕ device-bug.
+
+       @media (max-width:500px) смотрит на ширину VIEWPORT (Nubia 372px),
+       НЕ на ширину контейнера snapContainer (480px). На mobile mobile-стили
+       применяются ВНУТРИ desktop-снимка → padding/gap уменьшены →
+       блок цены ужимается → весь result-card едет вверх на 28px.
+
+       ДОКАЗАТЕЛЬСТВА v9.9.24 (Nubia DPR3 vs Desktop DPR1):
+         calc.gap:   32px desktop → 24px mobile  (−8px)
+         card.padT:  16px desktop → 12px mobile  (−4px × 2 = −8px на card)
+         card.padX:  18px desktop → 12px mobile  (−6px)
+         header.h:   36px desktop → 32px mobile  (−4px)
+         calcBlock:  250 desktop  → 227 mobile   (−23px)
+         snapContainer: 480×939 desktop → 480×911 mobile (−28px высоты)
+         priceRelTop: 404.0 → 376.3 (−27.7px = ровно сумма всех ужатий)
+
+       РЕШЕНИЕ:
+       Защитный CSS-override через класс .is-snap-mode на snapContainer'е.
+       Перебивает 7 mobile-правил из @media(max-width:500px) — возвращает
+       desktop-геометрию ВНУТРИ snapshot. Цена опускается на 28px, попадает
+       в истинный центр между «ИТОГО» и «показов/день» на ЛЮБОМ устройстве.
+
+       ПОЧЕМУ !important:
+       Все эти правила объявлены в @media(max-width:500px), что повышает
+       специфичность. .is-snap-mode без !important проиграет media-query.
+       Это единственный случай в проекте где !important оправдан архитектурно.
+
+       КАК РАБОТАЕТ:
+       JS в takeSnapshot() добавляет class="is-snap-mode" на snapContainer
+       ДО html2canvas. Override применяется ТОЛЬКО к клонированному DOM
+       для снимка. Живой UI на mobile продолжает работать как обычно.
+       ════════════════════════════════════════════════════════════ */
+    .is-snap-mode .calculator {
+      gap: 32px !important;
+    }
+    .is-snap-mode .card {
+      padding: 16px 18px 10px !important;
+    }
+    .is-snap-mode .card-title {
+      font-size: 14px !important;
+    }
+    .is-snap-mode .card-title svg {
+      display: inline-block !important;
+      width: 20px !important;
+      height: 20px !important;
+    }
+    .is-snap-mode .preset-chip {
+      padding: 9px 10px !important;
+      font-size: 12px !important;
+      gap: 5px !important;
+    }
+    .is-snap-mode .preset-chip svg {
+      display: inline-block !important;
+    }
+    .is-snap-mode .reset-inline-btn {
+      padding: 12px 4px !important;
+      font-size: 14px !important;
+    }
+    .is-snap-mode .reset-inline-btn svg {
+      display: inline-block !important;
+    }
+    .is-snap-mode .hour-btn {
+      font-size: 14px !important;
+      padding: 12px 4px !important;
+    }
+    .is-snap-mode .result-label {
+      font-size: 13px !important;
+    }
+    .is-snap-mode .hours-title > span:first-child {
+      display: inline !important;
+    }
+    .is-snap-mode .sticky-header {
+      padding: 12px 12px 8px !important;
+    }
 
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2645,7 +2781,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.9.1</div>
+    <div class="prompt-version" id="promptVersion">Lite · v10.0</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за пару касаний</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -2655,7 +2791,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.9.1<br>Расчёт стоимости размещения</div>
+        <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v10.0<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -2703,8 +2839,8 @@
          rel="noopener" — защита от tabnabbing (Safari/Chrome рекомендация). -->
     <a href="https://russ-volgograd.ru/" class="logo" rel="noopener" aria-label="Перейти на главную сайта RUSS Volgograd">RUSS<span>.</span></a>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.9.1</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.9.1</span>
+            <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v10.0</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v10.0</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Сохранить просчёт">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2717,7 +2853,7 @@
          Узел тот же #contactIcon — JS (mailto в init(), tooltip-обработчики)
          работает без правок. На mobile скрыт через CSS (контакт есть в снимке).
          data-header — флаг что email теперь header-элемент (для tooltip вниз). -->
-        <a href="mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.9.1" class="contact-icon contact-icon-header" id="contactIcon" aria-label="Связаться с автором">
+                <a href="mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v10.0" class="contact-icon contact-icon-header" id="contactIcon" aria-label="Связаться с автором">
       <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · msorokin@rwb.ru</span>
     </a>
@@ -2883,7 +3019,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-               const APP_VERSION = 'v9.9.12';
+               const APP_VERSION = 'v10.0';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -4237,9 +4373,15 @@
         return;
       }
 
-      const snapContainer = document.createElement('div');
+           const snapContainer = document.createElement('div');
+      // v9.9.25: .is-snap-mode принудительно применяет DESKTOP-стили внутри
+      // snapContainer'а на ЛЮБОМ устройстве. Без этого класса @media(max-width:500px)
+      // ужимает геометрию (calc.gap 32→24, card.padT 16→12 и т.д.) → весь result-card
+      // едет вверх на 28px → цена визуально наезжает на «ИТОГО». Гранит, проверено
+      // DIAG v9.9.23+v9.9.24 на desktop+Nubia DPR3 — совпадение 3/3 на величинах.
+      snapContainer.className = 'is-snap-mode';
       snapContainer.style.cssText = 'position:absolute;top:-10000px;left:0;width:480px;background:var(--bg);padding:12px 12px 40px;font-family:Montserrat,sans-serif;color:var(--text-primary);box-sizing:border-box;';
-
+	  
       const header          = document.getElementById('stickyHeader').cloneNode(true);
       const calculatorBlock = document.querySelector('.calculator').cloneNode(true);
       const footer          = document.getElementById('stickyFooter').cloneNode(true);
@@ -4348,11 +4490,8 @@
       let _priceColor  = isLight ? '#1D1D1F' : '#FFFFFF';
           let _priceRelTop = 0;
       let _priceRelH   = 110;
-      // v9.8.6-DIAG: выносим _yDraw в верхнюю область видимости (Maxim — баг плашки).
-      // Раньше «let _yDraw» жил ВНУТРИ блока if(copySuccess) → плашка DIAG не видела
-      // его (scope) → печатала -1.0. Теперь объявлен здесь → виден и при отрисовке,
-      // и при печати плашки. Это диагностика: увидеть РЕАЛЬНУЮ точку отрисовки.
-      let _yDrawReal = -999;
+           // v10.0: _yDrawReal удалена — была частью DIAG-плашки (v9.8.6 → v9.9.24).
+      // Финальный код просто рисует цену через ctx.fillText, диагностика не нужна.
 
       const rv = footer.querySelector('.result-value');
       if (rv) {
@@ -4828,13 +4967,14 @@
             // Истинный визуальный центр цифры от baseline вверх = (ascent − descent) / 2
             const _digitVisualHalf = (_digitAsc - _digitDesc) / 2;
 
-            // baseline = центр блока × scale + сдвиг чтобы визуальный центр глифа попал в центр
+                       // v10.0 baseline = центр блока цены × scale + смещение для alphabetic baseline.
+            // _trueCenterLogical = _priceRelTop + _priceRelH/2 = геометрический центр блока,
+            // равный истинному центру между соседями (label «ИТОГО» и forecast «показов/день»).
+            // _digitVisualHalf = (ascent − descent)/2 цифры '0' — половина визуальной высоты
+            // глифа. baseline + half ставит ВИЗУАЛЬНЫЙ ЦЕНТР цифр в истинный центр блока.
+            // Гранит: device-agnostic, без коэффициентов от плавающих величин.
             let _yDraw = (_trueCenterLogical * snapScale) + _digitVisualHalf;
-            _yDrawReal = _yDraw / snapScale; // DIAG
-            window._diagCapHalf = _digitVisualHalf;
-            window._diagCenterLogical = _trueCenterLogical;
-            window._diagScaledSz = _scaledSz;
-            let _xDraw = (fCanvas.width - _totalW) / 2;
+                        let _xDraw = (fCanvas.width - _totalW) / 2;
 
             _priceToks.forEach((tok, i) => {
               drawCtx.fillText(tok, _xDraw, _yDraw);
@@ -4848,134 +4988,7 @@
             outputCanvas = fCanvas;
           }
 
-          // ═══════════════════════════════════════════════════════════
-          // 🔬 DIAG-ПАТЧ v9.8.6-DIAG (Maxim — устройство-агностичность).
-          // ВРЕМЕННЫЙ. Печатает на PNG белую плашку с данными устройства.
-          // Цель: собрать DPR/разрешение/координаты с 3 телефонов, найти
-          // гранитную формулу. УДАЛИТЬ после диагностики (весь этот блок).
-          // Рисуем поверх готового canvas — поверх блока часов (верх кадра).
-          // ═══════════════════════════════════════════════════════════
-          try {
-            const _diagDPR  = window.devicePixelRatio || 0;
-            const _diagSW   = window.screen.width;
-            const _diagSH   = window.screen.height;
-            const _diagPW   = Math.round(window.screen.width  * _diagDPR);
-            const _diagPH   = Math.round(window.screen.height * _diagDPR);
-                        const _diagUA   = (navigator.userAgent || '').replace(/^.*\(([^)]*)\).*$/, '$1').slice(0, 60);
-            // v9.8.7-fix: извлекаем модель из UA (Maxim).
-            // Браузер не даёт маркетинговое имя ("Nubia RedMagic 11 Pro"), но
-            // показывает кодовое (NX729J, RMX3501) — по нему опознаёшь устройство.
-            // Паттерны: "Linux; Android X; MODEL", "iPhone; CPU iPhoneN,M".
-            let _diagModel = 'unknown';
-            try {
-              const ua = navigator.userAgent || '';
-              const m1 = ua.match(/Android[^;]*;\s*([^)]+?)(?:\s+Build|\))/);
-              const m2 = ua.match(/(iPhone\d+,\d+|iPad\d+,\d+)/);
-              const m3 = ua.match(/iPhone OS (\d+_\d+)/);
-              if (m1 && m1[1]) _diagModel = m1[1].trim().slice(0, 40);
-              else if (m2 && m2[1]) _diagModel = m2[1];
-              else if (m3) _diagModel = 'iPhone iOS ' + m3[1].replace('_', '.');
-            } catch(e) {}
-                       const _diagYDraw = (_priceRelTop + _priceRelH * 0.50);
-
-            // v9.8.6-fix: КООРДИНАТЫ СОСЕДЕЙ для ГЛОБАЛЬНОГО решения (Maxim's vision).
-            // Ловим реальный низ лейбла «ИТОГО» (rlabel) и верх «показов/день» (rf)
-            // из КЛОНА footer. Центр между ними = device-agnostic точка (не зависит
-            // от priceRelTop, который плавает между прошивками). По этим числам
-            // построим формулу «центр между соседями» — убьёт magic-fix +19.
-            let _diagLabelBot = -1, _diagForecastTop = -1, _diagTrueCenter = -1;
-            try {
-              const _scForDiag = snapContainer.getBoundingClientRect();
-              const _lblEl = footer ? footer.querySelector('.result-label') : null;
-              const _fcEl  = footer ? footer.querySelector('.result-forecast') : null;
-              if (_lblEl) _diagLabelBot = (_lblEl.getBoundingClientRect().bottom - _scForDiag.top) / _bodyZoom;
-              if (_fcEl)  _diagForecastTop = (_fcEl.getBoundingClientRect().top - _scForDiag.top) / _bodyZoom;
-              if (_diagLabelBot >= 0 && _diagForecastTop >= 0) {
-                _diagTrueCenter = (_diagLabelBot + _diagForecastTop) / 2;
-              }
-            } catch(e) {}
-
-            // v9.9.1-DIAG: СЫРЫЕ МЕТРИКИ ГЛИФА при ФИКСИРОВАННОМ 100px (Opus).
-            // ЗАЧЕМ фикс 100px: на двух снимках РАЗНЫЕ суммы → разный font-size
-            // (88 desktop / 60 Nubia) → метрики напрямую НЕ сравнить. При 100px
-            // на ОБОИХ устройствах числа сравнимы 1-в-1. Сравниваем Skia (desktop)
-            // vs FreeType (Nubia): КАКАЯ метрика совпадёт — ТА и есть гранит
-            // (device-agnostic), от неё строим финальную формулу центрирования.
-            // actualBox* — фактические пиксели глифа (движок-зависимы?);
-            // fontBox*   — из таблиц шрифта (кандидат на стабильность);
-            // высота H   — cap-height через measureText('H').
-            let _gA=-1,_gD=-1,_gFA=-1,_gFD=-1,_gH=-1;
-            try {
-              const _gctx = outputCanvas.getContext('2d');
-              _gctx.save();
-              _gctx.font = '800 100px Montserrat, sans-serif';
-              const _gmRef = _gctx.measureText('0123456789');
-              const _gmH   = _gctx.measureText('H');
-              _gA  = _gmRef.actualBoundingBoxAscent;
-              _gD  = _gmRef.actualBoundingBoxDescent;
-              _gFA = _gmRef.fontBoundingBoxAscent;
-              _gFD = _gmRef.fontBoundingBoxDescent;
-              _gH  = _gmH.actualBoundingBoxAscent;
-              _gctx.restore();
-            } catch(e) {}
-
-                         // v9.9.9-DIAG: МИНИМУМ. Только что показывает результат правки.
-            // Если промах = 0 (РЕАЛЬНО ≈ ИСТИННЫЙ) — финиш, удаляем плашку в v10.0.
-            const _diagLines = [
-              'DIAG v9.9.12',
-              'МОДЕЛЬ: ' + _diagModel + ' · DPR: ' + _diagDPR,
-              'label низ: ' + _diagLabelBot.toFixed(1),
-              'forecast верх: ' + _diagForecastTop.toFixed(1),
-              'ИСТИННЫЙ центр: ' + _diagTrueCenter.toFixed(1),
-              'РЕАЛЬНО рисую: ' + _yDrawReal.toFixed(1),
-              'промах: ' + (_yDrawReal - _diagTrueCenter).toFixed(1) + ' px',
-            ];
-
-                       const _dctx = outputCanvas.getContext('2d');
-            const _padX = 24 * snapScale;
-            // v9.8.6-fix: плашку ОПУСКАЕМ ниже цены (Maxim — цена не должна перекрываться).
-            // _padY привязан к низу блока цены: priceRelTop + priceRelH + запас 20px.
-            // × scale — переводим в координаты canvas. Так плашка ВСЕГДА под ценой.
-                        // v9.8.6-fix2: плашку ещё ниже (Maxim — высоковато было).
-            // +80px вместо +20 → плашка уходит под forecast, цена чистая.
-                        // v9.8.7-fix2: опускаем плашку ещё на +30px (Maxim — forecast должен быть видим).
-            // +110 вместо +80 → между ценой и плашкой видно ОБА forecast-блока:
-            // «≈ N показов / день» и «≈ N показов / экран / день».
-            // v9.9.1-DIAG: плашка стала выше (добавлены метрики @100px) → делаем
-            // компактнее (_lineH 18, _fSz 14) и поднимаем ближе к цене (+24),
-            // чтобы все 21 строк влезли на canvas Nubia (~881px) и desktop (~939px).
-            // Плашка перекроет метрики-сетку — для ДИАГНОСТИКИ это ок, нужны ЦИФРЫ.
-                        // v9.9.10: плашку опустили ВНИЗ под футер (Maxim — не должна закрывать чипы).
-            // _padY=+260 уводит её под «Всего показов» (последний элемент карточки).
-            // Шрифт восстановлен 14/18 — текст крупный, удобно считывать.
-            const _padY = (_priceRelTop + _priceRelH + 260) * snapScale;
-            const _lineH = 18 * snapScale;
-            const _fSz = 14 * snapScale;
-            const _boxW = outputCanvas.width - _padX * 2;
-            const _boxH = _lineH * _diagLines.length + 20 * snapScale;
-
-            // Белый прямоугольник с рамкой
-            _dctx.save();
-            _dctx.fillStyle = '#FFFFFF';
-            _dctx.fillRect(_padX, _padY, _boxW, _boxH);
-            _dctx.strokeStyle = '#EA580C';
-            _dctx.lineWidth = 3 * snapScale;
-            _dctx.strokeRect(_padX, _padY, _boxW, _boxH);
-
-            // Текст
-            _dctx.fillStyle = '#000000';
-            _dctx.textAlign = 'left';
-            _dctx.textBaseline = 'top';
-            _diagLines.forEach((ln, i) => {
-              _dctx.font = (i === 0 ? '800 ' : '600 ') + _fSz + 'px Montserrat, monospace';
-              _dctx.fillStyle = (i === 0) ? '#EA580C' : '#000000';
-              _dctx.fillText(ln, _padX + 14 * snapScale, _padY + 12 * snapScale + i * _lineH);
-            });
-            _dctx.restore();
-          } catch(_diagErr) {
-            console.warn('[DIAG] плашка не нарисована:', _diagErr);
-          }
-        }
+       
 
         // Получаем blob (с fallback на toDataURL для tainted canvas)
         blob = await new Promise(resolve => {
