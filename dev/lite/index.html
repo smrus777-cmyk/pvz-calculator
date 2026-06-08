@@ -4765,7 +4765,9 @@
               '── ГЛОБАЛЬНОЕ ──',
               'label низ: ' + _diagLabelBot.toFixed(1),
               'forecast верх: ' + _diagForecastTop.toFixed(1),
-              'ИСТИННЫЙ центр: ' + _diagTrueCenter.toFixed(1),
+                            'ИСТИННЫЙ центр: ' + _diagTrueCenter.toFixed(1),
+              'РЕАЛЬНО рисую Y: ' + ((typeof _yDraw !== 'undefined' ? _yDraw / snapScale : -1)).toFixed(1),
+              'canvas H px: ' + outputCanvas.height,
               'canvas: ' + outputCanvas.width + 'x' + outputCanvas.height,
               'UA: ' + _diagUA,
             ];
