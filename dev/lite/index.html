@@ -4984,13 +4984,13 @@
               }
             });
 
-                      drawCtx.restore();
+                                            drawCtx.restore();
             outputCanvas = fCanvas;
           }
-
-       
+        }
 
         // Получаем blob (с fallback на toDataURL для tainted canvas)
+
         blob = await new Promise(resolve => {
           try {
             outputCanvas.toBlob(resolve, 'image/png', 1.0);
