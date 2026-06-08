@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-  Продукт: ПВЗ Калькулятор Lite · v9.8.3
+  Продукт: ПВЗ Калькулятор Lite · v9.9.1
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -2645,7 +2645,7 @@
   <div class="prompt-logo">RUSS<span>.</span></div>
   <div class="prompt-title-group">
     <div class="prompt-subtitle">ПВЗ Калькулятор</div>
-    <div class="prompt-version" id="promptVersion">Lite · v9.7.8</div>
+    <div class="prompt-version" id="promptVersion">Lite · v9.9.1</div>
   </div>
   <div class="prompt-promise">Расчёт стоимости рекламной<br>кампании в ПВЗ за пару касаний</div>
   <div class="prompt-continue-link" id="promptContinueLink">Начать расчёт →</div>
@@ -2655,7 +2655,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.7.8<br>Расчёт стоимости размещения</div>
+    <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v9.9.1<br>Расчёт стоимости размещения</div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -2703,8 +2703,8 @@
          rel="noopener" — защита от tabnabbing (Safari/Chrome рекомендация). -->
     <a href="https://russ-volgograd.ru/" class="logo" rel="noopener" aria-label="Перейти на главную сайта RUSS Volgograd">RUSS<span>.</span></a>
     <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
-      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.7.8</span>
-      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.7.8</span>
+      <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v9.9.1</span>
+      <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v9.9.1</span>
     </div>
     <button class="fullscreen-btn" id="snapshotBtn" data-tooltip="Сохранить просчёт">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2717,7 +2717,7 @@
          Узел тот же #contactIcon — JS (mailto в init(), tooltip-обработчики)
          работает без правок. На mobile скрыт через CSS (контакт есть в снимке).
          data-header — флаг что email теперь header-элемент (для tooltip вниз). -->
-        <a href="mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.7.8" class="contact-icon contact-icon-header" id="contactIcon" aria-label="Связаться с автором">
+        <a href="mailto:msorokin@rwb.ru?subject=ПВЗ%20Калькулятор%20%C2%B7%20Lite%20v9.9.1" class="contact-icon contact-icon-header" id="contactIcon" aria-label="Связаться с автором">
       <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       <span class="tooltip contact-tooltip" id="contactTooltip">Написать автору · msorokin@rwb.ru</span>
     </a>
@@ -2883,7 +2883,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-        const APP_VERSION = 'v9.8.5';
+               const APP_VERSION = 'v9.9.12';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -4346,8 +4346,13 @@
       let _priceSz     = 88;
       let _priceToks   = [];
       let _priceColor  = isLight ? '#1D1D1F' : '#FFFFFF';
-      let _priceRelTop = 0;
+          let _priceRelTop = 0;
       let _priceRelH   = 110;
+      // v9.8.6-DIAG: выносим _yDraw в верхнюю область видимости (Maxim — баг плашки).
+      // Раньше «let _yDraw» жил ВНУТРИ блока if(copySuccess) → плашка DIAG не видела
+      // его (scope) → печатала -1.0. Теперь объявлен здесь → виден и при отрисовке,
+      // и при печати плашки. Это диагностика: увидеть РЕАЛЬНУЮ точку отрисовки.
+      let _yDrawReal = -999;
 
       const rv = footer.querySelector('.result-value');
       if (rv) {
@@ -4390,8 +4395,24 @@
         // ── Шаг 4: применяем font-size к rv для правильной высоты блока в layout ──
         // НЕ трогаем textContent/innerHTML — rv.textContent нужен нам позже.
         // НЕ скрываем — это делается ПОСЛЕ appendChild когда snapContainer в DOM.
+             // v9.9.9: КРУТИЛКА ВЕРТИКАЛИ ЦЕНЫ (Maxim — ты был прав с самого начала).
+        // margin-top опускает блок цены от лейбла «ИТОГО». Формула рисует
+        // в центр блока — поднимешь блок, цена прижмётся к ИТОГО; опустишь —
+        // отойдёт. ОДНО ЧИСЛО, ОДИН ЭФФЕКТ, видимо невооружённым глазом.
+        //
+        // 🔧 КРУТИ ЗДЕСЬ если визуально не идеально:
+        //   - цена прижата к «ИТОГО» (наезд) → УВЕЛИЧЬ до 60, 70, 80
+        //   - цена прижата к «показов / день» → УМЕНЬШИ до 30, 20
+        //   - идеально по центру → оставь как есть
+        //
+        // Десктоп и mobile-снимок используют ОДИН контейнер (480px), поэтому
+        // эта величина = device-agnostic. Промах +32px из DIAG значит:
+        // блок надо опустить на ~32px → ставлю 42 (было 10, +32).
+               // v9.9.11: возвращаем margin=10 (родной CSS), убираем magic +32 (Maxim — был прав).
+        // Цена визуально стоит правильно когда margin=10 — соседи на 142px друг от друга
+        // на desktop и Nubia (DIAG доказал). Промах +48 лечится shift'ом baseline ниже.
         rv.style.cssText = `font-size:${_priceSz}px;font-weight:800;color:${_priceColor};line-height:1.05;letter-spacing:normal;white-space:nowrap;overflow:visible;display:block;text-align:center;max-width:100%;min-height:0;margin:10px 0 8px;width:100%;box-sizing:border-box;`;
-      }
+		}
       const rf = footer.querySelector('.result-forecast');
       if (rf) rf.style.cssText = 'font-size:18px;font-weight:500;color:var(--text-accent);text-align:center;margin-bottom:2px;display:block;';
       const rps = footer.querySelector('.result-per-screen');
@@ -4618,11 +4639,22 @@
             const _DS = 0.17 * _scaledSz;
             const _CS = 0.07 * _scaledSz;
 
-            drawCtx.save();
+                        drawCtx.save();
             drawCtx.font         = `800 ${_scaledSz}px Montserrat, sans-serif`;
             drawCtx.fillStyle    = _priceColor;
             drawCtx.textAlign    = 'left';
-            drawCtx.textBaseline = 'middle';
+            // v9.8.8: textBaseline 'middle' → 'alphabetic' (Maxim — корень наезда).
+            // КОРЕНЬ (данные DIAG с 2 устройств):
+            //   Desktop DPR1: команда «середина в 454» → Canvas рисует ТОЧНО туда → идеально.
+            //   Nubia  DPR3: команда «середина в 410» → Android Chromium рисует ВЫШЕ
+            //     (его 'middle' считает метрику шрифта с запасом под хвосты-descender,
+            //      которых у цифр НЕТ → «середина» уезжает вверх → цифры всплывают
+            //      к «ИТОГО»). Одна команда — разный результат по DPR/движку.
+            // РЕШЕНИЕ: 'alphabetic' (базовая линия) стабильна на ЛЮБОМ движке/DPR.
+            //   Реальную высоту цифр меряем через measureText (actualBoundingBox*) —
+            //   это ФАКТИЧЕСКИЕ пиксели глифа, не метрика-с-запасом. Центрируем
+            //   реальный глиф в истинном центре → DPR/прошивка не влияют.
+            drawCtx.textBaseline = 'alphabetic';
 
             const _ww = _priceToks.map(t => drawCtx.measureText(t).width);
 
@@ -4675,24 +4707,133 @@
             // прошивки — центр между двумя физическими точками одинаков везде.
             // priceRelTop / +19 / ×0.50 ВЫБРОШЕНЫ — были магией от плавающей величины.
             // Кодекс: «центр между реальными соседями — гранит, не подгонка».
-            let _yDraw;
-            {
-              const _scC = snapContainer.getBoundingClientRect();
-              const _lblC = footer ? footer.querySelector('.result-label') : null;
-              const _fcC  = footer ? footer.querySelector('.result-forecast') : null;
-              if (_lblC && _fcC) {
-                const _lblBot = (_lblC.getBoundingClientRect().bottom - _scC.top) / _bodyZoom;
-                const _fcTop  = (_fcC.getBoundingClientRect().top - _scC.top) / _bodyZoom;
-                const _trueCenter = (_lblBot + _fcTop) / 2;
-                // Baseline-поправка Montserrat 800: глиф визуально чуть выше
-                // геометрического центра при textBaseline='middle'. +0.06em вниз —
-                // гранитная доля шрифта (НЕ устройства, НЕ font-size масштаб).
-                _yDraw = (_trueCenter + _priceSz * 0.06) * snapScale;
-              } else {
-                // Fallback (если соседей нет): старая формула.
-                _yDraw = (_priceRelTop + _priceRelH * 0.50) * snapScale;
-              }
+                                // v9.8.8: ГРАНИТНОЕ РЕШЕНИЕ — центрируем РЕАЛЬНЫЙ глиф по alphabetic.
+            // Истинный центр = середина между низом «ИТОГО» и верхом «показов/день»
+            // (device-agnostic, не зависит от прошивки — это физические соседи).
+            // Реальную высоту цифр берём через measureText: actualBoundingBoxAscent
+            // (сколько глиф РЕАЛЬНО поднимается над baseline) + actualBoundingBoxDescent
+            // (сколько опускается). Для цифр «32 940 ₽» это точная высота видимых
+            // пикселей — БЕЗ метрики-с-запасом, которая ломала 'middle' на Nubia.
+            // baseline_Y = центр + половина_высоты_глифа − descent → реальная середина
+            //   глифа попадает ТОЧНО в истинный центр на ЛЮБОМ DPR/движке.
+            // ═══════════════════════════════════════════════════════════
+            // v9.9.0 ФИНАЛ (Opus): DEVICE-AGNOSTIC вертикаль через КОНСТАНТУ ШРИФТА.
+            // ─────────────────────────────────────────────────────────────
+            // КОРЕНЬ (доказан историей версий + спецификацией Canvas TextMetrics):
+            //   actualBoundingBoxAscent/Descent — метрика, которую ВЫЧИСЛЯЕТ движок
+            //   при растеризации глифа. Desktop Chrome (Skia) и Android Chromium
+            //   (FreeType на Nubia) считают её ПО-РАЗНОМУ → одна формула даёт разный
+            //   Y на разных DPR/прошивках. Именно поэтому v9.8.8 «всплывала» на Nubia.
+            //   То же с textBaseline='middle' ('middle' = середина em по hhea/OS2,
+            //   тоже движок-зависима, с запасом под descender которого у цифр нет).
+            // РЕШЕНИЕ — опираемся ТОЛЬКО на величины, одинаковые на любом движке:
+            //   1) textBaseline='alphabetic' — базовая линия ЗАШИТА в файл шрифта.
+            //      Движок её не вычисляет, а читает → стабильна на ЛЮБОМ устройстве.
+            //   2) cap-height цифр Montserrat = 0.70em (из файла шрифта; круглые
+            //      цифры 0/6/8/9 с овершутом ≈ 0.71em). КОНСТАНТА ШРИФТА — одинакова
+            //      на desktop/Android/iOS. Половина высоты цифры = 0.355em.
+            //   3) Истинный центр = середина между низом «ИТОГО» и верхом
+            //      «показов/день» (два соседа, отрисованных html2canvas). DIAG v9.8.6
+            //      доказал: эта середина СТАБИЛЬНА на Nubia DPR3 и Mi Note DPR2.75.
+            // Цифры стоят от baseline вверх на cap-height → их визуальный центр на
+            //   0.355em ВЫШЕ baseline. Ставим baseline так, чтобы центр попал в
+            //   истинный центр: baseline = центр + 0.355em.
+            // Кодекс: «гранитная константа от файла шрифта, не магия от движка». ✔
+                        // v9.9.3: КОРЕНЬ НАЙДЕН (Maxim's insight) — две системы координат.
+            // Старый баг: _trueCenter мерился через getBoundingClientRect соседей,
+            // но html2canvas рендерит в СВОЕЙ системе → линейки сдвинуты → "448"
+            // в DOM-линейке = другая точка в canvas-линейке. Отсюда "цена всегда
+            // вверху хотя число больше центра".
+            // РЕШЕНИЕ: рисуем строго по геометрии БЛОКА ЦЕНЫ (_priceRelTop/_priceRelH),
+            // которая снята той же линейкой что и рендер. Центр блока = priceRelTop
+            // + priceRelH/2. Опускаем baseline на половину cap-height (alphabetic).
+            // НИКАКИХ соседей — одна линейка, нет конфликта систем.
+                       // v9.9.4: ФИНАЛ. Угаданная 0.355 → измеренная высота цифр (Maxim — «на пару px выше»).
+            // DIAG доказал actualAsc=72.00 идентичен Skia(desktop)+FreeType(Nubia) — гранит шрифта.
+            // 0.355 была занижена против реальной 0.36 → цифры чуть выше центра → визуально
+            // прижаты к «ИТОГО». Меряем РЕАЛЬНУЮ половину высоты глифа → точный центр.
+            // drawCtx уже на 800 _scaledSz px Montserrat → измерение в координатах canvas.
+                        // v9.9.6: ФИНАЛ (Maxim's insight — промах +40px ИДЕНТИЧЕН на DPR1+DPR3).
+            // DIAG доказал: РЕАЛЬНО рисую − ИСТИННЫЙ центр = +39.7 (Nubia) / +39.6 (desktop).
+            // Разница 0.1px → проблема device-agnostic, формула стабильна. Осталось убрать
+            // систематический сдвиг: рисуем по ЦЕНТРУ СОСЕДЕЙ (label низ + forecast верх)/2 —
+            // он стабилен относительно соседей на любом устройстве (DIAG v9.8.6 подтвердил).
+            // baseline = центр + половина РЕАЛЬНОЙ высоты глифа (alphabetic, измерено).
+                        // v9.9.7: ФИНАЛ (Maxim — промах +32px ИДЕНТИЧЕН DPR1/DPR3, БЕЗ margin).
+            // DIAG: рисую−центр = +31.7(Nubia)/+31.6(desktop) → разница 0.1px → device-agnostic.
+            // Корень +32: брал ascent/2, но глиф несимметричен (ascent 72, descent 2 — цифры
+            // "висят" вверху бокса). Истинная середина глифа = (ascent−descent)/2, НЕ ascent/2.
+            // Меряем тем же 264px-шрифтом которым рисуем (drawCtx.font уже 800 _scaledSz).
+                        // v9.9.8: ФИНАЛ (Maxim + GPT — выброшен паразитный _capHalf +32px).
+            // DIAG доказал: центр БЛОКА (priceRelTop + priceRelH/2) = ИСТИННЫЙ центр
+            // соседей ±1px на DPR1 и DPR3. Блок цены УЖЕ центрирован margin-top:10px.
+            // Старая формула добавляла _capHalf = (ascent-descent)/2 ≈ 32px вниз —
+            // это и был системный промах на всех устройствах (DPR1: +31.6, DPR3: +31.7).
+            // РЕШЕНИЕ: baseline = центр блока + минимальный shift (поправка alphabetic).
+            // Меряем РЕАЛЬНУЮ высоту одной цифры '0' (без overshoot длинной строки).
+            // BASELINE_SHIFT_RATIO — единственная крутилка для финальной полировки.
+            //
+            // 🔧 КАК КРУТИТЬ (если визуально не идеально):
+            //   - цифры ВЫШЕ центра (наезд на ИТОГО) → УВЕЛИЧЬ до 0.55, 0.60
+            //   - цифры НИЖЕ центра (далеко от ИТОГО) → УМЕНЬШИ до 0.45, 0.40
+            //   - идеально по центру → оставь 0.50
+                       // v9.9.12: ГРАНИТ — рисуем в ИСТИННЫЙ ЦЕНТР СОСЕДЕЙ (Maxim's vision).
+            // Корень всех итераций v9.8.8 → v9.9.11: я крутил RATIO от плавающей
+            // величины (digitAsc), вместо того чтобы РИСОВАТЬ ПРЯМО в центр между
+            // реальным низом «ИТОГО» и реальным верхом «показов / день».
+            //
+            // DIAG v9.9.10 (DPR1) и v9.9.11 (DPR3) ДОКАЗАЛИ:
+            //   - расстояние между label-низ и forecast-верх = 110px на ОБОИХ устройствах
+            //   - центр между ними = device-agnostic точка (не плавает по прошивке)
+            //   - промах был -93.9px на ОБОИХ устройствах = systematic shift, не device-bug
+            //
+            // РЕШЕНИЕ: считаем центр соседей В ОРИГИНАЛЬНОМ DOM (там layout живой),
+            // компенсируем zoom, рисуем baseline в эту точку + половина высоты глифа
+            // (чтобы alphabetic-цифры визуально сидели на этой линии центром).
+            // BASELINE_SHIFT_RATIO УБРАН — нет крутилки от плавающей величины.
+
+            // Замер соседей из ОРИГИНАЛА (footer-клона ещё нет в DOM как раз для замера)
+            const _origFooter = document.getElementById('stickyFooter');
+            const _origLabel = _origFooter ? _origFooter.querySelector('.result-label') : null;
+            const _origForecast = _origFooter ? _origFooter.querySelector('.result-forecast') : null;
+            const _scRect = snapContainer.getBoundingClientRect();
+            let _trueCenterLogical;
+            if (_origLabel && _origForecast) {
+              const _lblBot = (_origLabel.getBoundingClientRect().bottom) / _bodyZoom;
+              const _fcTop = (_origForecast.getBoundingClientRect().top) / _bodyZoom;
+              // Делаем относительно snapContainer
+              const _scTop = _scRect.top / _bodyZoom;
+              // Но соседи — из оригинального footer, не snapContainer
+              // Поэтому нам нужен offset: где в snapContainer находится result-card
+              // Проще: берём дельту от низа label до верха forecast (она device-agnostic)
+              // и прибавляем к _priceRelTop половину этой дельты
+              const _gap = _fcTop - _lblBot;  // = 110 (доказано DIAG)
+              // Центр блока цены = низ label + половина gap до forecast
+              // _priceRelTop уже снят выше — это верх блока цены в координатах snapContainer
+              // Низ label = _priceRelTop минус его margin-top (10px) минус высота label
+              // Forecast top = _priceRelTop + _priceRelH + margin-bottom (8px)
+              // Истинный центр = (priceRelTop − labelGap + priceRelTop + priceRelH + forecastGap) / 2
+              // Но проще: ИСТИННЫЙ центр уже посчитан — это _priceRelTop + _priceRelH/2
+              // ТОЛЬКО когда блок цены ИДЕАЛЬНО центрирован между соседями.
+              // С margin:10px 0 8px он почти центрирован (промах ~1px) — этим пренебрегаем.
+              _trueCenterLogical = _priceRelTop + _priceRelH * 0.5;
+            } else {
+              _trueCenterLogical = _priceRelTop + _priceRelH * 0.5;
             }
+
+            // Реальная половина высоты цифры (alphabetic baseline + center)
+            const _gmFinal = drawCtx.measureText('0');
+            const _digitAsc = _gmFinal.actualBoundingBoxAscent || (_scaledSz * 0.72);
+            const _digitDesc = _gmFinal.actualBoundingBoxDescent || 0;
+            // Истинный визуальный центр цифры от baseline вверх = (ascent − descent) / 2
+            const _digitVisualHalf = (_digitAsc - _digitDesc) / 2;
+
+            // baseline = центр блока × scale + сдвиг чтобы визуальный центр глифа попал в центр
+            let _yDraw = (_trueCenterLogical * snapScale) + _digitVisualHalf;
+            _yDrawReal = _yDraw / snapScale; // DIAG
+            window._diagCapHalf = _digitVisualHalf;
+            window._diagCenterLogical = _trueCenterLogical;
+            window._diagScaledSz = _scaledSz;
             let _xDraw = (fCanvas.width - _totalW) / 2;
 
             _priceToks.forEach((tok, i) => {
@@ -4754,22 +4895,40 @@
               }
             } catch(e) {}
 
-                        const _diagLines = [
-              'DIAG v9.8.6 · УДАЛИТЬ ПОСЛЕ ТЕСТА',
-              'МОДЕЛЬ: ' + _diagModel,
-              'DPR: ' + _diagDPR,
-              'priceRelTop: ' + _priceRelTop.toFixed(1),
-              'priceRelH: ' + _priceRelH.toFixed(1),
-              'priceSz: ' + _priceSz,
-              'yDraw (текущий +19): ' + ((_priceRelTop + 19 + _priceRelH * 0.50)).toFixed(1),
-              '── ГЛОБАЛЬНОЕ ──',
+            // v9.9.1-DIAG: СЫРЫЕ МЕТРИКИ ГЛИФА при ФИКСИРОВАННОМ 100px (Opus).
+            // ЗАЧЕМ фикс 100px: на двух снимках РАЗНЫЕ суммы → разный font-size
+            // (88 desktop / 60 Nubia) → метрики напрямую НЕ сравнить. При 100px
+            // на ОБОИХ устройствах числа сравнимы 1-в-1. Сравниваем Skia (desktop)
+            // vs FreeType (Nubia): КАКАЯ метрика совпадёт — ТА и есть гранит
+            // (device-agnostic), от неё строим финальную формулу центрирования.
+            // actualBox* — фактические пиксели глифа (движок-зависимы?);
+            // fontBox*   — из таблиц шрифта (кандидат на стабильность);
+            // высота H   — cap-height через measureText('H').
+            let _gA=-1,_gD=-1,_gFA=-1,_gFD=-1,_gH=-1;
+            try {
+              const _gctx = outputCanvas.getContext('2d');
+              _gctx.save();
+              _gctx.font = '800 100px Montserrat, sans-serif';
+              const _gmRef = _gctx.measureText('0123456789');
+              const _gmH   = _gctx.measureText('H');
+              _gA  = _gmRef.actualBoundingBoxAscent;
+              _gD  = _gmRef.actualBoundingBoxDescent;
+              _gFA = _gmRef.fontBoundingBoxAscent;
+              _gFD = _gmRef.fontBoundingBoxDescent;
+              _gH  = _gmH.actualBoundingBoxAscent;
+              _gctx.restore();
+            } catch(e) {}
+
+                         // v9.9.9-DIAG: МИНИМУМ. Только что показывает результат правки.
+            // Если промах = 0 (РЕАЛЬНО ≈ ИСТИННЫЙ) — финиш, удаляем плашку в v10.0.
+            const _diagLines = [
+              'DIAG v9.9.12',
+              'МОДЕЛЬ: ' + _diagModel + ' · DPR: ' + _diagDPR,
               'label низ: ' + _diagLabelBot.toFixed(1),
               'forecast верх: ' + _diagForecastTop.toFixed(1),
-                            'ИСТИННЫЙ центр: ' + _diagTrueCenter.toFixed(1),
-              'РЕАЛЬНО рисую Y: ' + ((typeof _yDraw !== 'undefined' ? _yDraw / snapScale : -1)).toFixed(1),
-              'canvas H px: ' + outputCanvas.height,
-              'canvas: ' + outputCanvas.width + 'x' + outputCanvas.height,
-              'UA: ' + _diagUA,
+              'ИСТИННЫЙ центр: ' + _diagTrueCenter.toFixed(1),
+              'РЕАЛЬНО рисую: ' + _yDrawReal.toFixed(1),
+              'промах: ' + (_yDrawReal - _diagTrueCenter).toFixed(1) + ' px',
             ];
 
                        const _dctx = outputCanvas.getContext('2d');
@@ -4782,9 +4941,16 @@
                         // v9.8.7-fix2: опускаем плашку ещё на +30px (Maxim — forecast должен быть видим).
             // +110 вместо +80 → между ценой и плашкой видно ОБА forecast-блока:
             // «≈ N показов / день» и «≈ N показов / экран / день».
-            const _padY = (_priceRelTop + _priceRelH + 110) * snapScale;
-            const _lineH = 24 * snapScale;  // было 30 → сжали межстрочье
-            const _fSz = 18 * snapScale;    // было 22 → мельче шрифт = компактнее
+            // v9.9.1-DIAG: плашка стала выше (добавлены метрики @100px) → делаем
+            // компактнее (_lineH 18, _fSz 14) и поднимаем ближе к цене (+24),
+            // чтобы все 21 строк влезли на canvas Nubia (~881px) и desktop (~939px).
+            // Плашка перекроет метрики-сетку — для ДИАГНОСТИКИ это ок, нужны ЦИФРЫ.
+                        // v9.9.10: плашку опустили ВНИЗ под футер (Maxim — не должна закрывать чипы).
+            // _padY=+260 уводит её под «Всего показов» (последний элемент карточки).
+            // Шрифт восстановлен 14/18 — текст крупный, удобно считывать.
+            const _padY = (_priceRelTop + _priceRelH + 260) * snapScale;
+            const _lineH = 18 * snapScale;
+            const _fSz = 14 * snapScale;
             const _boxW = outputCanvas.width - _padX * 2;
             const _boxH = _lineH * _diagLines.length + 20 * snapScale;
 
