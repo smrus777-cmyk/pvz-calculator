@@ -2883,7 +2883,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-        const APP_VERSION = 'v9.8.4';
+        const APP_VERSION = 'v9.8.5';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -4720,7 +4720,21 @@
             const _diagSH   = window.screen.height;
             const _diagPW   = Math.round(window.screen.width  * _diagDPR);
             const _diagPH   = Math.round(window.screen.height * _diagDPR);
-            const _diagUA   = (navigator.userAgent || '').replace(/^.*\(([^)]*)\).*$/, '$1').slice(0, 60);
+                        const _diagUA   = (navigator.userAgent || '').replace(/^.*\(([^)]*)\).*$/, '$1').slice(0, 60);
+            // v9.8.7-fix: извлекаем модель из UA (Maxim).
+            // Браузер не даёт маркетинговое имя ("Nubia RedMagic 11 Pro"), но
+            // показывает кодовое (NX729J, RMX3501) — по нему опознаёшь устройство.
+            // Паттерны: "Linux; Android X; MODEL", "iPhone; CPU iPhoneN,M".
+            let _diagModel = 'unknown';
+            try {
+              const ua = navigator.userAgent || '';
+              const m1 = ua.match(/Android[^;]*;\s*([^)]+?)(?:\s+Build|\))/);
+              const m2 = ua.match(/(iPhone\d+,\d+|iPad\d+,\d+)/);
+              const m3 = ua.match(/iPhone OS (\d+_\d+)/);
+              if (m1 && m1[1]) _diagModel = m1[1].trim().slice(0, 40);
+              else if (m2 && m2[1]) _diagModel = m2[1];
+              else if (m3) _diagModel = 'iPhone iOS ' + m3[1].replace('_', '.');
+            } catch(e) {}
                        const _diagYDraw = (_priceRelTop + _priceRelH * 0.50);
 
             // v9.8.6-fix: КООРДИНАТЫ СОСЕДЕЙ для ГЛОБАЛЬНОГО решения (Maxim's vision).
@@ -4740,8 +4754,9 @@
               }
             } catch(e) {}
 
-            const _diagLines = [
+                        const _diagLines = [
               'DIAG v9.8.6 · УДАЛИТЬ ПОСЛЕ ТЕСТА',
+              'МОДЕЛЬ: ' + _diagModel,
               'DPR: ' + _diagDPR,
               'priceRelTop: ' + _priceRelTop.toFixed(1),
               'priceRelH: ' + _priceRelH.toFixed(1),
@@ -4762,7 +4777,10 @@
             // × scale — переводим в координаты canvas. Так плашка ВСЕГДА под ценой.
                         // v9.8.6-fix2: плашку ещё ниже (Maxim — высоковато было).
             // +80px вместо +20 → плашка уходит под forecast, цена чистая.
-            const _padY = (_priceRelTop + _priceRelH + 80) * snapScale;
+                        // v9.8.7-fix2: опускаем плашку ещё на +30px (Maxim — forecast должен быть видим).
+            // +110 вместо +80 → между ценой и плашкой видно ОБА forecast-блока:
+            // «≈ N показов / день» и «≈ N показов / экран / день».
+            const _padY = (_priceRelTop + _priceRelH + 110) * snapScale;
             const _lineH = 24 * snapScale;  // было 30 → сжали межстрочье
             const _fSz = 18 * snapScale;    // было 22 → мельче шрифт = компактнее
             const _boxW = outputCanvas.width - _padX * 2;
