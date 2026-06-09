@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.0
+    Продукт: ПВЗ Калькулятор Lite · v10.0.4
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -353,6 +353,35 @@
              обратно в поле. Поле = собственность юзера на любой скорости.
              Клик по inline-пресету (5/10/15/20) остался без fromKeyboard →
              пресет пишет значение в поле (правильно: юзер не печатает).
+
+             v10.0.3 — Frequency Hint (Apple HIG «Contextual Helper Text»):
+             На поле «Выходов в час» при value=пресет (15/30/60/120) справа
+             в input появляется перевод в человеческое время («каждые 2 минуты»).
+             Реализация: второй псевдоэлемент ::before на .input-field-host
+             (::after занят диапазоном «1 – 360» при focus — конфликта нет).
+             JS: словарь FREQUENCY_HINTS + метод _updateHint() в SliderInstance,
+             вызывается в 7 точках рядом с _updatePresetActiveState (init,
+             _setValue, reduce-motion, короткий путь, кадр и финал анимации,
+             forceRedraw). Только для frequency (this.field !== 'frequency' → выход).
+             Дизайн в семье ::after: 11px/500/--text-muted/opacity 0.65/soft-mask.
+             При focus хинт уступает место диапазону (S3). На ≤380px скрыт
+             (Defensive Hiding). PNG-снимок: data-hint удаляется из клона.
+
+             v10.0.4 — UI Polish (4 точечных правки):
+             1. FREQUENCY HINT: порог скрытия 380px→320px. На 375px (iPhone X/14)
+                хинт был скрыт по умолчанию — Maxim заметил на телефоне. Корень:
+                в ТЗ v10.0.3 я перестраховался. Математика: на 375px запас 174px,
+                на 320px — 119px. Реально нужно скрывать только на ≤280px
+                (часы/складные), которых нет в типовом сценарии.
+             2. PNG SNAPSHOT: email из шапки удаляется из клона. Корень: после
+                v9.8.1 (email переехал в шапку как <a>) старый селектор
+                «button, .tooltip» его не ловил. Добавлен .contact-icon в строку
+                header.querySelectorAll. PDF чист (отдельный #printBlock).
+             3. CURSOR-FIX: убран cursor:pointer с бейджа версии (#headerBadge).
+                Корень: ладошка обещала действие, но 5-тапов это скрытая функция —
+                нарушение Apple HIG «Don't lie to user». 5-тапов работает,
+                визуального намёка больше нет.
+             4. APP_VERSION → v10.0.4.
              Drag ползунка идёт через _setValue (мгновенно, без анимации) —
              там запись в поле нужна.
              3 точечных правки в JS (сигнатура + 3 вызова + защита поля
@@ -1401,6 +1430,63 @@
     .light-mode .input-field-host:focus-within::after {
       color: var(--text-secondary);
       opacity: 0.55;
+    }
+
+    /* v10.0.3: Frequency contextual hint.
+       Apple HIG «Contextual Helper Text» — когда value=пресет (15/30/60/120),
+       показываем человеческий перевод («каждые 2 минуты» вместо «30»).
+       При focus — скрываемся и уступаем место «::after» с диапазоном «1 – 360».
+       Дизайн строго в семье ::after: те же 11px, --text-muted, opacity 0.65,
+       та же soft-mask плашка. Различий нет — глаз видит «продолжение системы».
+       Применяется ТОЛЬКО к frequency через [data-field="frequency"].
+       Псевдоэлемент ::before свободен (::after занят диапазоном) —
+       два независимых слоя, конфликтов нет. */
+    .input-field-wrap[data-field="frequency"] .input-field-host[data-hint]::before {
+      content: attr(data-hint);
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      opacity: 0.65;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      white-space: nowrap;
+      transition: opacity var(--dur-fast) var(--ease-standard);
+      z-index: 1;
+      /* Soft mask — синхронно с ::after: цифра подползает → уходит под плашку */
+      background: linear-gradient(to right, transparent 0px, var(--bg-input) 6px, var(--bg-input) 100%);
+      padding-left: 6px;
+    }
+
+    /* При focus подсказку прячем — диапазон ::after важнее (юзер вводит) */
+    .input-field-wrap[data-field="frequency"] .input-field-host:focus-within[data-hint]::before {
+      opacity: 0;
+    }
+
+    /* Светлая тема — синхрон с ::after (тот же приглушённый тон) */
+    .light-mode .input-field-wrap[data-field="frequency"] .input-field-host[data-hint]::before {
+      color: var(--text-muted);
+    }
+
+    /* v10.0.4: порог 380px→320px (Maxim — корень: на iPhone X/14 хинт скрывался).
+       Математика: на 375px после цифры остаётся 269px свободных, хинт 95px →
+       запас 174px. На 320px запас 119px — всё ещё много. Скрытие нужно только
+       на сверхузких устройствах (часы/складные ≤320px), где их физически нет
+       в типовом сценарии «маркетолог открыл калькулятор». */
+    @media (max-width: 320px) {
+      .input-field-wrap[data-field="frequency"] .input-field-host[data-hint]::before {
+        display: none;
+      }
+    }
+
+    /* Снимок/печать: подсказка техническая для UI, в документе не нужна */
+    @media print {
+      .input-field-host::before { display: none !important; }
     }
 	
     /* Снимок: скрыть диапазон при печати (defense in depth) */
@@ -2860,7 +2946,7 @@
          target="_self" — открытие в том же окне (не плодим вкладки).
          rel="noopener" — защита от tabnabbing (Safari/Chrome рекомендация). -->
         <a href="https://russregions.ru/" class="logo" rel="noopener" aria-label="Главная страница RussRegions — реклама вне дома">RUSS<span>.</span></a>
-    <div class="badge" id="headerBadge" style="cursor:pointer;user-select:none;-webkit-user-select:none;" title="">
+    <div class="badge" id="headerBadge" style="user-select:none;-webkit-user-select:none;" title="">
             <span class="badge-full" id="badgeFull">ПВЗ Калькулятор · Lite v10.0</span>
       <span class="badge-short" id="badgeShort">ПВЗ Кальк. · v10.0</span>
     </div>
@@ -3041,7 +3127,18 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-               const APP_VERSION = 'v10.0.2';
+               const APP_VERSION = 'v10.0.4';
+
+    // v10.0.3: словарь подсказок для frequency.
+    // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
+    // Переводим техническую частоту в человеческий язык времени.
+    // Применяется ТОЛЬКО к полю frequency через data-field (см. _updateHint).
+    const FREQUENCY_HINTS = {
+      15:  'каждые 4 минуты',
+      30:  'каждые 2 минуты',
+      60:  'каждую минуту',
+      120: 'каждые 30 секунд'
+    };
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -4409,7 +4506,11 @@
       const footer          = document.getElementById('stickyFooter').cloneNode(true);
 
       header.style.cssText = 'position:static;max-width:100%;background:transparent;backdrop-filter:none;border:none;padding:0;transform:none;transition:none;margin-bottom:10px;';
-      header.querySelectorAll('button, .tooltip').forEach(el => el.remove());
+      // v10.0.4: добавлен .contact-icon — email переехал в шапку (v9.8.1) как <a>,
+      // старый селектор «button, .tooltip» его не ловил → email попадал в PNG.
+      // Maxim заметил после обмена камеры/email местами. PDF не тронут — там
+      // отдельный #printBlock, .contact-icon в нём нет.
+      header.querySelectorAll('button, .tooltip, .contact-icon').forEach(el => el.remove());
       // v9.1.5: snapContainer 480px ≤ 500px → @media скрывает badge-full, показывает badge-short.
       // Принудительно показываем полное название бренда в снимке.
       const badgeFullEl = header.querySelector('.badge-full');
@@ -4422,6 +4523,11 @@
       calculatorBlock.querySelectorAll('.slider-track-wrap').forEach(el => el.remove());
       // v9.0.6: удалить inline-пресеты из клона PNG
       calculatorBlock.querySelectorAll('.preset-container-inline').forEach(el => el.remove());
+      // v10.0.3: удаляем data-hint из клона PNG — подсказка только в UI,
+      // в снимке избыточна (там и так видно «30 выходов/час» в шапке).
+      calculatorBlock.querySelectorAll('.input-field-host[data-hint]').forEach(el => {
+        el.removeAttribute('data-hint');
+      });
 	        // Страховка: на случай если в клоне всё-таки остались следы анимации
       calculatorBlock.querySelectorAll('.hour-btn.preset-pop').forEach(cell => {
         cell.classList.remove('preset-pop');
@@ -5380,6 +5486,7 @@
         this._bindEvents();
         this._updateUI(false);
         this._updatePresetActiveState();  // v9.0.6: активный чип после init
+        this._updateHint();               // v10.0.3: хинт при init (frequency=30 → «каждые 2 минуты»)
       }
 
       /* ── DOM: создаём и вставляем трек после .input-field-host ─── */
@@ -5524,6 +5631,23 @@
       }
 
       /* ── setValue (мгновенно, без анимации) ─────────────────────── */
+      // v10.0.3: обновление data-hint для frequency.
+      // Apple HIG «Just-In-Time Disclosure»: подсказка появляется ровно когда
+      // value совпал с пресетом (15/30/60/120) — глаз получает перевод
+      // техники во время («каждые 2 минуты»). CSS ::before рисует, мы только
+      // ставим/снимаем атрибут. Для других полей (screens, days) — выход сразу.
+      _updateHint() {
+        if (this.field !== 'frequency') return;
+        const host = this.wrap.querySelector('.input-field-host');
+        if (!host) return;
+        const hint = (typeof FREQUENCY_HINTS !== 'undefined') ? FREQUENCY_HINTS[this.value] : null;
+        if (hint) {
+          host.setAttribute('data-hint', hint);
+        } else {
+          host.removeAttribute('data-hint');
+        }
+      }
+
       _setValue(val, triggerInput = true) {
         val = Math.max(this.min, Math.min(this.max, Math.round(val)));
         this.value = val;
@@ -5535,6 +5659,7 @@
 
         this._updateUI();
         this._updatePresetActiveState(); // v9.0.6: синхронизируем активный чип
+        this._updateHint();              // v10.0.3: хинт синхронно с чипом
 
         if (triggerInput) {
           this.input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -5565,6 +5690,7 @@
             this.currentPos = _sliderValueToPos(v2, this.min, this.max, this.sweetMax);
             this._updateUI();
             this._updatePresetActiveState();
+            this._updateHint(); // v10.0.3
           } else {
             this._setValue(val, triggerInput);
           }
@@ -5581,6 +5707,7 @@
             this.currentPos = endPos;
             this._updateUI();
             this._updatePresetActiveState();
+            this._updateHint(); // v10.0.3
           } else {
             this._setValue(targetVal, triggerInput);
           }
@@ -5603,6 +5730,7 @@
 
           this._updateUI();
           this._updatePresetActiveState(); // v9.0.7: подсветка чипа во время анимации
+          this._updateHint();              // v10.0.3: хинт live во время анимации (fade 150ms сглаживает пролёты)
 
           if (progress < 1) {
             this._animRAF = requestAnimationFrame(animate);
@@ -5620,6 +5748,7 @@
 
             this._updateUI();
             this._updatePresetActiveState(); // v9.0.7: чип загорается на финише анимации
+            this._updateHint();              // v10.0.3: финальное состояние хинта
             if (triggerInput) {
               this.input.dispatchEvent(new Event('input', { bubbles: true }));
             }
@@ -5791,6 +5920,7 @@
         this.currentPos = _sliderValueToPos(this.value, this.min, this.max, this.sweetMax);
         this._updateUI();
         this._updatePresetActiveState(); // v9.0.6
+        this._updateHint();              // v10.0.3
       }
     }
 
