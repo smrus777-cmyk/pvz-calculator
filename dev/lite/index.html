@@ -336,6 +336,28 @@
              Удалён весь диагностический код (DIAG-плашка, цветные линии,
              ЗАЗОР-плашка, замеры computed styles, console.log) — ~300 строк.
              Оставлен ТОЛЬКО гранитный фикс .is-snap-mode. Чистый продакшн.
+			 
+			              v10.0.2 — Input Source Priority Fix (Apple HIG):
+             КОНТЕКСТ: при быстром наборе цифр в полях (экраны/дни/выходы)
+             вторая цифра «съедалась» или искажалась — юзер печатает «80»,
+             получает «90» или «40». На медленном наборе всё работало.
+             КОРЕНЬ (Apple Input Source Priority): обработчик input слайдера
+             запускал _setValueAnimated при КАЖДОМ нажатии цифры. Внутри
+             350ms rAF-анимации ползунок на каждом кадре писал в this.input.value
+             промежуточное значение (8→13→25→42→65→80). Если юзер успевал
+             ввести вторую цифру до окончания анимации — она приклеивалась
+             не к набранному «8», а к тому что слайдер успел нарисовать.
+             РЕШЕНИЕ: добавлен флаг fromKeyboard в _setValueAnimated.
+             При наборе с клавиатуры (3 вызова в обработчике input) флаг = true →
+             ползунок едет ВИЗУАЛЬНО (thumb+fill анимируются), но НЕ пишет
+             обратно в поле. Поле = собственность юзера на любой скорости.
+             Клик по inline-пресету (5/10/15/20) остался без fromKeyboard →
+             пресет пишет значение в поле (правильно: юзер не печатает).
+             Drag ползунка идёт через _setValue (мгновенно, без анимации) —
+             там запись в поле нужна.
+             3 точечных правки в JS (сигнатура + 3 вызова + защита поля
+             в 4 ветках). CSS не тронут. Кодекс «гранитная константа»
+             соблюдён: разделение источников ввода — Apple-паттерн, не магия.
   ================================================
 -->
   
@@ -3019,7 +3041,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-               const APP_VERSION = 'v10.0';
+               const APP_VERSION = 'v10.0.2';
 
     // ================================================
     // ВИБРАЦИЯ (haptic feedback)
@@ -5524,18 +5546,46 @@
         this.thumb.style.left = `calc(var(--sl-field-radius) + ${pos} * (100% - 2 * var(--sl-field-radius)))`;
       }
 
-      /* ── setValueAnimated (350ms ease-out cubic) ────────────────── */
-      _setValueAnimated(val, triggerInput = true) {
+          /* ── setValueAnimated (350ms ease-out cubic) ────────────────── */
+      // v10.0.2: добавлен fromKeyboard (Apple «Input Source Priority»).
+      // КОРЕНЬ бага «быстро ввожу 80 → получаю 90/40»: при наборе с клавиатуры
+      // _setValueAnimated запускал rAF-анимацию ползунка, которая на КАЖДОМ
+      // кадре писала this.input.value = промежуточное число. Вторая цифра юзера
+      // приклеивалась не к набранному «8», а к тому что слайдер успел нарисовать.
+      // Решение Apple: при наборе с клавиатуры поле = единственный источник истины.
+      // Ползунок едет ВИЗУАЛЬНО (thumb+fill анимируются), но НЕ пишет обратно в поле.
+      // fromKeyboard=true → блок this.input.value=... во время и в конце анимации.
+      _setValueAnimated(val, triggerInput = true, fromKeyboard = false) {
         if (this._animRAF) { cancelAnimationFrame(this._animRAF); this._animRAF = null; }
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          this._setValue(val, triggerInput);
+          // reduce-motion: мгновенно. При fromKeyboard НЕ пишем в поле (юзер набирает сам).
+          if (fromKeyboard) {
+            const v2 = Math.max(this.min, Math.min(this.max, Math.round(val)));
+            this.value = v2;
+            this.currentPos = _sliderValueToPos(v2, this.min, this.max, this.sweetMax);
+            this._updateUI();
+            this._updatePresetActiveState();
+          } else {
+            this._setValue(val, triggerInput);
+          }
           return;
         }
 
         const targetVal = Math.max(this.min, Math.min(this.max, Math.round(val)));
         const startPos  = this.currentPos;
         const endPos    = _sliderValueToPos(targetVal, this.min, this.max, this.sweetMax);
-        if (Math.abs(endPos - startPos) < 0.001) { this._setValue(targetVal, triggerInput); return; }
+        if (Math.abs(endPos - startPos) < 0.001) {
+          // v10.0.2: при fromKeyboard не зовём _setValue (он пишет в поле) — только UI.
+          if (fromKeyboard) {
+            this.value = targetVal;
+            this.currentPos = endPos;
+            this._updateUI();
+            this._updatePresetActiveState();
+          } else {
+            this._setValue(targetVal, triggerInput);
+          }
+          return;
+        }
 
         const startTime = performance.now();
         const animate = (now) => {
@@ -5544,9 +5594,12 @@
           this.currentPos = startPos + (endPos - startPos) * eased;
           this.value = _sliderPosToValue(this.currentPos, this.min, this.max, this.sweetMax);
 
-          this._suppressInput = true;
-          this.input.value = this.value;
-          this._suppressInput = false;
+          // v10.0.2: при наборе с клавиатуры НЕ трогаем поле — оно собственность юзера.
+          if (!fromKeyboard) {
+            this._suppressInput = true;
+            this.input.value = this.value;
+            this._suppressInput = false;
+          }
 
           this._updateUI();
           this._updatePresetActiveState(); // v9.0.7: подсветка чипа во время анимации
@@ -5558,9 +5611,12 @@
             this.currentPos = endPos;
             this.value = targetVal;
 
-            this._suppressInput = true;
-            this.input.value = targetVal;
-            this._suppressInput = false;
+            // v10.0.2: финал анимации — при fromKeyboard поле тоже не трогаем.
+            if (!fromKeyboard) {
+              this._suppressInput = true;
+              this.input.value = targetVal;
+              this._suppressInput = false;
+            }
 
             this._updateUI();
             this._updatePresetActiveState(); // v9.0.7: чип загорается на финише анимации
@@ -5698,7 +5754,14 @@
           tw.classList.remove('is-dragging');
         });
 
-        /* Синхронизация: input изменился снаружи (клавиатура, стрелки) */
+                /* Синхронизация: input изменился снаружи (клавиатура, стрелки) */
+        // v10.0.2: КОРЕНЬ бага «быстро ввожу 80 → получаю 90/40» (Apple Input
+        // Source Priority). Раньше каждый ввод запускал _setValueAnimated БЕЗ
+        // fromKeyboard → анимация ползунка на каждом кадре писала this.input.value
+        // = промежуточное число → вторая цифра юзера приклеивалась не к набранному
+        // «8», а к тому что слайдер успел нарисовать. Теперь ВСЕ вызовы из набора
+        // с клавиатуры идут с fromKeyboard=true → ползунок едет визуально, поле
+        // НЕ трогается. Что юзер напечатал — то и стоит, на любой скорости набора.
         this.input.addEventListener('input', () => {
           if (this._suppressInput) return; // защита от рекурсии (GRABLI-03)
           const raw = this.input.value.trim();
@@ -5707,15 +5770,19 @@
           if (isNaN(v)) return;
 
           if (v > this.max) {
-            this._setValueAnimated(this.max, false);
+            // Превышение max: ползунок едет к max визуально, поле НЕ трогаем
+            // (clamp произойдёт в calculateTotal через getValidNumberInput).
+            this._setValueAnimated(this.max, false, true); // fromKeyboard=true
             setTimeout(() => { _sliderBounce(this.thumb); _sliderHaptic('edge'); }, 350);
             return;
           }
           if (v < this.min) {
-            this._setValueAnimated(this.min, false);
+            // Ниже min: ползунок к min, поле НЕ трогаем — юзер ещё печатает.
+            this._setValueAnimated(this.min, false, true); // fromKeyboard=true
             return;
           }
-          this._setValueAnimated(v, false); // triggerInput=false — уже диспатчится снаружи
+                  // Нормальное значение: ползунок едет к v визуально, поле = собственность юзера.
+          this._setValueAnimated(v, false, true); // triggerInput=false + fromKeyboard=true
         });
       }
 
