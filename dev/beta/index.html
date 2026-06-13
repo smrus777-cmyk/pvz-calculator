@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.2.15
+    Продукт: ПВЗ Калькулятор Lite · v10.2.19
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -784,6 +784,56 @@
              СВЯТЫНИ ЦЕЛЫ: вертикаль PNG, .is-snap-mode, Range-фит, рубль-спутник,
              зональность/Input Source Priority, парсер/линейность rate, порядок applyRate.
 
+             v10.2.16 — Рубль-спутник desktop, тултип чипа (корень overflow), «Итого».
+             (РУБЛЬ) desktop #totalCost получил рубль-спутник 0.62em+700 (был полный):
+             CSS .result-value .ruble + обёртка _mobilePriceHTML в animateCounter (tick+
+             финал) + при нуле. Mobile нулевая цена «0 ₽» тоже → 62% (была 100%/тонкая).
+             Единообразие живого UI с PNG/PDF.
+             (ТУЛТИП ЧИПА №4) Вернул ЭТАЛОННЫЙ showTooltip/hideTooltip + mouseenter
+             (mouseover давал ложные срабатывания на дочерних span). ГАРАНТИЯ видимости:
+             .result-meta базовый → overflow:visible (единственный контекст, способный
+             обрезать absolute-тултип над чипом). Костыли (fixed/body/mouseover) удалены.
+             (ВИДИМОСТЬ ЧИПА №2) updateRateBadge() добавлен в ветку обнуления цены ДО
+             return — чип скрывается при сбросе часов (раньше return проскакивал вызов).
+             («ИТОГО»→«Итого») Sentence case везде (HIG: длинная рус.фраза ALL CAPS
+             «кричит»): текст desktop+mobile, убран text-transform:uppercase в .result-
+             label-mobile, .print-label (PDF), snapshot rlabel (PNG). desktop .result-
+             label уже был none.
+             СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (цена), .is-snap-mode, Range-фит, рубль 62%,
+             зональность/Input Source Priority, парсер/линейность rate, порядок applyRate.
+
+             v10.2.17 — Полировка рубля-спутника + фикс скрытия чипа (чистый CSS+порядок).
+             (П1) КОРЕНЬ: чип не скрывался при сбросе часов на desktop — updateRateBadge
+             читал lastTotalCost ДО его обнуления (оно шло ниже после animateCounter) →
+             hasPrice=true. Обнуление перенесено ПЕРЕД вызовом.
+             (П2-П6) Рубль-спутник desktop: vertical-align:baseline + top:0.04em (на
+             линии с цифрами), margin-left:0.1em (отступ), font-weight 700→800. Mobile
+             рубль тоже 800. Нулевая цена использует ту же обёртку + CSS → унифицировано
+             (вес/выравнивание и при нуле). Логика/анимации/снимки НЕ тронуты.
+             СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (цена), .is-snap-mode, Range-фит, рубль 62% PNG,
+             зональность/Input Source Priority, парсер/линейность rate, порядок applyRate.
+
+             v10.2.18 — Вертикаль рубля (фикс), focus-visible, touch-action (чистый CSS).
+             (П1) Рубль: top:0.04em на desktop УБРАН (опускал ниже линии) — baseline
+             держит линию сам. Mobile получил vertical-align:baseline + margin-left:0.1em
+             (был «всплывал» выше цифр, не было отступа). Паритет D↔M, единая базовая
+             линия (HIG: цифры и валюта на одной линии).
+             (П2) focus-visible (WCAG): оранжевая рамка при Tab на .hour-btn/.preset-chip/
+             .reset-inline-btn (.rate-gear уже имел). Не мешает мыши (только Tab).
+             (П3) touch-action:manipulation — убрана 300ms задержка двойного тапа на
+             кнопках. Слайдер-трек (pan-y для скролла) НЕ тронут.
+             JS НЕ тронут. СВЯТЫНИ ЦЕЛЫ: вертикаль PNG, .is-snap-mode, Range-фит,
+             рубль 62% PNG, зональность/Input Source Priority, парсер/линейность rate.
+
+             v10.2.19 — Тонкая вертикаль рубля + ob-btn focus + hover карточки (CSS).
+             (П1-П2) Рубль: baseline недостаточно (Montserrat сидит ниже линии). Desktop
+             top:-0.03em, mobile top:-0.02em — приподняты на одну линию с цифрами (вкл.
+             нулевую цену, единое выравнивание).
+             (П3) .ob-btn:focus-visible — оранжевая рамка при Tab на кнопке онбординга.
+             (П4) .result-card:hover тень убрана — карточка не интерактивна (HIG).
+             JS НЕ тронут. СВЯТЫНИ ЦЕЛЫ: вертикаль PNG, .is-snap-mode, Range-фит,
+             рубль 62% PNG, зональность/Input Source Priority, парсер/линейность rate.
+
              v10.2.5 — «(без НДС)» не жирный + фиксы из правок Максима.
              БАЗА: файл Максима v10.2.4 (он внёс .vat-note, приглушил .rate-disc-hot
              и .rate-label-suffix до rgba(..,0.85), добавил /вых для узких — учтено).
@@ -941,6 +991,17 @@
       --inverse-bg: rgba(0,0,0,0.3);
       --icon-color: rgba(234,88,12,0.72); /* v9.1.1: приглушён с яркого orange — не спорит с ценой */
       --border-input-hover: var(--border-input);
+	  
+      /* v10.2.22: ЖИВЫЕ КРУТИЛКИ вертикали рубля-спутника (Maxim, финальная полировка).
+         Подбираются ГЛАЗОМ на устройстве. + опускает ₽ вниз, − поднимает вверх.
+         em → масштабируется с font-size цены автоматически (универсально).
+         Старт 0em (baseline). Меняй только эти 2 числа, нигде больше. */
+           /* v10.2.23: финальные значения подобраны Maxim глазом на устройстве (Nubia DPR3).
+         desktop −0.1em — рубль на линии цифр при line-height:1.1.
+         mobile 0em — РАСЧЁТНАЯ цена идеальна (baseline). Ноль (48px CSS-дефолт,
+         фит не запущен) правится отдельно: .result-value-mobile.is-zero-price ниже. */
+      --ruble-shift-d: -0.1em;  /* desktop #totalCost (кегль ~52px) */
+      --ruble-shift-m: 0em;     /* mobile #totalCostMobile — расчётная цена (фит 20-64), НЕ трогать */
 
       /* === v9.0 SLIDER VARIABLES === */
       --sl-field-radius: 12px;
@@ -2212,7 +2273,7 @@
       .sticky-footer.is-compact .footer-bottom { max-height: 0; opacity: 0; overflow: hidden; display: none; }
     }
 
-    .result-card:hover { box-shadow: var(--shadow-heavy); } /* v9.1.0: оранжевый glow убран — карточка не кликабельна, hover спокойный */
+    /* v10.2.19: .result-card:hover тень убрана — карточка не интерактивна (HIG: hover-эффект только у кликабельных) */
     .result-card:active { transform:scale(0.99); }
     .result-card.shutter-flash { animation:shutterFlash 0.3s ease-out; }
     @keyframes shutterFlash {
@@ -2230,7 +2291,7 @@
     /* v9.1.5: pulse-changed и pulse-acknowledge удалены — animateCounter достаточен */
     .result-forecast { font-size:12px; color:var(--text-accent); margin-bottom:2px; }
     .result-per-screen { font-size:10.5px; color:var(--text-muted); opacity:0.8; margin-bottom:6px; }
-    .result-meta { text-align:right; font-size:12px; color:var(--text-secondary); line-height:1.45; font-weight:400; white-space:nowrap; flex-shrink:0; padding-top:2px; }
+    .result-meta { text-align:right; font-size:12px; color:var(--text-secondary); line-height:1.45; font-weight:400; white-space:nowrap; flex-shrink:0; padding-top:2px; overflow:visible; } /* v10.2.16 (№4): тултип чипа не обрезается */
         /* v9.2.14: числа справа на одну ступень тише цены — Apple HIG Type Hierarchy.
        Было var(--text-primary) = цвет цены → числа «бились» в тёмной теме.
        Стало var(--text-accent) = D0D0D8 (тёмная) / 3A3A3C (светлая) — тот же
@@ -2550,8 +2611,22 @@
         text-align: left;
       }
 
-      /* Явный отступ footer-bottom на мобилке (divider скрыт) */
+          /* Явный отступ footer-bottom на мобилке (divider скрыт) */
       .footer-bottom { margin-top: 10px; }
+
+      /* v10.2.26: рубль «0 ₽» на mobile (Maxim — корень найден).
+         КОРЕНЬ: при 0 ₽ на ≤500px виден .is-compact .result-main → внутри него
+         #totalCost (DESKTOP-узел, .result-value), которым рулит --ruble-shift-d:-0.1em.
+         Поэтому «-0.1em давит на mobile» — это desktop-узел в compact-режиме, НЕ баг.
+         #totalCostMobile.is-zero-price не срабатывал, т.к. тот узел СКРЫТ (.result-mobile-layout
+         схлопнут при нуле). РЕШЕНИЕ: правило для #totalCost ВНУТРИ @media≤500 — рубль 0.2em.
+         Селектор .sticky-footer.is-compact #totalCost .ruble = специфичность 1,1,1 + @media,
+         перебивает .result-value:not(#totalCostMobile) .ruble. !important страховка каскада.
+         🔧 КРУТИ 0.2em: рубль ВЫШЕ → больше (0.24em); НИЖЕ → меньше (0.16em). */
+      .sticky-footer.is-compact #totalCost .ruble {
+        top: 0.2em !important;
+      }
+    }
     }
     @media (max-width:380px) {
       .preset-chip { font-size:10px; padding:7px 4px; }
@@ -2644,7 +2719,7 @@
       .print-hour-chip.empty { background: #F0F0F5 !important; color: #9A9AA4 !important; }
       .print-divider { border: none; border-top: 0.5px solid #E0E0E5; margin: 14px 0; }
       .print-result-block { border-left: 4px solid #EA580C; padding-left: 16px; margin-bottom: 14px; }
-      .print-label { font-size: 9px; font-weight: 700; color: #9A9AA4; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px; }
+      .print-label { font-size: 9px; font-weight: 700; color: #9A9AA4; text-transform: none; letter-spacing: 1.2px; margin-bottom: 6px; } /* v10.2.16: Sentence case */
       .print-sum { font-size: 58px; font-weight: 800; color: #1D1D1F; letter-spacing: -2px; line-height: 1.0; margin-bottom: 8px; }
       /* v10.1.6: рубль-спутник 62% в PDF — синхрон с живым UI и PNG-снимком */
       .print-ruble { font-size: 0.62em; font-weight: 700; }
@@ -2992,7 +3067,7 @@
       font-size: 11px;
       font-weight: 500;
       color: var(--text-secondary);
-      text-transform: uppercase;
+      text-transform: none; /* v10.2.16: ALL CAPS → Sentence case (HIG: длинная фраза не «кричит») */
       letter-spacing: 0.8px;
       margin-bottom: 2px;
     }
@@ -3023,9 +3098,75 @@
        герой, знак ₽ их сопровождает (0.62 от высоты цифр). Вес 700 (чуть легче
        800 цифр — рубль спутник, не доминанта). Тон тот же --text-primary.
        ТОЛЬКО живой mobile UI (#totalCostMobile). Десктоп и canvas-снимок не тронуты. */
-    .result-value-mobile .ruble {
+       /* v10.2.20: рубль-спутник mobile — ЧИСТАЯ baseline без top-сдвига (Maxim).
+       КОРЕНЬ «ноль выше линии»: top:-0.02em в em считался от font-size РУБЛЯ
+       (плавает 20-64px), не от цифр → при нуле (48px CSS-дефолт, фит не запущен)
+       и при расчёте (JS-фит) рубль садился на РАЗНУЮ высоту. Убираем top —
+       alphabetic-baseline сама держит ₽ на линии цифр при ЛЮБОМ font-size.
+       Гранит: цифры и ₽ оба alphabetic-символы, общая baseline = одна линия. */
+       /* v10.2.21: рубль mobile — vertical-align:text-bottom (Maxim, DIAG-замер).
+       КОРЕНЬ (DIAG: ₽−цифра низ=−13.7px): baseline ставил базовые линии вместе,
+       но визуальный НИЗ мелкого ₽ (0.62em) выше низа цифр (нет descender у цифр).
+       text-bottom выравнивает по НИЖНЕМУ краю строки → ₽ садится к низу цифр.
+       Универсально: не зависит от font-size/DPR/устройства (доля строки). */
+      /* v10.2.22: рубль mobile — baseline + ЖИВАЯ КРУТИЛКА (Maxim подбирает глазом).
+       text-bottom/text-top/em-сдвиги промахивались: рубль 0.62em имеет свой
+       descender-резерв, не совпадает с descender полноразмерных цифр.
+       РЕШЕНИЕ: baseline (одна линия для обоих) + ручной микросдвиг через
+       переменную --ruble-shift-m. ЕДИНСТВЕННАЯ крутилка, финальная полировка.
+       🔧 КРУТИ --ruble-shift-m НИЖЕ:
+          рубль ВЫШЕ линии цифр → УВЕЛИЧЬ (0.04em, 0.06em — опускает ₽ ВНИЗ)
+          рубль НИЖЕ линии цифр → УМЕНЬШИ/В МИНУС (-0.02em — поднимает ₽ ВВЕРХ)
+          на линии → оставь как есть */
+           /* v10.2.24: mobile-рубль через #ID — гарантия что берёт --ruble-shift-m,
+       а НЕ --ruble-shift-d (desktop). Прежний .result-value-mobile конкурировал
+       с .result-value слабее → каскад мог отдать desktop-значение. #ID решает. */
+    #totalCostMobile .ruble {
       font-size: 0.62em;
-      font-weight: 700;
+      font-weight: 800;
+      vertical-align: baseline;
+      position: relative;
+      top: var(--ruble-shift-m, 0em);
+      margin-left: 0.1em;
+    }
+       /* v10.2.24: нулевая цена mobile — рубль через #ID + !important (Maxim).
+       КОРЕНЬ почему .is-zero-price не было видно в DevTools: класс висит на
+       #totalCostMobile (.result-value-mobile), но прежний селектор конкурировал
+       слабой специфичностью. #totalCostMobile (ID=1,0,0) бьёт ЛЮБОЙ класс-селектор
+       железно, !important снимает все сомнения каскада. Теперь DevTools покажет
+       это правило явно. Цель: рубль «0 ₽» mobile на линии цифр.
+       🔧 КРУТИ top: рубль ВЫШЕ → больше (0.24em); НИЖЕ → меньше (0.16em). */
+    #totalCostMobile.is-zero-price .ruble {
+      top: 0.2em !important;
+    }
+    /* v10.2.16: рубль-спутник на DESKTOP — та же пропорция 0.62em + вес 700
+       (был полноразмерный, ломал дизайн-систему). Единообразие с mobile/PNG/PDF. */
+      /* v10.2.20: рубль-спутник desktop — ЧИСТАЯ baseline без top (Maxim).
+       КОРЕНЬ «рубль ниже линии»: top:-0.03em при line-height:1.1 проваливал ₽ вниз.
+       Убираем top — общая alphabetic-baseline цифр и ₽ держит линию сама. */
+      /* v10.2.21: рубль desktop — vertical-align:text-bottom (Maxim, DIAG-замер).
+       КОРЕНЬ (DIAG: ₽−цифра низ=−2.8px): baseline оставлял ₽ выше низа цифр.
+       text-bottom = нижний край строки шрифта → низ ₽ совпадает с низом цифр.
+       Универсально (доля строки, не px-магия). */
+      /* v10.2.22: рубль desktop — baseline + ЖИВАЯ КРУТИЛКА --ruble-shift-d.
+       Отдельная переменная от mobile: кегли разные (52 vs 48px), сдвиг в em
+       масштабируется по-разному. Подбираешь независимо.
+       🔧 КРУТИ --ruble-shift-d НИЖЕ (логика та же: + вниз, − вверх). */
+       /* v10.2.25: desktop-рубль ЯВНО исключает mobile-узел через :not(#totalCostMobile).
+       КОРЕНЬ (DevTools-скрин Maxim): breadcrumb показал div#totalCost.result-value ›
+       span.ruble — на экране в DevTools-эмуляции виден DESKTOP-узел #totalCost
+       (.result-value), на нём top:var(--ruble-shift-d:-0.1em) — он и «задирался».
+       Раньше .result-value .ruble и #totalCostMobile .ruble — РАЗНЫЕ узлы, но в
+       эмуляторе iPhone виден desktop. Теперь desktop-правило физически не может
+       коснуться mobile (даже если оба в DOM): селектор сужен. Mobile управляется
+       ТОЛЬКО #totalCostMobile .ruble ниже. */
+    .result-value:not(#totalCostMobile) .ruble {
+      font-size: 0.62em;
+      font-weight: 800;
+      vertical-align: baseline;
+      position: relative;
+      top: var(--ruble-shift-d, 0em);
+      margin-left: 0.1em;
     }
 
     /* Метрики плотной строкой под ценой */
@@ -3425,6 +3566,31 @@
       .rate-field-wrap .preset-container-inline .preset-item { padding: 0 6px; min-width: 0; }
       .rate-field-wrap .compact-label .label-text { font-size: 12px; }
     }
+
+    /* v10.2.18 (П2): клавиатурный фокус (WCAG) — оранжевая рамка при Tab.
+       .rate-gear:focus-visible уже определён выше — здесь не дублируем. */
+    .hour-btn:focus-visible,
+    .preset-chip:focus-visible,
+    .reset-inline-btn:focus-visible,
+    .ob-btn:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* v10.2.18 (П3): мгновенный отклик на касание — убирает 300ms задержку
+       двойного тапа. НЕ трогаем слайдер-трек (там touch-action:pan-y для скролла). */
+    .snapshot-btn-mobile,
+    .fullscreen-btn,
+    .theme-btn,
+    .contact-icon,
+    .preset-chip,
+    .hour-btn,
+    .reset-inline-btn,
+    .rate-gear,
+    .result-rate-badge {
+      touch-action: manipulation;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -3747,7 +3913,7 @@
   <div class="result-card" id="resultCard">
     <div class="result-main">
       <div class="result-left">
-        <div class="result-label">ИТОГО стоимость с НДС 22%</div>
+        <div class="result-label">Итого стоимость с НДС 22%</div>
         <div class="result-value" id="totalCost">0 ₽</div>
         <div class="result-forecast" id="resultForecast">≈ <span id="dailyOutputsValue">0</span> показов / день</div>
         <div class="result-per-screen" id="resultPerScreen">≈ <span id="perScreenValue">0</span> показов / экран / день</div>
@@ -3774,7 +3940,7 @@
     <div class="result-mobile-layout">
       <div class="result-mobile-top">
         <div class="result-mobile-left">
-          <div class="result-label-mobile">ИТОГО с НДС 22%<span class="rate-label-suffix" id="rateLabelSuffixMobile" hidden></span></div>
+          <div class="result-label-mobile">Итого с НДС 22%<span class="rate-label-suffix" id="rateLabelSuffixMobile" hidden></span></div>
           <div class="result-value-mobile" id="totalCostMobile">0 ₽</div>
           <div class="result-metrics-row">
             <span class="metric-item">≈ <span id="dailyOutputsValueMobile">0</span> / день</span>
@@ -3828,7 +3994,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-               const APP_VERSION = 'v10.2.15';
+               const APP_VERSION = 'v10.2.19';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -4464,6 +4630,8 @@
         // в размере на финале. Десктоп (totalCostEl) и прочие — обычный textContent.
         if (el === totalCostMobileEl) {
           el.innerHTML = _mobilePriceHTML(formatNumberThin(current) + suffix);
+        } else if (el === totalCostEl) {
+          el.innerHTML = _mobilePriceHTML(formatNumberThin(current) + suffix); // v10.2.16: рубль-спутник desktop
         } else {
           el.textContent = formatNumberThin(current) + suffix;
         }
@@ -4476,6 +4644,8 @@
         } else {
           if (el === totalCostMobileEl) {
             el.innerHTML = _mobilePriceHTML(formatNumberThin(toVal) + suffix);
+          } else if (el === totalCostEl) {
+            el.innerHTML = _mobilePriceHTML(formatNumberThin(toVal) + suffix); // v10.2.16: рубль-спутник desktop
           } else {
             el.textContent = formatNumberThin(toVal) + suffix;
           }
@@ -4591,12 +4761,14 @@
       applySkeleton();
 
       if (!valid || hours === 0) {
+        lastTotalCost = 0; // v10.2.17 (П1): обнулить ДО updateRateBadge — иначе hasPrice читает старое ненулевое → чип не скрывался
+        if (typeof updateRateBadge === 'function') updateRateBadge(); // скрыть чип при обнулении ДО return
         if (lastTotalCost > 0 || lastDailyOutputs > 0 || lastPerScreen > 0) {
           animateCounter(totalCostEl, lastTotalCost, 0, ' ₽', 800);
           animateCounter(dailyOutputsValueEl, lastDailyOutputs, 0, '', 800);
           animateCounter(perScreenValueEl, lastPerScreen, 0, '', 800);
         } else {
-          totalCostEl.textContent = '0 ₽';
+          totalCostEl.innerHTML = _mobilePriceHTML('0 ₽'); // v10.2.16: рубль-спутник 62% и при нуле
           dailyOutputsValueEl.textContent = '0';
           perScreenValueEl.textContent = '0';
           adjustResultFontSize();
@@ -4610,7 +4782,7 @@
         // v8.43: сбрасываем только расчётные значения — то что реально равно нулю.
         // chipScreens/Days/Freq/Hours обновлены выше (параллельно с summary*).
         if (window.innerWidth <= 500) {
-          if (totalCostMobileEl)         { totalCostMobileEl.textContent = '0 ₽'; totalCostMobileEl.classList.remove('is-long'); }
+                   if (totalCostMobileEl)         { totalCostMobileEl.innerHTML = _mobilePriceHTML('0\u202F₽'); totalCostMobileEl.classList.remove('is-long'); totalCostMobileEl.classList.add('is-zero-price'); } // v10.2.16: рубль-спутник 62% при нуле; v10.2.23: is-zero-price поднимает рубль (48px дефолт ≠ фит-кегль расчёта)
           _lastFinalMobileText = '0\u202F₽'; // v9.2.9-fix: сброс к нулю для RO
           if (dailyOutputsValueMobileEl)   dailyOutputsValueMobileEl.textContent = '0';
           if (perScreenValueMobileEl)      perScreenValueMobileEl.textContent = '0';
@@ -4644,8 +4816,9 @@
         // чтобы и reduce-motion (читает _lastFinalMobileText в adjustMobileResultFontSize),
         // и ResizeObserver получили АКТУАЛЬНЫЙ текст, а не устаревший (был корнем
         // промаха PASS 2 в reduce-motion).
-        const finalMobileText = formatNumberThin(total) + '\u202F₽'; // тот же суффикс что у animateCounter
+               const finalMobileText = formatNumberThin(total) + '\u202F₽'; // тот же суффикс что у animateCounter
         _lastFinalMobileText = finalMobileText;
+        if (totalCostMobileEl) totalCostMobileEl.classList.remove('is-zero-price'); // v10.2.23: расчётная цена — чистый baseline (shift-m=0), снимаем нулевой сдвиг
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
           // Нет анимации — финальный текст уже будет в DOM после animateCounter
           // (который при reduce-motion тоже ставит значение мгновенно через tick t=1)
@@ -5523,7 +5696,7 @@
       if (rl) rl.style.cssText = 'width:100%;';
 
       const rlabel = footer.querySelector('.result-label');
-      if (rlabel) rlabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:0;text-align:center;display:block;';
+      if (rlabel) rlabel.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:none;letter-spacing:1px;margin-bottom:0;text-align:center;display:block;'; // v10.2.16: Sentence case
 
       // v9.7.0: Объявляем переменные для drawText вне if(rv) — они нужны после html2canvas.
       // getBoundingClientRect берётся ПОСЛЕ document.body.appendChild(snapContainer),
@@ -7503,19 +7676,13 @@
         // inline) — они и не работали, и ломали стиль. Чип имеет position:relative,
         // adjustPopup сам ставит тултип НАД ним (футер → isUpper=false → bottom+8px GAP)
         // в ЕДИНОМ стиле всех тултипов. Один механизм — один вид.
-        // v10.2.15 (№4): mouseover/out (всплывают через дочерние .rate-badge-val/suffix —
-        // надёжнее mouseenter на чипе с вложенными span) + rAF для adjustPopup (чип в
-        // потоке футера — гарантируем пересчёт позиции после показа). Эталонный стиль.
-        const _badgeIn = () => {
-          rateBadgeTooltipD.classList.add('show');
-          requestAnimationFrame(() => {
-            if (rateBadgeTooltipD.parentElement) adjustPopup(rateBadgeTooltipD, rateBadgeTooltipD.parentElement);
-          });
-        };
-        const _badgeOut = () => rateBadgeTooltipD.classList.remove('show');
-        rateBadgeDesktopEl.addEventListener('mouseover', _badgeIn);
-        rateBadgeDesktopEl.addEventListener('mouseout', _badgeOut);
-        rateBadgeDesktopEl.addEventListener('mousedown', _badgeOut);
+        // v10.2.16 (№4): ЭТАЛОННЫЙ showTooltip/hideTooltip + mouseenter (как ВСЕ кнопки;
+        // mouseover давал ложные срабатывания на дочерних span). showTooltip сам зовёт
+        // adjustPopup(tooltip, parent). Видимость гарантируется overflow:visible на
+        // .result-meta (ниже) — устранён единственный возможный обрезающий контекст.
+        rateBadgeDesktopEl.addEventListener('mouseenter', () => showTooltip(rateBadgeTooltipD));
+        rateBadgeDesktopEl.addEventListener('mouseleave', () => hideTooltip(rateBadgeTooltipD));
+        rateBadgeDesktopEl.addEventListener('mousedown',  () => hideTooltip(rateBadgeTooltipD));
       }
       const rateGearTooltipD = document.getElementById('rateGearTooltipD');
       const rateGearTooltipM = document.getElementById('rateGearTooltipM');
@@ -7556,7 +7723,8 @@
       setupKeyboardLift();
       updateFooterCompactState();
       setupDynamicPaddingBottom();
-
+	  
+	
       // v8.44: при ресайзе через границу 500px — полный пересчёт calculateTotal().
       // Дебаунс 150ms — не дёргаем на каждый пиксель.
       let _resizeTimer = null;
@@ -7873,4 +8041,3 @@
 </script>
 </body>
 </html>
-
