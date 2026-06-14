@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.2.19
+    Продукт: ПВЗ Калькулятор Lite · v10.2.34
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -834,6 +834,126 @@
              JS НЕ тронут. СВЯТЫНИ ЦЕЛЫ: вертикаль PNG, .is-snap-mode, Range-фит,
              рубль 62% PNG, зональность/Input Source Priority, парсер/линейность rate.
 
+             v10.2.27 — PDF Reborn (коммерческое предложение Apple-уровня).
+             КОНТЕКСТ: PDF — это КП, менеджер несёт его клиенту/директору. Принцип Maxim:
+             текстовка ГРАНИТ (+ступень, не зависит от суммы), адаптируется ТОЛЬКО
+             цена-герой. PNG/UI НЕ ТРОНУТЫ (изоляция: @media print + #printBlock +
+             printAsPdf, с PNG не пересекается).
+             (A) Цена-герой адаптив по ЧИСЛУ ЦИФР (гранит, не от font-size): ≤6→76px,
+             7-8→64px, 9→54px, 10+→46px; letter-spacing ступенями. fitPrintSum() после
+             рубля-обёртки. База .print-sum 58→76px.
+             (B) Текстовка +ступень (ГРАНИТ): forecast-main 15→17, sub 12→14, таблица td
+             12→13, td-value 13→15, total 15→17, disclaimer 9→10, label 9→11. Постоянны.
+             (C) Часы PDF оранжевые→ЗЕЛЁНЫЕ (#2D9F4F, синхрон UI; оранжевый освобождён
+             для цены-героя — Color Discipline).
+             (D) Шапка: «Расчёт стоимости размещения»→«Предварительный расчёт» (HTML+JS).
+             + дата «Сформировано ДД.ММ.ГГГГ» (с годом — юр.актуальность КП).
+             (E) Контакт-фраза «По вопросам размещения обратитесь к вашему менеджеру RUSS»
+             — отдельный .print-contact (НЕ собираем email: окно=трение, Apple HIG).
+             (F) @page{margin:0;size:A4} — убирает колонтитулы браузера (URL/дата/№стр),
+             padding #printBlock 20×28→36×40 (поля A4 теперь наши).
+             (G) Имя файла buildFileName(): RUSS_PV_5экр_15дн_30вых_СУММАр_ДД.ММ. Крупные
+             сокр.(млрд/млн), малые полные с разделителем. PDF — через document.title
+             (возврат в afterprint). PNG унифицирован. Код PV=ПВЗ (задел BB/SS).
+             РАЗВИЛКИ (решения Opus): Р1 — на млрд letter-spacing -0.5px (не -1px:
+             Montserrat 800 на 46px поджимался). Р2 — дата ручной сборкой dd.mm.yyyy
+             (toLocaleDateString на англ.Windows даёт 4/15/2025). Р3 — обычный пробел
+             U+0020 в имени файла (\u202F ОС ломают; узкий — только в визуале). Р4 —
+             поля 36×40 (чуть больше 32×36: безопасно для всех принтеров на A4).
+             СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (_yDraw/гранит), .is-snap-mode, Range-фит,
+             рубль-спутник, три+rate слайдера, Input Source Priority, applyRate.
+
+             v10.2.28 — PDF Polish (Apple-доводка подвала и шапки КП).
+             (З1) Шапка-иерархия: «Предварительный расчёт» крупно (12px тёмная) + дата
+             10px серая. «ПВЗ Калькулятор · Lite vXX» УБРАН из шапки (техничка не место
+             в шапке КП) → вниз (З4). КРИТИЧНО: span#printDate в printBadge сохранён.
+             (З2) Юр.дисклеймер «Russ Online свисал»: 2 смысловых блока (.print-disc-line
+             block) + .print-nowrap на «в Russ Online» (предлог не рвётся от бренда).
+             Кегль НЕ менялся (10px). HTML+JS синхрон.
+             (З3) ГЛАВНОЕ: контакт-фраза = CALL-TO-ACTION. «Свяжитесь с вашим менеджером
+             RUSS» (активный залог — маркетинг, не пассив «обратитесь») переехала ВВЕРХ —
+             сразу под блоком результата, отдельным .print-cta. Тёплый тон #1D1D1F
+             semibold, рамки сверху/снизу, заметнее юр.оговорки, но НЕ оранжевый (не
+             спорит с ценой). Старый .print-contact удалён. Apple/Stripe: CTA у результата.
+             (З4) Версия-метка #printVersion внизу справа 7px #C7C7CC (invoice ref) — для
+             Maxim. Из APP_VERSION в init(). БЛОК РЕЗУЛЬТАТА НЕ ТРОНУТ.
+             СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (_yDraw), .is-snap-mode, Range-фит,
+             рубль-спутник, три+rate слайдера, Input Source Priority, applyRate.
+
+             v10.2.29 — PDF Footer & Ruble (3 дефекта по PDF-выгрузке Maxim).
+             (З1) Шапка «RUSS.Предварительный расчёт» СЛИПЛАСЬ: .print-badge-title
+             (display:block) раздулся, text-align:right родителя не действовал на блок
+             → наезд на логотип. ФИКС: text-align:right на сам title + padding-left:24px
+             на .print-badge (воздух от логотипа).
+             (З2) Рубль в цене ТОНКИЙ И ДАЛЁКИЙ: .print-ruble вес 700 (цифры — 800) →
+             тоньше; зазор = узкий пробел при кегле 76px → дыра. ФИКС: вес 700→800
+             (синхрон с цифрами, как живой UI desktop) + margin-left:0.08em. JS
+             setPrintSumWithRuble обрезает хвостовой пробел перед ₽ (разделители тысяч
+             внутри числа НЕ тронуты — regex с якорем $).
+             (З3) Юр.дисклеймер+версия НЕ прижаты к низу A4 — «висели» в середине при
+             малом контенте. ФИКС (Word-колонтитул): #printBlock → flex-колонка
+             min-height:100vh; подвал обёрнут в .print-footer с margin-top:auto →
+             уезжает в самый низ при ЛЮБОМ объёме. CTA остаётся ВВЕРХУ у результата.
+             page-break-inside убран со ВСЕХ блоков (конфликт с flex); page-break-after:
+             avoid на #printBlock (страховка от пустой 2-й стр). .print-disclaimer
+             margin-top убран (отступ даёт .print-footer).
+             РАЗВИЛКА (Opus): min-height:100vh — рабочий паттерн Chrome «Сохранить как
+             PDF» (Maxim печатает так). Контент влезает с запасом (~570px из 1123px A4),
+             1 страница гарантирована; гигантские суммы — подвал на 2-й стр (корректное
+             поведение колонтитула).
+             ИЗОЛЯЦИЯ: всё в @media print + printAsPdf. PNG/UI НЕ ТРОНУТЫ.
+             СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (_yDraw), .is-snap-mode, Range-фит, живой
+             рубль-спутник, три+rate слайдера, Input Source Priority, applyRate.
+
+             v10.2.33 — Профиль менеджера: персональные контакты в КП (PDF; PNG — след. шаг).
+             КОНТЕКСТ (Maxim): обезличенный CTA «Свяжитесь с менеджером RUSS» не давал
+             клиенту имени/телефона. Менеджер раз сохраняет данные → они в PDF.
+             АРХИТЕКТУРА (гранит): Профиль = ИСТОЧНИК ИСТИНЫ (localStorage russ-manager-*-v1),
+             PDF/PNG — ПОТРЕБИТЕЛИ через getManagerContact()/hasManagerContact(). PNG в
+             этой версии НЕ тронут (drawText/_yDraw — священная корова), подключится
+             след. шагом к ТЕМ ЖЕ функциям (нулевая переделка). localStorage (НЕ сессия):
+             контакты постоянны, переживают F5/закрытие.
+             SHARE SHEET: третий пункт «Профиль» (нейтральный серый .fmt-profile, НЕ
+             зелёный/синий/оранжевый — не главный герой). Тап → аккордеон ВНУТРИ sheet
+             (max-height + Apple Wallet curve, НЕ modal-over-modal). 3 опциональных поля
+             (Имя/Телефон/E-mail), любая комбинация, БЕЗ обязательных/красных ошибок
+             (раздел 8). Кнопка «Сохранить» = тихий зелёный .rate-btn-apply (Color
+             Discipline). Состояние карточки: имя→имя / данные без имени→«Данные
+             сохранены» / пусто→призыв.
+             PDF CTA: hasManagerContact() ? именной блок (призыв→имя semibold→тел→email,
+             пустые не рисуются, escapeHtml-защита) : обезличенный. Имя чуть заметнее
+             (600/#1D1D1F), контакты обычный текст (#3A3A3C) — НЕ конкурируют с ценой-
+             героем (раздел 12). ПРИНЦИП MAXIM: между «красивее» и «менее заметно» —
+             выбирай менее заметно.
+             СВЯТЫНИ ЦЕЛЫ: PNG drawText/_yDraw (НЕ ТРОНУТ — след.шаг), .is-snap-mode,
+             Range-фит, рубль-спутник, три+rate слайдера, Input Source Priority,
+             applyRate, цена-герой адаптив PDF, колонтитул A4, расчёт calculateTotal.
+
+             v10.2.34 — Профиль-полировка: CTA-иерархия, маска телефона, моб.меню (Maxim+GPT).
+             КОНТЕКСТ: v10.2.33 дала функционал, v10.2.34 доводит до Apple-уровня по 6 точкам.
+             (В1) PDF CTA-ИЕРАРХИЯ: призыв → тихая МЕТКА (.print-cta-label 10px/#9A9AA4
+             +воздух 8px), имя → ГЕРОЙ блока (14px/600/#1D1D1F), тел/email обычные
+             (#3A3A3C/line-height 1.6). Метка→человек→каналы (Apple/Stripe). Обезличенный
+             CTA плоский (нет имени-героя → метка не нужна).
+             (В2) PLACEHOLDER FOCUS: :focus::placeholder{color:transparent} — поле =
+             чистое приглашение (Apple Contacts). Чистый CSS, 3 поля разом.
+             (В3) МАСКА ТЕЛЕФОНА (вариант Б — Maxim): formatPhoneRu() → +7 905 333-55-22
+             (8/7→+7, 9XX→+7 9XX, макс 11 цифр, тире 3-3-2-2). ТОЛЬКО на input (не keydown
+             — курсор), курсор в конец. Сохраняется отформатированным → PDF единый формат
+             с тире. ТОЛЬКО #profilePhone — 3 целочисленных не тронуты.
+             (В4) ТЕКСТ ПРОФИЛЯ: «персонализации КП» → «Ваши данные в коммерческом
+             предложении» (деловой язык, не маркетинговая абстракция). Бейдж ПРОФИЛЬ —
+             оставлен (рус.слово ≠ англ.аббревиатура — норма).
+             (В5) МОБИЛЬНОЕ МЕНЮ (вариант В — Maxim): openShareSheet на mobile теперь
+             ОТКРЫВАЕТ меню (был мгновенный PNG минуя меню → Профилю негде открыться).
+             Mobile: PNG (главный) + Профиль; PDF скрыт CSS @media. +1 тап принят.
+             (В6) PLACEHOLDER'Ы: имя «Иван Петров» (нейтральный, не реальное лицо), email
+             «ivanov@rwb.ru» (КРИТИЧНО: rwb.ru — реальный домен, был ошибочный russ.ru).
+             PNG (Canvas drawText) НЕ ТРОНУТ — след.шаг, подключится к getManagerContact().
+             СВЯТЫНИ ЦЕЛЫ: PNG drawText/_yDraw, .is-snap-mode, Range-фит, рубль-спутник,
+             три+rate слайдера (маска ТОЛЬКО телефон профиля), Input Source Priority,
+             applyRate, цена-герой адаптив PDF, колонтитул A4, getManagerContact (источник).
+
              v10.2.5 — «(без НДС)» не жирный + фиксы из правок Максима.
              БАЗА: файл Максима v10.2.4 (он внёс .vat-note, приглушил .rate-disc-hot
              и .rate-label-suffix до rgba(..,0.85), добавил /вых для узких — учтено).
@@ -851,7 +971,65 @@
              ⓘ ломалась. Добавлен </span> после tooltip M → ⚙ вернулась, « • Запуск в
              Russ Online» + ⓘ-кругляшок на местах. СВЯТЫНИ ЦЕЛЫ: вертикаль PNG,
              .is-snap-mode, Range-фит, трое слайдеров, рубль-спутник, парсер/
-             валидация/линейность rate, чипы, RATE_MAX_KOP=120, порядок applyRate.
+                          валидация/линейность rate, чипы, RATE_MAX_KOP=120, порядок applyRate.
+
+             v10.2.30 — PDF Polish-3 (3 правки по тесту Maxim на распечатке).
+             (1) ШАПКА-ГАРМОНИЯ: .print-badge + .print-badge-title line-height 1.5→1.1
+             + margin-bottom:3px на заголовке. КОРЕНЬ «большого воздуха» (Maxim увидел
+             на печати): line-height блоков ~1.4 давал «воздух строки» сверху/снизу
+             заголовка и даты → дыра. line-height:1.1 сжимает к тексту, 3px = гранитный
+             зазор заголовок↔дата (гармония, не «математический воздух»). Размеры 12/10px
+             НЕ тронуты. Дата «Сформировано» села к нижней линии лого RUSS.
+             (2) ТРЕКИНГ «Итого стоимость»: .print-label letter-spacing 1.2px→0.2px.
+             КОРЕНЬ «разъехалось» (Maxim, данные из кода): 1.2px — uppercase-tracking,
+             но текст уже Sentence case (v10.2.16) → широкий трекинг избыточен. 0.2px =
+             как .card-title в UI (v9.1.3). «ЧАСЫ ВЕЩАНИЯ» (капс .print-hours-title)
+             1.2px НЕ тронут — капсу трекинг нужен (Apple Legal-стиль).
+             (3) ЧИСЛА — ЕДИНЫЙ ПОРОГ 10000 (вариант А, выбор Maxim). КОРЕНЬ
+             рассогласования (данные из кода): параметры (2000/360/14) шли БЕЗ пробела
+             (.value/textContent напрямую), показы/цена — С пробелом (formatNumberThin
+             с первой тысячи) → «2000» монолит vs «1 500» показы → глаз спотыкался.
+             ФИКС: fmtPrint(num) — <10000 монолит (Maxim: красиво, 5040/2000/360),
+             ≥10000 узкий пробел (45000→«45 000», ГОСТ/ISO). Применён к параметрам
+             шапки PDF (sN/dN/fN через fmtPrint). Показы/цена остаются formatNumberThin
+             (всегда ≥10000 в реальных расчётах → визуально совпадает). Малые числа
+             монолитны ВЕЗДЕ — рассогласование убито.
+             (4) Цифровые подписи PDF (вопрос Maxim) — НЕ баг: панель «подтвердить/
+             удалить подписи» = UI редактора (Acrobat/Foxit) на ЛЮБОМ PDF. Наш PDF
+             чист (Chrome «Сохранить как PDF», без сертификатов) — КП не юр.документ,
+             подпись не нужна. В обычном просмотрщике панель не видна. Кода нет.
+             ИЗОЛЯЦИЯ: всё в @media print + printAsPdf. PNG/UI/живой калькулятор НЕ ТРОНУТЫ.
+             СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (_yDraw), .is-snap-mode, Range-фит,
+             рубль-спутник (UI+PNG+PDF), три+rate слайдера, Input Source Priority,
+                          applyRate, колонтитул A4 (v10.2.29), цена-герой адаптив.
+
+             v10.2.31 — PDF Колонтитул + CTA-restraint (3 правки, Maxim был прав).
+             ПРИЗНАНИЕ: договорённости (position:fixed колонтитул, упрощение CTA)
+             проговорили в плане, но в код v10.2.30 НЕ положили — там был только
+             Polish-3. Теперь реализовано.
+             (1) КОЛОНТИТУЛ-ГРАНИТ (КРИТИЧНО): подвал уезжал на 2-ю стр. КОРЕНЬ
+             (Maxim, единица измерения): min-height:100vh мерил высоту ЭКРАНА
+             браузера, НЕ листа A4 → блок > A4 → подвал не влезал. РЕШЕНИЕ (идея
+             Maxim): .print-footer → position:fixed; bottom:24px; left/right:40px —
+             настоящий колонтитул Word, вынут из потока, прижат к низу A4
+             НЕЗАВИСИМО от высоты цены (76px↔46px подвалу всё равно). #printBlock:
+             display:flex→block, min-height:100vh УБРАН, padding-bottom:90px (контент
+             не налезает на фикс-подвал). 3 страховки: (а) padding-bottom тела,
+             (б) @page A4, (в) контент ~570px из 1123px — запас огромный.
+             (2) CTA-RESTRAINT (Maxim, Apple «один элемент — одно выделение»): CTA
+             был перегружен (центр + жирность ВСЕГО + 2 линии-рамка = 3 акцента).
+             Убраны: 2 линии, центрирование, жирность всего. Теперь: влево (ось с
+             текстом ниже), вес 500, тон #3A3A3C тёплый. «RUSS» НЕ выделяем отдельно
+             (заглавные = естественный бренд-акцент; выделение = «прыжок» глаза).
+             (3) ШАПКА «RUSS.» слипалась: padding-left 24→40px — гарантированный
+             зазор лого↔группа шапки (24px воздух съедался на печати).
+             РАЗВИЛКА (Opus): position:fixed bottom — рабочий паттwebн Chrome
+             «Сохранить как PDF». При гигантской сумме (контент > A4) подвал на
+             2-й стр — корректное поведение колонтитула (Word так же).
+             ИЗОЛЯЦИЯ: всё в @media print + printAsPdf. PNG/UI/живой калькулятор НЕ
+             ТРОНУТЫ. СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (_yDraw), .is-snap-mode, Range-фит,
+             рубль-спутник, три+rate слайдера, Input Source Priority, applyRate,
+             цена-герой адаптив, числа fmtPrint (v10.2.30).
   ================================================
 -->
   
@@ -2682,6 +2860,45 @@
     .fmt-pdf .fmt-icon svg { stroke:#378ADD; }
     .fmt-pdf .fmt-badge { background:rgba(55,138,221,0.15); color:#378ADD; }
 
+    /* v10.2.33: третья карточка Профиль — НЕЙТРАЛЬНЫЙ серый (НЕ зелёный/синий/оранжевый:
+       не главный герой меню, «менее заметно»). Клон .format-btn, своя спокойная семья. */
+    .fmt-profile { background: var(--inverse-bg); border-color: var(--border-btn); }
+    .fmt-profile:hover { background: rgba(255,255,255,0.04); border-color: var(--border-input-hover); }
+    .light-mode .fmt-profile:hover { background: rgba(0,0,0,0.04); }
+    .fmt-profile .fmt-icon { background: rgba(120,120,130,0.15); }
+    .fmt-profile .fmt-icon svg { stroke: var(--text-secondary); }
+    .fmt-profile .fmt-badge { background: rgba(120,120,130,0.15); color: var(--text-secondary); }
+    .fmt-profile.is-active { border-color: var(--border-input-hover); } /* раскрыт */
+
+    /* v10.2.33: аккордеон-форма — раскрытие ВНУТРИ sheet (Apple Wallet curve, НЕ modal).
+       max-height:0→потолок (transition не работает на auto). Растёт под карточкой. */
+    .profile-form {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height var(--dur-slow) var(--ease-emphasis),
+                  opacity var(--dur-medium) var(--ease-standard);
+      padding: 0 2px;
+    }
+    .profile-form.open { max-height: 460px; opacity: 1; padding: 6px 2px 4px; }
+    .profile-field { margin-bottom: 12px; }
+    .profile-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.1px; }
+    /* поле = клон .input-field (наследует фон/рамку/радиус системы), компактнее по высоте */
+    .profile-input { width: 100%; box-sizing: border-box; padding: 11px 14px; font-size: 15px; }
+    /* v10.2.34 (В2): placeholder гаснет на focus (Apple Contacts/Apple ID) — поле
+       становится чистым приглашением. Чистый CSS, работает на всех 3 полях. */
+    .profile-input:focus::placeholder { color: transparent; }
+    /* v10.2.33: кнопка Сохранить = тихий зелёный .rate-btn-apply (Color Discipline, НЕ оранж). */
+    .profile-save-btn {
+      width: 100%; padding: 12px 16px; margin-top: 4px;
+      border-radius: var(--radius-button); cursor: pointer; font-family: inherit;
+      font-size: 15px; font-weight: 600;
+      background: rgba(52,199,89,0.15); border: var(--border-medium) solid rgba(52,199,89,0.4); color: #34C759;
+      transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+    }
+    .profile-save-btn:hover { background: rgba(52,199,89,0.22); }
+    .profile-save-btn:active { transform: scale(0.98); }
+    .light-mode .profile-save-btn { background: rgba(45,159,79,0.12); border-color: rgba(45,159,79,0.4); color: #2D9F4F; }
+    .profile-save-btn.saved { background: rgba(52,199,89,0.22); } /* краткий feedback */
+
     /* ── v8.35: defense in depth ─────────────────────────────────────────
        PDF-опция скрыта на мобилке. Главная защита — JS-ветвление в
        openShareSheet(). CSS — страховка на случай если модал откроется
@@ -2702,37 +2919,87 @@
     @media print {
       body > *:not(#printBlock) { display: none !important; }
       body { margin: 0; padding: 0; background: #fff !important; font-family: 'Montserrat', Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      #printBlock { display: block !important; width: 100%; padding: 20px 28px; box-sizing: border-box; color: #1D1D1F; page-break-inside: avoid; break-inside: avoid; orphans: 3; widows: 3; }
-      .print-header, .print-params, .print-hours, .print-result-block, .print-disclaimer { page-break-inside: avoid; break-inside: avoid; }
-      .print-disclaimer { page-break-before: avoid; break-before: avoid; }
+      @page { margin: 0; size: A4; } /* v10.2.27 (F): убирает колонтитулы браузера (URL/дата/№стр); поля A4 теперь через padding ниже */
+            /* v10.2.31 (КОЛОНТИТУЛ-ГРАНИТ, Maxim): min-height:100vh УБРАН — он мерил
+         высоту ЭКРАНА браузера, не листа A4 → блок растягивался > A4 → подвал
+         уезжал на 2-ю стр. Корень в единице измерения (vh = viewport, не page).
+         РЕШЕНИЕ: подвал вынут из потока через position:fixed (см. .print-footer ниже) —
+         настоящий колонтитул Word, повторяется внизу КАЖДОЙ стр на фикс-расстоянии.
+         СТРАХОВКА 1: padding-bottom:90px телу — контент НЕ налезает на фикс-подвал.
+         СТРАХОВКА 2: @page size:A4 (ниже) — лист строго A4.
+         СТРАХОВКА 3: контента ~570px из 1123px A4 — запас огромный (млрд тоже влезает). */
+      #printBlock { display: block !important; width: 100%; padding: 36px 40px 90px 40px; box-sizing: border-box; color: #1D1D1F; orphans: 3; widows: 3; } /* v10.2.29 (З3): page-break-inside:avoid убран со ВСЕХ блоков — при flex он
+         выталкивал блоки и мог ломать «1 страницу». Контент влезает с запасом (~570px
+         из 1123px A4), переносы не нужны. */
+      .print-header, .print-params, .print-hours, .print-result-block { break-inside: avoid; }
       .print-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #1D1D1F; }
       .print-logo { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #1D1D1F; }
       .print-logo span { color: #EA580C; }
-      .print-badge { font-size: 10px; color: #9A9AA4; letter-spacing: 0.5px; text-align: right; line-height: 1.5; }
-      .print-params { font-size: 12px; color: #6E6E73; margin-bottom: 14px; padding: 9px 12px; background: #F5F5F7 !important; border-radius: 6px; border-left: 3px solid #EA580C; }
+      .print-badge { font-size: 10px; color: #9A9AA4; letter-spacing: 0.5px; text-align: right; line-height: 1.1; padding-left: 24px; } /* v10.2.30: line-height 1.5→1.1 — убран лишний воздух строки (Maxim: гармония, дата на линии с лого) */
+      .print-badge-title { display: block; font-size: 12px; font-weight: 600; color: #1D1D1F; text-align: right; line-height: 1.1; margin-bottom: 3px; } /* v10.2.30: line-height:1.1 + margin-bottom:3px — управляемый зазор заголовок↔дата (гармония, не «математический воздух»). Размеры 12/10 не тронуты */  
+	  .print-params { font-size: 12px; color: #6E6E73; margin-bottom: 14px; padding: 9px 12px; background: #F5F5F7 !important; border-radius: 6px; border-left: 3px solid #EA580C; }
       .print-params b { color: #1D1D1F; font-weight: 700; }
       .print-hours { margin-bottom: 14px; }
       .print-hours-title { font-size: 9px; font-weight: 700; color: #9A9AA4; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 7px; }
       .print-hours-grid { display: flex; flex-wrap: wrap; gap: 4px; }
       .print-hour-chip { padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; }
-      .print-hour-chip.selected { background: #EA580C !important; color: #fff !important; }
+      .print-hour-chip.selected { background: rgba(45,159,79,0.12) !important; color: #2D9F4F !important; border: 1px solid rgba(45,159,79,0.4); } /* v10.2.27 (C): оранж→зелёный (синхрон UI; оранжевый освобождён для цены-героя) */
       .print-hour-chip.empty { background: #F0F0F5 !important; color: #9A9AA4 !important; }
       .print-divider { border: none; border-top: 0.5px solid #E0E0E5; margin: 14px 0; }
       .print-result-block { border-left: 4px solid #EA580C; padding-left: 16px; margin-bottom: 14px; }
-      .print-label { font-size: 9px; font-weight: 700; color: #9A9AA4; text-transform: none; letter-spacing: 1.2px; margin-bottom: 6px; } /* v10.2.16: Sentence case */
-      .print-sum { font-size: 58px; font-weight: 800; color: #1D1D1F; letter-spacing: -2px; line-height: 1.0; margin-bottom: 8px; }
+      .print-label { font-size: 11px; font-weight: 700; color: #9A9AA4; text-transform: none; letter-spacing: 0.2px; margin-bottom: 6px; } /* v10.2.30: letter-spacing 1.2px→0.2px — Sentence case не нужен широкий трекинг (Maxim увидел «разъехалось»). «ЧАСЫ ВЕЩАНИЯ» капс 1.2px не тронут */ 
+	  .print-sum { font-size: 76px; font-weight: 800; color: #1D1D1F; letter-spacing: -2px; line-height: 1.0; margin-bottom: 8px; } /* v10.2.27 (A1): база 58→76px, JS fitPrintSum() ужимает по числу цифр */
       /* v10.1.6: рубль-спутник 62% в PDF — синхрон с живым UI и PNG-снимком */
-      .print-ruble { font-size: 0.62em; font-weight: 700; }
-      .print-forecast-main { font-size: 15px; font-weight: 500; color: #3A3A3C; margin-bottom: 3px; }
-      .print-forecast-sub { font-size: 12px; color: #6E6E73; }
+      /* v10.2.29 (З2): рубль PDF — вес 800 (синхрон с цифрами .print-sum) + контролируемый
+         зазор margin-left (масштабируется от кегля рубля, не от полного кегля цифр).
+         Решает «тонкий далёкий рубль». */
+      .print-ruble { font-size: 0.62em; font-weight: 800; margin-left: 0.08em; }
+      .print-forecast-main { font-size: 17px; font-weight: 500; color: #3A3A3C; margin-bottom: 3px; } /* v10.2.27 (B): 15→17 гранит */
+      .print-forecast-sub { font-size: 14px; color: #6E6E73; } /* v10.2.27 (B): 12→14 */
       .print-params-table { width: auto; border-collapse: collapse; margin-top: 14px; min-width: 260px; }
       .print-params-table tr { border-bottom: 0.5px solid #E5E5EA; }
-      .print-params-table td { padding: 6px 0; font-size: 12px; }
+      .print-params-table td { padding: 6px 0; font-size: 13px; } /* v10.2.27 (B): 12→13 */
       .print-params-table .td-label { color: #6E6E73; padding-right: 36px; white-space: nowrap; }
-      .print-params-table .td-value { text-align: right; font-weight: 700; color: #1D1D1F; font-size: 13px; white-space: nowrap; }
+      .print-params-table .td-value { text-align: right; font-weight: 700; color: #1D1D1F; font-size: 15px; white-space: nowrap; } /* v10.2.27 (B): 13→15 */
       .print-total-row td { padding-top: 8px !important; border-bottom: none !important; color: #EA580C !important; font-size: 12px; }
-      .print-total-row .td-value { font-size: 15px; font-weight: 800; color: #EA580C !important; }
-      .print-disclaimer { font-size: 9px; color: #9A9AA4; line-height: 1.5; margin-top: 14px; padding-top: 10px; border-top: 0.5px solid #E5E5EA; }
+      .print-total-row .td-value { font-size: 17px; font-weight: 800; color: #EA580C !important; } /* v10.2.27 (B): 15→17 */
+      /* v10.2.29 (З3): подвал-колонтитул прижат к низу листа A4 (Word-паттерн).
+         margin-top:auto в flex-колонке #printBlock отодвигает подвал в самый низ
+         независимо от количества контента. Содержит юр.дисклеймер + версию. */
+            /* v10.2.31 (КОЛОНТИТУЛ): position:fixed; bottom = вынут из потока, прижат к
+         низу A4 НЕЗАВИСИМО от высоты цены (76px короткая ↔ 46px млрд — подвалу всё
+         равно). left/right:40px = поля A4 (как у #printBlock). bottom:24px — отступ
+         от обреза листа, версия не ляжет на край. Word-колонтитул, гранит. */
+      .print-footer { position: fixed; bottom: 24px; left: 40px; right: 40px; }
+      .print-disclaimer { font-size: 10px; color: #9A9AA4; line-height: 1.5; padding-top: 10px; border-top: 0.5px solid #E5E5EA; } /* v10.2.27 (B): 9→10; v10.2.29 (З3): margin-top убран — подвал прижат через .print-footer; верхняя линия отделяет колонтитул */
+      /* v10.2.27 (D2): дата формирования КП — юр.актуальность цены. Тон #9A9AA4, прижата к бейджу. */
+      .print-date { display: block; font-size: 10px; color: #9A9AA4; margin-top: 2px; font-weight: 400; }
+      /* v10.2.27 (E): контакт-фраза — сервисный мостик к менеджеру (НЕ собираем email = трение, Apple HIG). Отдельный узел, не акцент. */
+      .print-disc-line { display: block; } /* v10.2.28 (З2): каждое предложение — свой блок (перенос абзацем, не рвёт слово) */
+      .print-nowrap { white-space: nowrap; } /* v10.2.28 (З2): предлог не отрывается от бренда (рус.типографика) */
+      /* v10.2.28 (З3): контакт-фраза = CALL-TO-ACTION (не дисклеймер!). Маркетинг: после
+         цены-героя — мостик к действию. Тёплый, заметнее юр.оговорки, но НЕ оранжевый
+         (не спорит с ценой). Apple/Stripe pattern: CTA дышит у результата, юр.текст — в подвале. */
+           /* v10.2.31 (CTA-RESTRAINT, Maxim): убраны 2 линии (рамка = крик) + центр +
+         жирность ВСЕГО → было 3 акцента на фразу. Apple «один элемент — одно
+         выделение». Теперь: влево (спокойная ось с текстом ниже), обычный вес,
+         тёплый тёмный тон. «RUSS» НЕ выделяем — заглавные сами читаются как бренд
+         (выделять = «прыжок» глаза посреди строки). Лёгкий воздух сверху, без линий. */
+      .print-cta { font-size: 13px; font-weight: 500; color: #3A3A3C; text-align: left; margin: 16px 0 0; padding: 0; letter-spacing: 0.1px; }
+      /* v10.2.33: иерархия именного CTA (раздел 12 — НЕ конкурировать с ценой).
+         Имя чуть заметнее (semibold/#1D1D1F), тел/email обычный текст. БЕЗ оранж/жирн.чёрн. */
+      /* v10.2.34 (В1): призыв = тихая МЕТКА над контактами (мельче, серее, воздух 8px).
+         Глаз цепляется за ИМЯ-героя, не за призыв. Apple/Stripe: метка→человек→каналы. */
+      .print-cta-label { display: block; font-size: 10px; font-weight: 400; color: #9A9AA4; margin-bottom: 8px; letter-spacing: 0.2px; }
+      .print-cta-line { display: block; font-weight: 400; color: #3A3A3C; line-height: 1.6; }
+      .print-cta-name { font-size: 14px; font-weight: 600; color: #1D1D1F; margin-bottom: 4px; }
+      /* v10.2.28 (З4): версия-метка — техничка документа (Apple Legal/Stripe invoice ref).
+         Внизу справа, едва заметна; клиент не видит, Maxim идентифицирует сборку. */
+           /* v10.2.32 (Maxim+GPT): версия-метка ещё тише — invoice-ref на грани видимости.
+         color #C7C7CC→#E8E8EA (почти слилась с белым A4), size 7→6px. Клиент НЕ
+         замечает (даже не ищет), Maxim при споре опознаёт сборку с лупой/масштабом.
+         Apple Legal pattern: тех.метка существует, но не «шумит» в премиум-документе. */
+      .print-version { font-size: 6px; color: #E8E8EA; text-align: right; margin-top: 14px; letter-spacing: 0.3px; }
            .print-disclaimer b { color: #6E6E73; font-weight: 700; } /* v10.2.7: ТОЧНО цвет «Временная шкала»/lblColor PNG (был #3A3A3C — темнее) */ /* v10.2.5: тёмная жирная — как UI-футер (акцент только на сумму, «(без НДС)» вне <b>) */
     }
 
@@ -3722,7 +3989,7 @@
 <div id="printBlock" style="display:none;">
   <div class="print-header">
     <div class="print-logo">RUSS<span>.</span></div>
-        <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v10.0<br>Расчёт стоимости размещения</div>
+        <div class="print-badge" id="printBadge">ПВЗ Калькулятор · Lite v10.0<br>Предварительный расчёт<span class="print-date"></span></div>
   </div>
   <div class="print-params" id="printParams"></div>
   <div class="print-hours">
@@ -3737,9 +4004,14 @@
     <div class="print-forecast-sub" id="printForecastSub">—</div>
     <table class="print-params-table"><tbody id="printParamsTable"></tbody></table>
   </div>
-  <div class="print-disclaimer">
-    Расчёт носит ознакомительный характер. Учитывается ставка за выход
-    <b>0,60 ₽</b> (без НДС). Настройка и запуск кампании выполняются в Russ Online.
+  <div class="print-cta">Свяжитесь с вашим менеджером RUSS</div>
+  <!-- v10.2.29 (З3): подвал-колонтитул прижат к низу A4 через margin-top:auto. CTA остаётся вверху у результата (Maxim). -->
+  <div class="print-footer">
+    <div class="print-disclaimer">
+      <span class="print-disc-line">Расчёт носит ознакомительный характер. Учитывается ставка за выход <b>0,60 ₽</b> (без НДС).</span>
+      <span class="print-disc-line">Настройка и запуск кампании выполняются <span class="print-nowrap">в Russ Online</span>.</span>
+    </div>
+    <div class="print-version" id="printVersion"></div>
   </div>
 </div>
 
@@ -3758,6 +4030,30 @@
       <div class="fmt-text"><div class="fmt-title">Документ PDF</div><div class="fmt-desc">Для почты, КП или официального письма</div></div>
       <span class="fmt-badge">PDF</span>
     </button>
+    <!-- v10.2.33: третья карточка — Профиль менеджера. Нейтральный серый (.fmt-profile):
+         НЕ зелёный/синий/оранжевый — не главный герой меню. Клон .format-btn. -->
+    <button class="format-btn fmt-profile" id="profileBtn">
+      <div class="fmt-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="fmt-text"><div class="fmt-title">Контакты менеджера</div><div class="fmt-desc" id="profileCardDesc">Ваши данные в коммерческом предложении</div></div>
+      <span class="fmt-badge">ПРОФИЛЬ</span>
+    </button>
+    <!-- v10.2.33: аккордеон-форма ВНУТРИ sheet (max-height + Apple Wallet curve),
+         НЕ modal-поверх-modal (Apple HIG). Растёт под третьей карточкой. -->
+    <div class="profile-form" id="profileForm">
+      <div class="profile-field">
+        <label class="profile-label" for="profileName">Имя и фамилия</label>
+        <input type="text" class="input-field profile-input" id="profileName" placeholder="Например: Иван Петров" autocomplete="off" maxlength="60">
+      </div>
+      <div class="profile-field">
+        <label class="profile-label" for="profilePhone">Телефон</label>
+        <input type="tel" class="input-field profile-input" id="profilePhone" placeholder="Например: +7 905 123-45-67" autocomplete="off" maxlength="30">
+      </div>
+      <div class="profile-field">
+        <label class="profile-label" for="profileEmail">E-mail</label>
+        <input type="email" class="input-field profile-input" id="profileEmail" placeholder="Например: ivanov@rwb.ru" autocomplete="off" maxlength="60">
+      </div>
+      <button class="profile-save-btn" id="profileSaveBtn">Сохранить</button>
+    </div>
   </div>
   <button class="sheet-cancel" id="sheetCancelBtn">Отмена</button>
 </div>
@@ -3994,7 +4290,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-               const APP_VERSION = 'v10.2.19';
+      const APP_VERSION = 'v10.2.34';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -4167,8 +4463,21 @@
       return short ? s : s + '\u202F₽';
     }
 
-    function formatNumberThin(num) {
+        function formatNumberThin(num) {
       return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F');
+    }
+
+    // v10.2.30 (Maxim, вариант А): разделитель тысяч ТОЛЬКО для чисел ≥10000.
+    // КОРЕНЬ рассогласования PDF: параметры (2000/360/14) шли БЕЗ пробела
+    // (из .value/textContent напрямую), а показы/цена — С пробелом (formatNumberThin
+    // ставит с первой тысячи). «2000» монолит vs «1 500» показы → глаз спотыкался.
+    // РЕШЕНИЕ: единый порог 10000 ВЕЗДЕ. Малые (5040/1500/2000/360/14) — монолит
+    // (Maxim: красиво, читается как целое). Крупные (45000→«45 000») — с пробелом
+    // (мировой стандарт «крупных чисел», ГОСТ/ISO). Применяется ТОЛЬКО в PDF-сборке.
+    function fmtPrint(num) {
+      const n = Math.round(Number(num) || 0);
+      if (Math.abs(n) < 10000) return String(n);           // монолит: <10000
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F'); // с пробелом: ≥10000
     }
 
        function adjustPopup(popup, anchor) {
@@ -5423,6 +5732,90 @@
       });
     }
 
+    // v10.2.27 (G): единое говорящее имя файла для PDF и PNG (Apple Finder pattern).
+    // Формат: RUSS_PV_5экр_15дн_30вых_19 764р_15.04[.ext]. Код PV=ПВЗ (задел BB/SS).
+    // Р3 (решение Opus): обычный пробел U+0020 как разделитель тысяч — \u202F в именах
+    // файлов ОС заменяют на _ или ломают; узкий пробел остаётся только в ВИЗУАЛЕ документа.
+    function buildFileName(ext) {
+      const s = parseInt((document.getElementById('screens')   || {}).value) || 0;
+      const d = parseInt((document.getElementById('days')      || {}).value) || 0;
+      const f = parseInt((document.getElementById('frequency') || {}).value) || 0;
+      const rawSum = ((document.getElementById('totalCost') || {}).textContent || '').replace(/[^0-9]/g, '');
+      const sum = parseInt(rawSum) || 0;
+      let sumStr;
+      if (sum >= 1e9)      sumStr = (sum / 1e9).toFixed(2).replace(/\.?0+$/, '').replace('.', ',') + 'млрд';
+      else if (sum >= 1e6) sumStr = (sum / 1e6).toFixed(2).replace(/\.?0+$/, '').replace('.', ',') + 'млн';
+      else                 sumStr = sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); // обычный пробел (Р3)
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const base = `RUSS_PV_${s}экр_${d}дн_${f}вых_${sumStr}р_${dd}.${mm}`;
+      return ext ? (base + '.' + ext) : base;
+    }
+
+    // v10.2.33: ПРОФИЛЬ МЕНЕДЖЕРА — ЕДИНЫЙ источник истины для PDF и (позже) PNG.
+    // Профиль = источник, PDF/PNG = потребители (раздел 14 ТЗ). localStorage (НЕ сессия):
+    // контакты постоянны, переживают F5/закрытие браузера. Ключи russ-manager-*-v1
+    // (единый паттерн проекта → DEV-сброс localStorage.clear() их очистит).
+    function getManagerContact() {
+      const g = (k) => { try { return (localStorage.getItem(k) || '').trim(); } catch (e) { return ''; } };
+      return {
+        name:  g('russ-manager-name-v1'),
+        phone: g('russ-manager-phone-v1'),
+        email: g('russ-manager-email-v1')
+      };
+    }
+    // v10.2.34 (В3): МАСКА ТЕЛЕФОНА (вариант Б — мягкое авто-форматирование, Maxim).
+    // Цифры → +7 905 333-55-22. Edge-cases (Apple iOS phone-field):
+    //   • первая цифра 8 или 7 → нормализуем в +7 (классика РФ)
+    //   • первая цифра 9 (или иная) → код оператора, +7 префикс впереди
+    //   • макс 11 цифр (7XXXXXXXXXX); лишние отсекаются
+    //   • реформат из «голых цифр», курсор → в конец (допечатка с конца —
+    //     простой предсказуемый путь; правка-в-середине = осознанный trade-off Maxim)
+    //   • пустое поле → пусто (НЕ показываем «+7» заранее — вариант Б)
+    //   ТОЛЬКО #profilePhone — три целочисленных слайдера НЕ задеты.
+    function formatPhoneRu(raw) {
+      let d = String(raw || '').replace(/\D/g, '');      // только цифры
+      if (d === '') return '';
+      if (d[0] === '8') d = '7' + d.slice(1);            // 8 → 7
+      if (d[0] !== '7') d = '7' + d;                     // 9XX → 7 9XX (код страны)
+      d = d.slice(0, 11);                                 // 7 + 10 цифр макс
+      const a = d.slice(1, 4), b = d.slice(4, 7), cc = d.slice(7, 9), e = d.slice(9, 11);
+      let out = '+7';
+      if (a) out += ' ' + a;
+      if (b) out += ' ' + b;
+      if (cc) out += '-' + cc;
+      if (e) out += '-' + e;
+      return out;
+    }
+
+    function hasManagerContact() {
+      const c = getManagerContact();
+      return !!(c.name || c.phone || c.email); // любое поле непусто
+    }
+    // XSS-защита: имя/email — пользовательский ввод. Экранируем перед innerHTML.
+    function escapeHtmlContact(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+    }
+
+    // v10.2.33: PDF CTA — обезличенный ↔ именной. hasManagerContact() решает.
+    // Иерархия (раздел 12): имя чуть заметнее (600/#1D1D1F), тел/email обычные (#3A3A3C).
+    // НЕ конкурирует с ценой-героем. Пустые поля не рисуются. Призыв→имя→тел→email.
+    function setPrintCta() {
+      const cta = document.querySelector('.print-cta');
+      if (!cta) return;
+      const c = getManagerContact();
+      if (!hasManagerContact()) {
+        cta.innerHTML = 'Свяжитесь с вашим менеджером RUSS'; // обезличенный (текущий)
+        return;
+      }
+      let html = '<span class="print-cta-label">Свяжитесь с вашим менеджером</span>'; // v10.2.34 (В1): призыв = тихая метка, имя-герой ниже
+      if (c.name)  html += '<span class="print-cta-line print-cta-name">' + escapeHtmlContact(c.name) + '</span>';
+      if (c.phone) html += '<span class="print-cta-line">' + escapeHtmlContact(c.phone) + '</span>';
+      if (c.email) html += '<span class="print-cta-line">' + escapeHtmlContact(c.email) + '</span>';
+      cta.innerHTML = html;
+    }
+
     function printAsPdf() {
       function pl(n, one, few, many) {
         const m10=n%10, m100=n%100;
@@ -5435,8 +5828,9 @@
       const fVal = (document.getElementById('frequency')||{value:'—'}).value;
       const sN=parseInt(sVal)||0, dN=parseInt(dVal)||0, fN=parseInt(fVal)||0;
 
+          // v10.2.30: параметры шапки через fmtPrint (порог 10000) — единое правило с показами/ценой.
       document.getElementById('printParams').innerHTML =
-        `<b>${sVal}</b> ${pl(sN,'экран','экрана','экранов')} &nbsp;·&nbsp; <b>${dVal}</b> ${pl(dN,'день','дня','дней')} &nbsp;·&nbsp; <b>${fVal}</b> ${pl(fN,'выход','выхода','выходов')}/час`;
+        `<b>${fmtPrint(sN)}</b> ${pl(sN,'экран','экрана','экранов')} &nbsp;·&nbsp; <b>${fmtPrint(dN)}</b> ${pl(dN,'день','дня','дней')} &nbsp;·&nbsp; <b>${fmtPrint(fN)}</b> ${pl(fN,'выход','выхода','выходов')}/час`;
 
       const allHours = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
       const printHoursGrid = document.getElementById('printHoursGrid');
@@ -5462,9 +5856,33 @@
           printSumEl.textContent = raw;
         } else {
           const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
-          printSumEl.innerHTML = esc(raw.slice(0, idx)) + '<span class="print-ruble">\u20BD</span>';
+          // v10.2.29 (З2): обрезаем пробелы ПЕРЕД ₽ (\u202F/\u00A0/обычный) — зазор даёт CSS
+          // margin-left, узкий пробел при кегле 76px давал «дыру». Хвостовой $ — разделители
+          // тысяч внутри «32 940» НЕ трогаются (только пробел перед самим ₽).
+          const digitsPart = raw.slice(0, idx).replace(/[\s\u00A0\u202F\u2009]+$/, '');
+          printSumEl.innerHTML = esc(digitsPart) + '<span class="print-ruble">\u20BD</span>';
         }
       })();
+
+      // v10.2.27 (A2): цена-герой ужимается СТУПЕНЯМИ по ЧИСЛУ ЦИФР (гранит, не от
+      // font-size). Текстовка PDF — постоянна (гранит +ступень в CSS), адаптируется
+      // ТОЛЬКО цена. Apple-паттерн фин.документов (Numbers/Stocks): сетка незыблема,
+      // число-герой дышит. Считаем цифры из #totalCost (источник истины).
+      // Р1 (Opus): на млрд letter-spacing -0.5px (не -1px) — Montserrat 800 на 46px
+      // с -1px ещё поджимал цифры; -0.5px даёт читаемость, сохраняя премиальность.
+      (function fitPrintSum() {
+        const printSumEl = document.getElementById('printSum');
+        if (!printSumEl) return;
+        const digits = (get('totalCost') || '').replace(/[^0-9]/g, '').length;
+        let fs, ls;
+        if      (digits <= 6) { fs = 76; ls = -2;   } // до 999 999
+        else if (digits <= 8) { fs = 64; ls = -1.6; } // 1–99 млн
+        else if (digits === 9){ fs = 54; ls = -1.2; } // 100–999 млн
+        else                  { fs = 46; ls = -0.5; } // млрд (Р1: -1→-0.5)
+        printSumEl.style.fontSize = fs + 'px';
+        printSumEl.style.letterSpacing = ls + 'px';
+      })();
+
       document.getElementById('printForecastMain').textContent = `≈ ${get('dailyOutputsValue')} показов / день`;
       document.getElementById('printForecastSub').textContent  = `≈ ${get('perScreenValue')} показов / экран / день`;
       document.getElementById('printParamsTable').innerHTML = `
@@ -5484,18 +5902,42 @@
         // теперь тёмный, см. CSS). Меняется только число ставки.
         const rTxt = formatRateRub(currentRateKop).replace('\u202F', '\u00A0');
         printDiscEl.innerHTML =
-          'Расчёт носит ознакомительный характер. Учитывается ставка за выход <b>' +
-          rTxt + '</b> (без НДС). Настройка и запуск кампании выполняются в Russ Online.';
+          '<span class="print-disc-line">Расчёт носит ознакомительный характер. Учитывается ставка за выход <b>' +
+          rTxt + '</b> (без НДС).</span>' +
+          '<span class="print-disc-line">Настройка и запуск кампании выполняются <span class="print-nowrap">в Russ Online</span>.</span>'; // v10.2.28 (З2): 2 смысловых блока + nowrap — Russ Online не рвётся
       }
+
+      // v10.2.27 (D2): дата формирования КП (юр.актуальность цены). Р2 (Opus): ручная
+      // сборка dd.mm.yyyy — toLocaleDateString на англ.Windows даёт 4/15/2025 (ломает
+      // русский формат); ручная предсказуема независимо от локали ОС. С ГОДОМ.
+      (function setPrintDate() {
+        const pd = document.getElementById('printDate');
+        if (!pd) return;
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yy = now.getFullYear();
+        pd.textContent = 'Сформировано ' + dd + '.' + mm + '.' + yy;
+      })();
+
+      // v10.2.33: применить контакты менеджера к CTA (обезличенный ↔ именной).
+      if (typeof setPrintCta === 'function') setPrintCta();
 
       const PDF_HINT_KEY = 'russ-pdf-hint-shown';
       const hint = document.getElementById('pdfHint');
+      // v10.2.27 (G2): Chrome берёт имя сохраняемого PDF из document.title. Ставим
+      // говорящее имя перед печатью, возвращаем оригинал в afterprint (иначе вкладка
+      // останется переименованной). Title без расширения — Chrome сам добавит .pdf.
+      const _savedTitle = document.title;
+      try { document.title = buildFileName(''); } catch (e) { /* имя не критично для печати */ }
+
       // Запоминаем скролл через двойной rAF — sheet точно закрылся, layout устоялся
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const pdfSavedScroll = window.scrollY;
           function restoreScrollAfterPrint() {
             window.scrollTo({ top: pdfSavedScroll, behavior: 'instant' });
+            document.title = _savedTitle; // v10.2.27 (G2): вернуть оригинальный title
             window.removeEventListener('afterprint', restoreScrollAfterPrint);
           }
           window.addEventListener('afterprint', restoreScrollAfterPrint);
@@ -6256,17 +6698,11 @@
 
         if (!blob) { showToast('Ошибка создания снимка'); return; }
 
-        // APP_VERSION v8.40: версия берётся из константы, не из DOM
-        const vStr = APP_VERSION;
-        const now = new Date();
-        const dd = String(now.getDate()).padStart(2,'0');
-        const mm = String(now.getMonth()+1).padStart(2,'0');
-        const yy = String(now.getFullYear()).slice(-2);
-
         // v8.35: единая точка истины — глобальный детектор
         const isMobile = isMobileDevice();
 
-        const filename = `RUSS_Lite_${vStr}_${dd}.${mm}.${yy}.png`;
+        // v10.2.27 (G3): имя PNG через buildFileName (vStr/now/dd/mm/yy убраны — мёртвый код)
+        const filename = buildFileName('png'); // v10.2.27 (G3): унификация с PDF на единый говорящий формат
         function downloadFile() {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -7309,7 +7745,9 @@
 	        const badgeMicro = document.getElementById('badgeMicro');
       if (badgeMicro) badgeMicro.textContent = APP_VERSION;
       if (promptVer)    promptVer.textContent     = `Lite · ${APP_VERSION}`;
-      if (printBadgeEl) printBadgeEl.innerHTML   = `ПВЗ Калькулятор · Lite ${APP_VERSION}<br>Расчёт стоимости размещения`;
+      if (printBadgeEl) printBadgeEl.innerHTML   = `<span class="print-badge-title">Предварительный расчёт</span><span class="print-date" id="printDate"></span>`; // v10.2.28 (З1): шапка-иерархия (заголовок крупно + дата серая); версия убрана вниз (З4). КРИТИЧНО: span#printDate сохранён — printAsPdf его заполняет
+      const printVersionEl = document.getElementById('printVersion');
+      if (printVersionEl) printVersionEl.textContent = `ПВЗ Калькулятор · Lite ${APP_VERSION}`; // v10.2.28 (З4): тех.метка документа (для Maxim, клиент не замечает)
       // mailto-ссылка: href формируется динамически
       const contactLink = document.getElementById('contactIcon');
       if (contactLink) {
@@ -7376,24 +7814,24 @@
           return;
         }
 
-        // ── v8.35: на мобилке PDF недоступен ──────────────────────────
-        // iOS Safari: window.print() молчит (политика Apple).
-        // Android бюджетники: нет Print Service → вылет или пустой диалог.
-        // Решение: минуем модал, сразу генерим PNG. Честный UX.
-        // На десктопе — модал выбора формата как раньше (без изменений).
-        if (isMobileDevice()) {
-          haptic('heavy');
-          takeSnapshot('png');
-          return;
-        }
-
-        // Десктоп — модал выбора формата (не трогаем)
+        // v10.2.34 (В5): меню открывается НА ОБЕИХ версиях (Maxim — вариант В).
+        // КОНТЕКСТ: раньше на mobile openShareSheet минул меню → сразу PNG. Но Профиль
+        // (контакты менеджера) живёт В меню — ему негде было открыться. Теперь mobile
+        // тоже показывает меню: PNG (главный) + Профиль. PDF на mobile скрыт через CSS
+        // @media (#savePdfBtn display:none — печать не работает на iOS/Android). Регресс
+        // +1 тап для PNG принят: профиль виден когда нужен, UX честный.
+        haptic('heavy');
         shareOverlay.classList.add('open');
         shareSheet.classList.add('open');
       }
       function closeShareSheet() {
         shareOverlay.classList.remove('open');
         shareSheet.classList.remove('open');
+        // v10.2.33: свернуть форму профиля (чистое состояние к след. открытию sheet)
+        const _pf = document.getElementById('profileForm');
+        const _pb = document.getElementById('profileBtn');
+        if (_pf) _pf.classList.remove('open');
+        if (_pb) _pb.classList.remove('is-active');
       }
 
       snapshotBtn.addEventListener('click', openShareSheet);
@@ -7404,6 +7842,81 @@
       }
       shareOverlay.addEventListener('click', closeShareSheet);
       sheetCancelBtn.addEventListener('click', () => { haptic('light'); closeShareSheet(); });
+
+      // ════════════════════════════════════════════════
+      // v10.2.33: ПРОФИЛЬ МЕНЕДЖЕРА — раскрытие, сохранение, состояние
+      // ════════════════════════════════════════════════
+      const profileBtn      = document.getElementById('profileBtn');
+      const profileForm     = document.getElementById('profileForm');
+      const profileName     = document.getElementById('profileName');
+      const profilePhone    = document.getElementById('profilePhone');
+      const profileEmail    = document.getElementById('profileEmail');
+      const profileSaveBtn  = document.getElementById('profileSaveBtn');
+      const profileCardDesc = document.getElementById('profileCardDesc');
+
+      // v10.2.34 (В3): живое форматирование телефона при вводе (ТОЛЬКО на input —
+      // не keydown, иначе курсор ломается). Курсор в конец (вариант Б — допечатка).
+      if (profilePhone) {
+        profilePhone.addEventListener('input', () => {
+          const before = profilePhone.value;
+          const formatted = formatPhoneRu(before);
+          if (formatted !== before) {
+            profilePhone.value = formatted;
+            try { profilePhone.setSelectionRange(formatted.length, formatted.length); } catch (_) {}
+          }
+        });
+      }
+
+      // Состояние карточки (раздел 10): имя→имя / есть данные без имени→«Данные сохранены» / пусто→призыв
+      function updateProfileCardSubtitle() {
+        if (!profileCardDesc) return;
+        const cc = getManagerContact();
+        if (cc.name)                      profileCardDesc.textContent = cc.name;
+        else if (cc.phone || cc.email)    profileCardDesc.textContent = 'Данные сохранены';
+        else                              profileCardDesc.textContent = 'Ваши данные в коммерческом предложении';
+      }
+
+      // Раскрытие аккордеона (НЕ modal — растёт внутри sheet). Поля заполняются из localStorage.
+      function openProfileForm() {
+        if (!profileForm) return;
+        const cc = getManagerContact();
+        if (profileName)  profileName.value  = cc.name;
+        if (profilePhone) profilePhone.value = cc.phone;
+        if (profileEmail) profileEmail.value = cc.email;
+        profileForm.classList.add('open');
+        if (profileBtn) profileBtn.classList.add('is-active');
+      }
+      function closeProfileForm() {
+        if (profileForm) profileForm.classList.remove('open');
+        if (profileBtn)  profileBtn.classList.remove('is-active');
+      }
+      if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+          haptic('light');
+          if (profileForm && profileForm.classList.contains('open')) closeProfileForm();
+          else openProfileForm();
+        });
+      }
+
+      // Сохранение (раздел 9): запись в localStorage → обновить карточку → haptic → форма ОСТАЁТСЯ.
+      // Валидация Apple-минимум (раздел 8): .trim(), любая комбинация, БЕЗ обязательных/красных.
+      if (profileSaveBtn) {
+        profileSaveBtn.addEventListener('click', () => {
+          const setLS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* Safari Private: QuotaExceeded — тихо */ } };
+          setLS('russ-manager-name-v1',  (profileName  ? profileName.value  : '').trim());
+          setLS('russ-manager-phone-v1', (profilePhone ? profilePhone.value : '').trim());
+          setLS('russ-manager-email-v1', (profileEmail ? profileEmail.value : '').trim());
+          updateProfileCardSubtitle();
+          haptic('success');
+          profileSaveBtn.classList.add('saved');
+          const _ot = profileSaveBtn.textContent;
+          profileSaveBtn.textContent = 'Сохранено';
+          setTimeout(() => { profileSaveBtn.classList.remove('saved'); profileSaveBtn.textContent = _ot; }, 1400);
+          // форма остаётся открытой (раздел 9)
+        });
+      }
+
+      updateProfileCardSubtitle(); // показать сохранённое при инициализации
 
       // ════════════════════════════════════════════════
       // v10.2.0: RATE SHEET — настройка ставки за выход
