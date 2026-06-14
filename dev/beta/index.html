@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.2.34
+    Продукт: ПВЗ Калькулятор Lite · v10.2.35
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -954,6 +954,36 @@
              три+rate слайдера (маска ТОЛЬКО телефон профиля), Input Source Priority,
              applyRate, цена-герой адаптив PDF, колонтитул A4, getManagerContact (источник).
 
+             v10.2.35 — Полировка: PDF CTA-дзен, ритм карточек, нижний блок, регресс
+             анимации, профиль (Maxim). КОНТЕКСТ: 6 точечных доводок по тесту на v10.2.34.
+             Все локальные, святыни целы.
+             (З1) PDF CTA-ДЗЕН: .print-cta-line line-height 1.6→1.35 (тел+email слипаются
+             — «как достучаться» = единая группа), .print-cta-name margin-bottom 4→6px
+             (имя-человек отделён воздухом от каналов). Apple Wallet contact-card.
+             Обезличенный CTA не тронут.
+             (З2) ТЕКСТ ПРОФИЛЯ: «Ваши данные в коммерческом предложении» → «Ваши данные
+             в документе» (короче, влезает на mobile, про результат, не технично). HTML+JS.
+             (З3) РИТМ КАРТОЧЕК: обёртка «Параметры»↔«Часы» — inline gap:6px (хардкод мимо
+             системы) → класс .cards-stack с ритмом .calculator (desktop 32 / mobile 24px,
+             Apple nested-ритм). PNG .is-snap-mode не затронут (своя геометрия).
+             (З4) НИЖНИЙ БЛОК: проседание .result-card:active scale(0.99) убрано (рудимент
+             снимаемой карточки) → система блоков: hover даёт тень глубже (medium→heavy,
+             как .card soft→medium). Единообразие трёх блоков. shutter-flash не тронут.
+             (З5) КРИТИЧНО — регресс анимации цены→0 (v10.2.17): lastTotalCost=0 в начале
+             ветки делал проверку `if (lastTotalCost>0)` всегда false → анимация пропала,
+             цена прыгала. ФИКС: temp-переменные (_prevTotal/Daily/Per) хранят «откуда
+             анимировать» ДО обнуления; обнуление для чипа остаётся. Mobile-цена тоже
+             анимируется →0 синхронно, is-zero-price вешается в КОНЦЕ (setTimeout 820ms +
+             защита lastTotalCost===0 от гонки), чтобы рубль не прыгнул на бегущем числе.
+             Схлопывание (updateFooterCompactState) — параллельно, не синхронизируем.
+             (З6) ПРОФИЛЬ: (6a) светлая тема — карточка сливалась с белым → фон иконки И
+             бейджа 0.15→0.22 СИММЕТРИЧНО, контрастом БЕЗ бордера (как PNG/PDF, не третье
+             состояние). (6b) mobile-бейдж ПРОФИЛЬ компактнее (font 9px, padding 3×7) —
+             «ПРОФИЛЬ» шире PNG/PDF съедал ширину, заголовок переносился; БЕЗ nowrap.
+             PNG (Canvas drawText) НЕ ТРОНУТ. СВЯТЫНИ ЦЕЛЫ: PNG drawText/_yDraw,
+             .is-snap-mode, Range-фит, рубль-спутник, три+rate слайдера, Input Source
+             Priority, applyRate, цена-герой адаптив PDF, getManagerContact (источник).
+
              v10.2.5 — «(без НДС)» не жирный + фиксы из правок Максима.
              БАЗА: файл Максима v10.2.4 (он внёс .vat-note, приглушил .rate-disc-hot
              и .rate-label-suffix до rgba(..,0.85), добавил /вых для узких — учтено).
@@ -1479,6 +1509,10 @@
     body::-webkit-scrollbar { width: 0; height: 0; }
     .scroll-area { width: 100%; overflow-x: hidden; }
     .calculator { max-width: 480px; width: 100%; margin: 0 auto; padding: 0 12px; display:flex; flex-direction:column; gap:32px; }
+    /* v10.2.35 (З3): ритм карточек «Параметры»↔«Часы» = ритму .calculator (Maxim). Было inline
+       gap:6px (хардкод, мимо системы) → диссонанс с шапкой. Desktop 32 / mobile 24 — nested-ритм. */
+    .cards-stack { gap: 32px; }
+    @media (max-width: 500px) { .cards-stack { gap: 24px; } }
 
     /* v9.7.8: Адаптивный zoom по ВЫСОТЕ экрана.
        Сайт фиксированной ширины 480px: на больших мониторах выглядит мелким,
@@ -2451,8 +2485,10 @@
       .sticky-footer.is-compact .footer-bottom { max-height: 0; opacity: 0; overflow: hidden; display: none; }
     }
 
-    /* v10.2.19: .result-card:hover тень убрана — карточка не интерактивна (HIG: hover-эффект только у кликабельных) */
-    .result-card:active { transform:scale(0.99); }
+    /* v10.2.35 (З4): проседание scale(0.99) убрано (рудимент — карточка не снимаемая по тапу).
+       Система блоков (Maxim): как .card — hover даёт более глубокую тень (--shadow-medium→--shadow-heavy
+       — .result-card базовая medium, не soft; на ступень глубже = видимое усиление). Единообразие трёх блоков. */
+    .result-card:hover { box-shadow: var(--shadow-heavy); }
     .result-card.shutter-flash { animation:shutterFlash 0.3s ease-out; }
     @keyframes shutterFlash {
       0% { filter:brightness(1); } 50% { filter:brightness(1.9); } 100% { filter:brightness(1); }
@@ -2868,6 +2904,17 @@
     .fmt-profile .fmt-icon { background: rgba(120,120,130,0.15); }
     .fmt-profile .fmt-icon svg { stroke: var(--text-secondary); }
     .fmt-profile .fmt-badge { background: rgba(120,120,130,0.15); color: var(--text-secondary); }
+    /* v10.2.35 (З6a): светлая тема — карточка сливалась с белым (Maxim). Затемняем фон иконки И
+       бейджа СИММЕТРИЧНО контрастом — БЕЗ бордера (как PNG/PDF: контраст фоном, не третье состояние).
+       0.15→0.22 = заметная подложка на белом. */
+    .light-mode .fmt-profile .fmt-icon { background: rgba(120,120,130,0.22); }
+    .light-mode .fmt-profile .fmt-badge { background: rgba(120,120,130,0.22); color: var(--text-secondary); }
+    /* v10.2.35 (З6b): mobile — бейдж ПРОФИЛЬ компактнее (Maxim, БЕЗ nowrap). «ПРОФИЛЬ» (7 букв)
+       шире PNG/PDF (3) → на узких (Nubia) съедал ширину → заголовок переносился. Уменьшаем
+       padding+шрифт ТОЛЬКО профиль-бейджа на mobile → место под заголовок (системно, не костыль). */
+    @media (max-width: 500px) {
+      .fmt-profile .fmt-badge { font-size: 9px; padding: 3px 7px; letter-spacing: 0.2px; }
+    }
     .fmt-profile.is-active { border-color: var(--border-input-hover); } /* раскрыт */
 
     /* v10.2.33: аккордеон-форма — раскрытие ВНУТРИ sheet (Apple Wallet curve, НЕ modal).
@@ -2991,8 +3038,10 @@
       /* v10.2.34 (В1): призыв = тихая МЕТКА над контактами (мельче, серее, воздух 8px).
          Глаз цепляется за ИМЯ-героя, не за призыв. Apple/Stripe: метка→человек→каналы. */
       .print-cta-label { display: block; font-size: 10px; font-weight: 400; color: #9A9AA4; margin-bottom: 8px; letter-spacing: 0.2px; }
-      .print-cta-line { display: block; font-weight: 400; color: #3A3A3C; line-height: 1.6; }
-      .print-cta-name { font-size: 14px; font-weight: 600; color: #1D1D1F; margin-bottom: 4px; }
+      /* v10.2.35 (З1): тел+email — слипшийся блок (line-height 1.6→1.35: «как достучаться» =
+         единая группа). Имя — воздух снизу (margin-bottom 4→6px): человек ↑ / каналы ↓. Apple Wallet. */
+      .print-cta-line { display: block; font-weight: 400; color: #3A3A3C; line-height: 1.35; }
+      .print-cta-name { font-size: 14px; font-weight: 600; color: #1D1D1F; margin-bottom: 6px; }
       /* v10.2.28 (З4): версия-метка — техничка документа (Apple Legal/Stripe invoice ref).
          Внизу справа, едва заметна; клиент не видит, Maxim идентифицирует сборку. */
            /* v10.2.32 (Maxim+GPT): версия-метка ещё тише — invoice-ref на грани видимости.
@@ -4034,7 +4083,7 @@
          НЕ зелёный/синий/оранжевый — не главный герой меню. Клон .format-btn. -->
     <button class="format-btn fmt-profile" id="profileBtn">
       <div class="fmt-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-      <div class="fmt-text"><div class="fmt-title">Контакты менеджера</div><div class="fmt-desc" id="profileCardDesc">Ваши данные в коммерческом предложении</div></div>
+      <div class="fmt-text"><div class="fmt-title">Контакты менеджера</div><div class="fmt-desc" id="profileCardDesc">Ваши данные в документе</div></div>
       <span class="fmt-badge">ПРОФИЛЬ</span>
     </button>
     <!-- v10.2.33: аккордеон-форма ВНУТРИ sheet (max-height + Apple Wallet curve),
@@ -4151,7 +4200,7 @@
 
 <div class="scroll-area">
   <div class="calculator">
-    <div style="width: 100%; display:flex; flex-direction:column; gap:6px;">
+    <div class="cards-stack" style="width: 100%; display:flex; flex-direction:column;">
       <div class="card">
         <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Параметры кампании</div>
           <div class="input-group input-field-wrap"
@@ -4290,7 +4339,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.2.34';
+      const APP_VERSION = 'v10.2.35';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -5070,19 +5119,23 @@
       applySkeleton();
 
       if (!valid || hours === 0) {
-        lastTotalCost = 0; // v10.2.17 (П1): обнулить ДО updateRateBadge — иначе hasPrice читает старое ненулевое → чип не скрывался
+        // v10.2.35 (З5 КОРЕНЬ регресса v10.2.17): сохраняем ПРЕЖНИЕ значения в temp ДО обнуления.
+        // v10.2.17 поставил lastTotalCost=0 В НАЧАЛЕ (для скрытия чипа) → проверка ниже
+        // `if (lastTotalCost>0)` стала ВСЕГДА false → анимация цены→0 пропала (цена прыгала).
+        // Решение: temp-переменные хранят «откуда анимировать», обнуление для чипа остаётся.
+        const _prevTotal = lastTotalCost, _prevDaily = lastDailyOutputs, _prevPer = lastPerScreen;
+        lastTotalCost = 0; // v10.2.17 (П1): обнулить ДО updateRateBadge — чип-ставка скрывается
         if (typeof updateRateBadge === 'function') updateRateBadge(); // скрыть чип при обнулении ДО return
-        if (lastTotalCost > 0 || lastDailyOutputs > 0 || lastPerScreen > 0) {
-          animateCounter(totalCostEl, lastTotalCost, 0, ' ₽', 800);
-          animateCounter(dailyOutputsValueEl, lastDailyOutputs, 0, '', 800);
-          animateCounter(perScreenValueEl, lastPerScreen, 0, '', 800);
+        if (_prevTotal > 0 || _prevDaily > 0 || _prevPer > 0) {
+          // Анимация от ПРЕЖНЕГО значения к 0 (desktop + mobile через totalCostMobileEl ниже).
+          animateCounter(totalCostEl, _prevTotal, 0, ' ₽', 800);
+          animateCounter(dailyOutputsValueEl, _prevDaily, 0, '', 800);
+          animateCounter(perScreenValueEl, _prevPer, 0, '', 800);
         } else {
           totalCostEl.innerHTML = _mobilePriceHTML('0 ₽'); // v10.2.16: рубль-спутник 62% и при нуле
           dailyOutputsValueEl.textContent = '0';
           perScreenValueEl.textContent = '0';
           adjustResultFontSize();
-          // C3 v8.36: было 0 ₽ И стало 0 ₽ — показываем acknowledge pulse
-          // если это пользовательский ввод (не инициализация и не сброс часов)
           // v9.1.5: applyAcknowledgePulse удалён
         }
         totalOutputsEl.textContent = '0';
@@ -5091,7 +5144,20 @@
         // v8.43: сбрасываем только расчётные значения — то что реально равно нулю.
         // chipScreens/Days/Freq/Hours обновлены выше (параллельно с summary*).
         if (window.innerWidth <= 500) {
-                   if (totalCostMobileEl)         { totalCostMobileEl.innerHTML = _mobilePriceHTML('0\u202F₽'); totalCostMobileEl.classList.remove('is-long'); totalCostMobileEl.classList.add('is-zero-price'); } // v10.2.16: рубль-спутник 62% при нуле; v10.2.23: is-zero-price поднимает рубль (48px дефолт ≠ фит-кегль расчёта)
+                   if (totalCostMobileEl) {
+                     // v10.2.35 (З5): mobile-цена анимируется →0 СИНХРОННО с desktop (если был прежний
+                     // результат). Защита: is-zero-price ставится в КОНЦЕ анимации (не мгновенно), чтобы
+                     // рубль-сдвиг не прыгнул на бегущем числе. Нет прежнего → мгновенно «0».
+                     if (_prevTotal > 0) {
+                       animateCounter(totalCostMobileEl, _prevTotal, 0, '\u202F₽', 800);
+                       totalCostMobileEl.classList.remove('is-long');
+                       setTimeout(() => { if (lastTotalCost === 0) totalCostMobileEl.classList.add('is-zero-price'); }, 820);
+                     } else {
+                       totalCostMobileEl.innerHTML = _mobilePriceHTML('0\u202F₽');
+                       totalCostMobileEl.classList.remove('is-long');
+                       totalCostMobileEl.classList.add('is-zero-price');
+                     }
+                   } // v10.2.16: рубль 62% при нуле; v10.2.23: is-zero-price
           _lastFinalMobileText = '0\u202F₽'; // v9.2.9-fix: сброс к нулю для RO
           if (dailyOutputsValueMobileEl)   dailyOutputsValueMobileEl.textContent = '0';
           if (perScreenValueMobileEl)      perScreenValueMobileEl.textContent = '0';
@@ -7873,7 +7939,7 @@
         const cc = getManagerContact();
         if (cc.name)                      profileCardDesc.textContent = cc.name;
         else if (cc.phone || cc.email)    profileCardDesc.textContent = 'Данные сохранены';
-        else                              profileCardDesc.textContent = 'Ваши данные в коммерческом предложении';
+        else                              profileCardDesc.textContent = 'Ваши данные в документе';
       }
 
       // Раскрытие аккордеона (НЕ modal — растёт внутри sheet). Поля заполняются из localStorage.
