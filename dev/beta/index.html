@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.2.35
+    Продукт: ПВЗ Калькулятор Lite · v10.2.40
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -1060,6 +1060,80 @@
              ТРОНУТЫ. СВЯТЫНИ ЦЕЛЫ: вертикаль PNG (_yDraw), .is-snap-mode, Range-фит,
              рубль-спутник, три+rate слайдера, Input Source Priority, applyRate,
              цена-герой адаптив, числа fmtPrint (v10.2.30).
+			              v10.2.38 — Mobile Layout Jiggle Fix (гранит правой колонки, 2 правки).
+             СИМПТОМ (Maxim, 3 скрина на разных длинах цены): расстояния между
+             серыми чипами справа «дышали» — узкие при длинной цене (928 908 ₽),
+             широкие при короткой (4 765 ₽). Цена не виновата — тряслась компоновка.
+             КОРЕНЬ (грепнул живой DOM): align-items:stretch (default) +
+             justify-content:space-between на правой колонке. Левая колонка
+             плавала по высоте от font-size цены (20-64px JS-фит) → правая
+             стрейчилась к ней → space-between раздвигал 4 чипа по плавающей
+             высоте → видимая тряска.
+             РЕШЕНИЕ — Apple-гранит «компоновка не дышит», 2 точечных CSS-правки:
+             (1) align-items:flex-start (запрет stretch — корень тряски);
+             (2) height:127px на правой колонке (гранит из v10.1.5: 4×28+3×5,
+             интринсик чипов). Цена живёт своей жизнью (JS-фит 20-64px), каркас
+             правой колонки — своей. v8.5.1 «accent доходит до низа» сохранён
+             через flex:1 0 28px резерв в левой (при цене ≤127px обе колонки
+             одной высоты, паритет цел).
+             ОТКЛОНЕНО (Maxim+GPT): max-height:127px на левой колонке — страховка
+             впрок без доказанной причины (Кодекс §3 «не подгонять от плавающей
+             величины»). Через полгода новый чип в левой → невидимое срабатывание
+             ограничителя, скрытый регресс. Лечим причину, не строим стен.
+             PNG-снимок и .is-snap-mode не тронуты (своя геометрия). 2 правки CSS.
+			 
+			              v10.2.39 — Mobile Layout Jiggle Fix: финал (парная константа левой колонки).
+             КОНТЕКСТ: v10.2.38 убила тряску расстояний МЕЖДУ чипами справа (правая
+             127px фикс), но Maxim увидел остаточную проблему: оранжевый accent-чип
+             «дышит» относительно правой колонки. При короткой цене (4 765 ₽,
+             font-size 64px) accent НИЖЕ нижнего чипа на ~14px; при длинной
+             (83 672 870 ₽, font-size 20px) accent ВЫШЕ на ~37px. Композиция плыла.
+             КОРЕНЬ (механика Flexbox): height:127px на правой колонке + НИЧЕГО на
+             левой = правая гранитная, левая резиновая (= сумма детей: label + цена
+             20-64px плавает + metrics + accent-min 28). flex:1 0 28px на accent
+             требует фиксированной высоты родителя — без неё flex-grow физически не
+             умеет растягивать (это не дизайн-выбор, это спецификация Flexbox).
+             РЕШЕНИЕ: height:127px на .result-mobile-left — парная константа к правой
+             колонке. Обе колонки в одной системе координат, accent растягивается
+             flex:1 до низа левой = низ правой = нижний чип «час». МОНОЛИТ.
+             v8.5.1 «accent доходит до низа = нижняя граница чипа час» — наконец-то
+             выполняется на ЛЮБОЙ длине цены. ПРИЗНАНИЕ: я отклонил эту правку
+             в v10.2.38 как «страховку впрок по Кодексу §3» — был неправ. Кодекс
+             запрещает магические КОЭФФИЦИЕНТЫ от плавающих величин (px-подбор от
+             font-size). height:127px — переиспользование уже существующей гранитной
+             константы (интринсик 4×28+3×5 из v10.1.5), парная к правой колонке.
+             Это не страховка — это завершение архитектуры. Урок: «парная константа»
+             ≠ «страховка». GPT поймал раньше меня.
+             Цена ужмётся через _runMobileFontFit (уже умеет, гранит v10.1.5).
+             ПРОВЕРКА Maxim ГЛАЗАМИ: 1) 1 экран (~4 765 ₽) → низ accent = низ чипа «час»;
+             2) 100 экранов (~329 400 ₽) → то же; 3) 2000 экранов max → цена не вылезает,
+             accent не исчезает. PNG/PDF/snap-mode НЕ тронуты (своя геометрия,
+             .result-mobile-layout удаляется из клона). 1 точечная CSS-правка.
+			 
+			              v10.2.40 — Mobile Price Vertical Budget Fix (честная высота цены).
+             КОНТЕКСТ: после v10.2.39 каркас mobile-результата стал гранитным
+             (обе колонки по 127px), тряска блока и чипов исчезла. Но Maxim
+             увидел финальный дефект: на коротких суммах (пример 2 306 ₽) нижняя
+             часть цифр и ₽ визуально подрезается/проваливается вниз, сверху
+             остаётся лишний воздух. На длинных суммах дефект слабее, потому что
+             шрифт и так ужимается.
+             КОРЕНЬ (по коду, не гипотеза): в _runMobileFontFit() доступная
+             высота цены считалась как colH - labelH - metricsH - accentReserve,
+             но рядом с ценой есть реальные CSS-зазоры, которые формула не
+             вычитала:
+             .result-label-mobile { margin-bottom: 2px; }
+             .result-metrics-row { margin-top: 6px; }
+             Итого budget был завышен на 8px. На коротких суммах цена получала
+             право стать выше реального лимита, а .result-value-mobile с
+             overflow:hidden визуально съедал низ глифов.
+             РЕШЕНИЕ: в budget добавлены computed margins label+metrics
+             (labelGap + metricsGap). Теперь фит выбирает ЧЕСТНЫЙ максимальный
+             font-size, короткая цена перестаёт проваливаться вниз, сверху/снизу
+             баланс выравнивается. Дополнительно зазор перед ₽ в live UI
+             уменьшен 0.10em → 0.08em — знак чуть ближе к сумме, как в PDF.
+             НЕ ТРОНУТО: line-height:1.18, 127px-архитектура колонок, PNG/PDF,
+             .is-snap-mode, drawText, Range-fit, expand/collapse curves.
+			 
   ================================================
 -->
   
@@ -3374,10 +3448,14 @@
       .result-mobile-layout { display: none; }
     }
 
-    .result-mobile-top {
+       .result-mobile-top {
       display: flex;
       gap: 8px;
-      align-items: stretch;
+      /* v10.2.38: stretch → flex-start. КОРЕНЬ тряски расстояний между чипами (Maxim).
+         При stretch+space-between правая колонка следовала за плавающей высотой левой
+         (цена ужимается 64→48px → правая стрейчилась → space-between раздвигал чипы
+         по плавающей высоте). flex-start = каждая колонка живёт со своей height. */
+      align-items: flex-start;
     }
     .result-mobile-left {
       flex: 1 1 auto;
@@ -3385,6 +3463,17 @@
       display: flex;
       flex-direction: column;
       /* v8.5: justify-content убран — accent-чип внутри колонки, растёт через flex:1 */
+      /* v10.2.39: ГРАНИТ 127px = парная константа к .result-mobile-chips (Maxim+GPT).
+         Это НЕ страховка впрок — это завершение архитектуры v10.2.38. Без height у
+         родителя flex:1 0 28px на accent физически не работает (механика Flexbox:
+         flex-grow требует фиксированной высоты контейнера). Симптом v10.2.38: чипы
+         справа стабильны, но accent дышал — короткая цена → левая колонка короче →
+         accent не доходил до низа правой; длинная цена → ужималась → accent
+         сжимался. Теперь обе колонки гранит 127 → нижняя граница accent = нижняя
+         граница чипа «час» = МОНОЛИТ. Сообщающиеся сосуды v8.5.1: при короткой
+         цене accent прижат к min-height 28; при длинной — _runMobileFontFit ужмёт
+         цену 20-64px (уже умеет, гранит v10.1.5). Святыни не тронуты. */
+      height: 127px;
     }
     .result-label-mobile {
       font-size: 11px;
@@ -3450,7 +3539,7 @@
       vertical-align: baseline;
       position: relative;
       top: var(--ruble-shift-m, 0em);
-      margin-left: 0.1em;
+      margin-left: 0.08em;
     }
        /* v10.2.24: нулевая цена mobile — рубль через #ID + !important (Maxim).
        КОРЕНЬ почему .is-zero-price не было видно в DevTools: класс висит на
@@ -3489,7 +3578,7 @@
       vertical-align: baseline;
       position: relative;
       top: var(--ruble-shift-d, 0em);
-      margin-left: 0.1em;
+      margin-left: 0.08em;
     }
 
     /* Метрики плотной строкой под ценой */
@@ -3523,12 +3612,18 @@
        Проверено: 4-значные значения «2 000 / 360 / 360 / 14» влезают на 88px
        с запасом ~20px (Apple Mail metadata cells паттерн).
        Синхронизировано с @media(max-width:380px) где уже было 88px. */
-    .result-mobile-chips {
+       .result-mobile-chips {
       flex: 0 0 88px;
       display: flex;
       flex-direction: column;
       gap: 5px;
       justify-content: space-between; /* v8.5.1: чип «час» прижат к низу = нижняя граница accent */
+      /* v10.2.38: ГРАНИТ высоты = интринсик 4×28+3×5 (из v10.1.5 _runMobileFontFit).
+         space-between теперь раздвигает чипы по СТАБИЛЬНОЙ высоте → расстояния
+         постоянны на любой длине цены. Левая колонка живёт своей жизнью —
+         accent flex:1 0 28px резерв сохранён (паритет v8.5.1: «нижняя граница
+         accent = нижняя граница чипа час» — обе колонки 127px при цене ≤127px). */
+      height: 127px;
     }
         .chip-mobile {
       height: 28px;
@@ -4344,7 +4439,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.2.35';
+      const APP_VERSION = 'v10.2.40';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -4847,18 +4942,29 @@
             }
           }
           const labelEl   = leftCol.querySelector('.result-label-mobile');
-          const metricsEl = leftCol.querySelector('.result-metrics-row');
-          const accentEl  = leftCol.querySelector('.chip-accent-mobile');
-          const labelH    = labelEl   ? labelEl.offsetHeight   : 0;
-          const metricsH  = metricsEl ? metricsEl.offsetHeight : 0;
-          let accentReserve = 8 + 28; // margin-top + min-height (гранит CSS)
-          if (accentEl) {
-            const acs = getComputedStyle(accentEl);
-            const mt = parseFloat(acs.marginTop) || 8;
-            const mh = parseFloat(acs.minHeight) || 28;
-            accentReserve = mt + mh;
-          }
-          availH = colH - labelH - metricsH - accentReserve;
+const metricsEl = leftCol.querySelector('.result-metrics-row');
+const accentEl  = leftCol.querySelector('.chip-accent-mobile');
+const labelH    = labelEl   ? labelEl.offsetHeight   : 0;
+const metricsH  = metricsEl ? metricsEl.offsetHeight : 0;
+// v10.2.40: ЧЕСТНЫЙ vertical budget цены.
+// После v10.2.39 каркас стал гранитным 127px, но _runMobileFontFit продолжал
+// считать доступную высоту по старой неполной формуле: вычитал labelH и metricsH,
+// НО не вычитал реальные вертикальные зазоры из CSS рядом с ценой:
+// .result-label-mobile { margin-bottom: 2px; }
+// .result-metrics-row  { margin-top: 6px; }
+// Итого цена получала лишние 8px "права на рост". На коротких суммах это било
+// сильнее всего: font-size почти доходил до потолка, а overflow:hidden визуально
+// съедал низ глифов и ₽. Чиним НЕ результат, а входные данные формулы.
+const labelGap   = labelEl   ? (parseFloat(getComputedStyle(labelEl).marginBottom) || 0) : 0;
+const metricsGap = metricsEl ? (parseFloat(getComputedStyle(metricsEl).marginTop) || 0) : 0;
+let accentReserve = 8 + 28; // margin-top + min-height (гранит CSS)
+if (accentEl) {
+  const acs = getComputedStyle(accentEl);
+  const mt = parseFloat(acs.marginTop) || 8;
+  const mh = parseFloat(acs.minHeight) || 28;
+  accentReserve = mt + mh;
+}
+availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
         }
       } catch (e) { availH = Infinity; } // при любой ошибке высоту не ограничиваем
 
