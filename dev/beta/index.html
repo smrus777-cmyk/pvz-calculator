@@ -1511,8 +1511,8 @@
     .calculator { max-width: 480px; width: 100%; margin: 0 auto; padding: 0 12px; display:flex; flex-direction:column; gap:32px; }
     /* v10.2.35 (З3): ритм карточек «Параметры»↔«Часы» = ритму .calculator (Maxim). Было inline
        gap:6px (хардкод, мимо системы) → диссонанс с шапкой. Desktop 32 / mobile 24 — nested-ритм. */
-    .cards-stack { gap: 32px; }
-    @media (max-width: 500px) { .cards-stack { gap: 24px; } }
+    .cards-stack { gap: 14px; }
+    @media (max-width: 500px) { .cards-stack { gap: 14px; } }
 
     /* v9.7.8: Адаптивный zoom по ВЫСОТЕ экрана.
        Сайт фиксированной ширины 480px: на больших мониторах выглядит мелким,
@@ -2841,11 +2841,18 @@
         top: 0.2em !important;
       }
     }
-    }
-    @media (max-width:380px) {
+  
+        @media (max-width:380px) {
       .preset-chip { font-size:10px; padding:7px 4px; }
       .logo { font-size:24px; }
-      .hour-btn { font-size:12px; padding:10px 2px; }
+      /* v10.2.36 КОРЕНЬ (Maxim, греп файла): базовое .hour-btn{font-size:14px;padding:12px 4px}
+         объявлено НИЖЕ этого @media-блока в исходнике. Специфичность равна (0,1,0) →
+         при равной специфичности побеждает правило ниже по файлу → базовое 14px перебивало
+         это 12px на ВСЕХ устройствах ≤380px (Nubia + DevTools). Это НЕ среда — порядок каскада.
+         ФИКС: !important поднимает 380-правило над базовым (тот же паттерн что .is-snap-mode).
+         PNG-снимок НЕ затронут: там .is-snap-mode .hour-btn{14px!important} перебивает (специфичность
+         0,2,0 > 0,1,0). Высота кнопки = font+padding, побочных связей нет. */
+            .hour-btn { font-size:12px; padding:10px 2px; }
       .reset-inline-btn { font-size:12px; }
       /* Узкие чипы */
       .result-mobile-chips { flex-basis: 88px; }
