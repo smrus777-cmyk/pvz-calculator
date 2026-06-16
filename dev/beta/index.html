@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.2.40
+    Продукт: ПВЗ Калькулятор Lite · v10.2.41
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -1133,6 +1133,26 @@
              уменьшен 0.10em → 0.08em — знак чуть ближе к сумме, как в PDF.
              НЕ ТРОНУТО: line-height:1.18, 127px-архитектура колонок, PNG/PDF,
              .is-snap-mode, drawText, Range-fit, expand/collapse curves.
+
+			              v10.2.41 — Profile Reset (сброс контактов менеджера, Apple-деструктив).
+             ЗАЧЕМ: менеджер заполнил профиль (имя/тел/email → именной PDF-CTA), но
+             понадобилось разово отправить ОБЕЗЛИЧЕННОЕ КП — нужен сброс, чтобы PDF
+             вернулся к дефолту «Свяжитесь с вашим менеджером RUSS». Раньше способа не было.
+             РЕШЕНИЕ: ряд из двух кнопок (близнец .rate-actions rate-sheet) — «Сбросить»
+             (нейтральная ghost) + «Сохранить» (зелёный CTA). Листы-близнецы единообразны.
+             ДЕСТРУКТИВ ПО-APPLE: профиль персистентен (localStorage), поэтому «Сбросить»
+             стирает СРАЗУ источник истины (не откладывает на «Сохранить» — иначе грабли
+             «поля пусты, но имя в хранилище → PDF всё ещё именной»). Два тапа без модалки:
+             1-й вооружает (сдержанный красный #FF453A «Точно сбросить?», окно 3с, haptic
+             light), 2-й — стирает 3 ключа russ-manager-*-v1 + поля, карточка → «Ваши данные
+             в документе», haptic warning, краткое «Сброшено». Любой ввод в поля / закрытие
+             формы снимает вооружение. «Сбросить» видимо неактивна (.is-disabled), когда
+             чистить нечего — honest UI.
+             COLOR DISCIPLINE ЦЕЛА: красный ТОЛЬКО в момент опасности (отдельная честная ось
+             угрозы); оранжевый=действие и зелёный=выбор не тронуты.
+             СВЯТЫНИ ЦЕЛЫ: getManagerContact/hasManagerContact (сигнатуры), ключи
+             russ-manager-*-v1, setPrintCta, formatPhoneRu, весь PNG drawText/_yDraw, весь
+             PDF — PDF/PNG дефолтят САМИ через hasManagerContact() (ноль правок зон).
 			 
   ================================================
 -->
@@ -3016,7 +3036,7 @@
     .profile-input:focus::placeholder { color: transparent; }
     /* v10.2.33: кнопка Сохранить = тихий зелёный .rate-btn-apply (Color Discipline, НЕ оранж). */
     .profile-save-btn {
-      width: 100%; padding: 12px 16px; margin-top: 4px;
+      flex: 1; padding: 12px 16px;
       border-radius: var(--radius-button); cursor: pointer; font-family: inherit;
       font-size: 15px; font-weight: 600;
       background: rgba(52,199,89,0.15); border: var(--border-medium) solid rgba(52,199,89,0.4); color: #34C759;
@@ -3026,6 +3046,29 @@
     .profile-save-btn:active { transform: scale(0.98); }
     .light-mode .profile-save-btn { background: rgba(45,159,79,0.12); border-color: rgba(45,159,79,0.4); color: #2D9F4F; }
     .profile-save-btn.saved { background: rgba(52,199,89,0.22); } /* краткий feedback */
+
+    /* v10.2.41: ряд кнопок профиля — близнец .rate-actions (rate-sheet). */
+    .profile-actions { display: flex; gap: 8px; margin-top: 4px; }
+    /* «Сбросить» — нейтральная ghost (семья .rate-btn-reset), тихая, не конкурирует с CTA. */
+    .profile-reset-btn {
+      flex: 1; padding: 12px 16px; border-radius: var(--radius-button); cursor: pointer;
+      font-family: inherit; font-size: 15px; font-weight: 600; white-space: nowrap;
+      background: transparent; border: var(--border-thin) solid var(--border-subtle); color: var(--text-secondary);
+      transition: background var(--dur-fast) var(--ease-standard),
+                  border-color var(--dur-fast) var(--ease-standard),
+                  color var(--dur-fast) var(--ease-standard),
+                  opacity var(--dur-fast) var(--ease-standard),
+                  transform var(--dur-fast) var(--ease-standard);
+    }
+    .profile-reset-btn:hover { background: var(--bg-card-soft); color: var(--text-primary); }
+    .profile-reset-btn:active { transform: scale(0.98); }
+    /* Вооружённое состояние (1-й тап) — сдержанный Apple-красный = «это деструктив, подумай».
+       Красный появляется ТОЛЬКО здесь, в момент опасности — отдельная честная ось угрозы. */
+    .profile-reset-btn.armed { background: rgba(255,59,48,0.14); border-color: rgba(255,59,48,0.45); color: #FF453A; }
+    .profile-reset-btn.armed:hover { background: rgba(255,59,48,0.20); color: #FF453A; }
+    .light-mode .profile-reset-btn.armed { background: rgba(215,0,21,0.10); border-color: rgba(215,0,21,0.40); color: #D70015; }
+    /* Нечего сбрасывать → видимо неактивна (honest UI: кнопка не врёт о возможности). */
+    .profile-reset-btn.is-disabled { opacity: 0.4; pointer-events: none; cursor: default; }
 
     /* ── v8.35: defense in depth ─────────────────────────────────────────
        PDF-опция скрыта на мобилке. Главная защита — JS-ветвление в
@@ -4201,7 +4244,13 @@
         <label class="profile-label" for="profileEmail">E-mail</label>
         <input type="email" class="input-field profile-input" id="profileEmail" placeholder="Например: ivanov@rwb.ru" autocomplete="off" maxlength="60">
       </div>
-      <button class="profile-save-btn" id="profileSaveBtn">Сохранить</button>
+      <!-- v10.2.41: ряд из двух кнопок (клон паттерна .rate-actions rate-sheet).
+           «Сбросить» — ghost, вооружается в красный confirm на 1-м тапе (Apple-деструктив
+           без модалки). «Сохранить» — зелёный CTA. Деструктив стирает localStorage сразу. -->
+      <div class="profile-actions">
+        <button class="profile-reset-btn is-disabled" id="profileResetBtn" type="button">Сбросить</button>
+        <button class="profile-save-btn" id="profileSaveBtn">Сохранить</button>
+      </div>
     </div>
   </div>
   <button class="sheet-cancel" id="sheetCancelBtn">Отмена</button>
@@ -4439,7 +4488,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.2.40';
+      const APP_VERSION = 'v10.2.41';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -8029,6 +8078,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       const profilePhone    = document.getElementById('profilePhone');
       const profileEmail    = document.getElementById('profileEmail');
       const profileSaveBtn  = document.getElementById('profileSaveBtn');
+      const profileResetBtn = document.getElementById('profileResetBtn');
       const profileCardDesc = document.getElementById('profileCardDesc');
 
       // v10.2.34 (В3): живое форматирование телефона при вводе (ТОЛЬКО на input —
@@ -8060,6 +8110,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
         if (profileName)  profileName.value  = cc.name;
         if (profilePhone) profilePhone.value = cc.phone;
         if (profileEmail) profileEmail.value = cc.email;
+        disarmReset(); refreshResetState(); // v10.2.41: чистое состояние «Сбросить» при открытии
         profileForm.classList.add('open');
         if (profileBtn) profileBtn.classList.add('is-active');
       }
@@ -8075,6 +8126,61 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
         });
       }
 
+      // ── v10.2.41: сброс профиля (Apple-деструктив, два тапа, без модалки) ──────────
+      // Профиль персистентен (localStorage) → «Сбросить» стирает СРАЗУ источник истины,
+      // не откладывая на «Сохранить» (иначе грабли «поля пусты, имя в хранилище → PDF
+      // именной»). PDF/PNG дефолтят сами через hasManagerContact(). setPrintCta/
+      // getManagerContact НЕ трогаем — только удаляем ключи + чистим поля.
+      let _resetArmed = false, _resetTimer = null;
+      function profileHasAnything() {
+        const t = (el) => !!(el && el.value && el.value.trim());
+        return t(profileName) || t(profilePhone) || t(profileEmail) || hasManagerContact();
+      }
+      // «Сбросить» видимо неактивна, когда чистить нечего (honest UI — не врёт о возможности).
+      function refreshResetState() {
+        if (!profileResetBtn) return;
+        profileResetBtn.classList.toggle('is-disabled', !profileHasAnything());
+      }
+      // Снять вооружение (передумал: тронул поле / закрыл форму / сохранил / таймаут).
+      function disarmReset() {
+        if (_resetTimer) { clearTimeout(_resetTimer); _resetTimer = null; }
+        _resetArmed = false;
+        if (profileResetBtn) { profileResetBtn.classList.remove('armed'); profileResetBtn.textContent = 'Сбросить'; }
+      }
+      // Ввод в любое поле → обновить активность + снять вооружение (намерение изменилось).
+      [profileName, profilePhone, profileEmail].forEach((el) => {
+        if (!el) return;
+        el.addEventListener('input', () => { disarmReset(); refreshResetState(); });
+      });
+      if (profileResetBtn) {
+        profileResetBtn.addEventListener('click', () => {
+          if (profileResetBtn.classList.contains('is-disabled')) return;
+          if (!_resetArmed) {
+            // 1-й тап: вооружить (красный confirm), окно 3 секунды.
+            _resetArmed = true;
+            profileResetBtn.classList.add('armed');
+            profileResetBtn.textContent = 'Точно сбросить?';
+            haptic('light');
+            if (_resetTimer) clearTimeout(_resetTimer);
+            _resetTimer = setTimeout(disarmReset, 3000);
+            return;
+          }
+          // 2-й тап: стереть источник истины + поля.
+          if (_resetTimer) { clearTimeout(_resetTimer); _resetTimer = null; }
+          _resetArmed = false;
+          const delLS = (k) => { try { localStorage.removeItem(k); } catch (e) { /* Safari Private — тихо */ } };
+          delLS('russ-manager-name-v1'); delLS('russ-manager-phone-v1'); delLS('russ-manager-email-v1');
+          if (profileName)  profileName.value  = '';
+          if (profilePhone) profilePhone.value = '';
+          if (profileEmail) profileEmail.value = '';
+          updateProfileCardSubtitle(); // карточка → «Ваши данные в документе»
+          haptic('warning');
+          profileResetBtn.classList.remove('armed');
+          profileResetBtn.textContent = 'Сброшено';
+          setTimeout(() => { profileResetBtn.textContent = 'Сбросить'; refreshResetState(); }, 1400);
+        });
+      }
+
       // Сохранение (раздел 9): запись в localStorage → обновить карточку → haptic → форма ОСТАЁТСЯ.
       // Валидация Apple-минимум (раздел 8): .trim(), любая комбинация, БЕЗ обязательных/красных.
       if (profileSaveBtn) {
@@ -8084,6 +8190,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           setLS('russ-manager-phone-v1', (profilePhone ? profilePhone.value : '').trim());
           setLS('russ-manager-email-v1', (profileEmail ? profileEmail.value : '').trim());
           updateProfileCardSubtitle();
+          disarmReset(); refreshResetState(); // v10.2.41: синхронизировать «Сбросить» после сохранения
           haptic('success');
           profileSaveBtn.classList.add('saved');
           const _ot = profileSaveBtn.textContent;
@@ -8094,6 +8201,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       }
 
       updateProfileCardSubtitle(); // показать сохранённое при инициализации
+      refreshResetState();         // v10.2.41: стартовое состояние кнопки «Сбросить»
 
       // ════════════════════════════════════════════════
       // v10.2.0: RATE SHEET — настройка ставки за выход
