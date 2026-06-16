@@ -2,7 +2,7 @@
   ================================================
   Автор: Maxim Sorokin
   Компания: RUSS Volgograd
-    Продукт: ПВЗ Калькулятор Lite · v10.2.41
+    Продукт: ПВЗ Калькулятор Lite · v10.2.43
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -1153,6 +1153,35 @@
              СВЯТЫНИ ЦЕЛЫ: getManagerContact/hasManagerContact (сигнатуры), ключи
              russ-manager-*-v1, setPrintCta, formatPhoneRu, весь PNG drawText/_yDraw, весь
              PDF — PDF/PNG дефолтят САМИ через hasManagerContact() (ноль правок зон).
+
+			              v10.2.42 — Narrow-screen fit: «Контакты менеджера» в одну строку (≤390px).
+             ПРОБЛЕМА: на самом узком экране (Nubia 372 / iPhone mini-SE 375) заголовок
+             карточки «Контакты менеджера» переносился в 2 строки — бейдж «ПРОФИЛЬ» (7 букв)
+             шире «PNG», съедал горизонталь. Только на ≤390px.
+             РЕШЕНИЕ (идея Maxim): в @media (max-width:390px) поджали рамку карточки к краям
+             + сузили gap (.format-btn padding 16→11, gap 14→11) и чуть ужали профиль-бейдж
+             (padding 7→6, letter-spacing 0.2→0.1). ~15px освобождено под заголовок → одна
+             строка. На широких экранах padding/gap/бейдж прежние.
+             НЕ ТРОНУТО: HTML/JS, логика профиля, PNG/PDF, обработчик сброса v10.2.41.
+
+			              v10.2.43 — Profile UX: автосворачивание после Сохранить + шеврон-индикатор.
+             ЗАЧЕМ: после ввода контактов и «Сохранить» раскрытая форма оставалась
+             огромной и висела до выгрузки; повторный тап по карточке сворачивал, но это
+             не было очевидно («не каждый догадается» — Maxim).
+             РЕШЕНИЕ (как ЭПЛ):
+             (1) АВТОСВОРАЧИВАНИЕ: после «Сохранено» (1400мс) форма сама прибирается через
+             closeProfileForm() — остаются 2 пункта (десктоп 3, PDF на мобилке скрыт),
+             карточка показывает сохранённое имя. Правит прежнее «форма остаётся открытой»
+             (v10.2.33) — Maxim подтвердил, это стандартное поведение.
+             (2) ШЕВРОН (Apple disclosure) для ручного сворачивания: виден ТОЛЬКО в
+             раскрытом виде (уголок ВВЕРХ = «тап, чтобы свернуть»), бейдж «ПРОФИЛЬ» гаснет
+             (в открытой форме он лишний). Шеврон position:absolute → НОЛЬ влияния на
+             ширину карточки → узкий экран v10.2.42 цел (на ≤390px right 16→11 для паритета
+             с padding). Цвет тихий text-secondary — не конкурирует.
+             ОТКАЗ ОТ ЖЕСТА «тащить ползунок»: спорит со стандартом iOS (grabber = «тащи,
+             чтобы закрыть весь лист», не свернуть форму внутри) + кастомный жест = риск.
+             НЕ ТРОНУТО: PNG/PDF зоны, getManagerContact/hasManagerContact, setPrintCta,
+             сброс v10.2.41, fix узкого экрана v10.2.42, логика расчёта.
 			 
   ================================================
 -->
@@ -2999,7 +3028,7 @@
 
     /* v10.2.33: третья карточка Профиль — НЕЙТРАЛЬНЫЙ серый (НЕ зелёный/синий/оранжевый:
        не главный герой меню, «менее заметно»). Клон .format-btn, своя спокойная семья. */
-    .fmt-profile { background: var(--inverse-bg); border-color: var(--border-btn); }
+    .fmt-profile { background: var(--inverse-bg); border-color: var(--border-btn); position: relative; }
     .fmt-profile:hover { background: rgba(255,255,255,0.04); border-color: var(--border-input-hover); }
     .light-mode .fmt-profile:hover { background: rgba(0,0,0,0.04); }
     .fmt-profile .fmt-icon { background: rgba(120,120,130,0.15); }
@@ -3017,6 +3046,20 @@
       .fmt-profile .fmt-badge { font-size: 9px; padding: 3px 7px; letter-spacing: 0.2px; }
     }
     .fmt-profile.is-active { border-color: var(--border-input-hover); } /* раскрыт */
+
+    /* v10.2.43: шеврон-индикатор «свернуть» (Apple disclosure). position:absolute → НЕ
+       влияет на ширину карточки (узкий экран v10.2.42 цел). Виден только в раскрытом
+       виде: бейдж «ПРОФИЛЬ» гаснет, шеврон проявляется и доворачивается уголком ВВЕРХ =
+       «тап, чтобы свернуть». Цвет тихий (text-secondary) — не конкурирует. */
+    .profile-chevron {
+      position: absolute; right: 16px; top: 50%;
+      transform: translateY(-50%) rotate(0deg);
+      stroke: var(--text-secondary); opacity: 0; pointer-events: none;
+      transition: opacity var(--dur-medium) var(--ease-standard),
+                  transform var(--dur-medium) var(--ease-emphasis);
+    }
+    .fmt-profile.is-active .fmt-badge        { opacity: 0; }
+    .fmt-profile.is-active .profile-chevron  { opacity: 1; transform: translateY(-50%) rotate(180deg); }
 
     /* v10.2.33: аккордеон-форма — раскрытие ВНУТРИ sheet (Apple Wallet curve, НЕ modal).
        max-height:0→потолок (transition не работает на auto). Растёт под карточкой. */
@@ -3083,7 +3126,7 @@
     .fmt-text { flex:1; }
     .fmt-title { font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:2px; }
     .fmt-desc { font-size:11px; color:var(--text-muted); line-height:1.35; }
-    .fmt-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; flex-shrink:0; }
+    .fmt-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; flex-shrink:0; transition: opacity var(--dur-medium) var(--ease-standard); }
     .sheet-cancel { margin:8px 12px 0; width:calc(100% - 24px); padding:13px; border-radius:var(--radius-button); border:var(--border-thin) solid var(--border-subtle); background:transparent; color:var(--text-secondary); font-size:14px; font-family:inherit; cursor:pointer; }
     .sheet-cancel:hover { background:var(--bg-card-soft); }
 
@@ -3954,6 +3997,13 @@
     @media (max-width: 390px) {
       .launch-wide { display: none; }
       .launch-short { display: inline; }
+      /* v10.2.42: на самом узком экране бейдж «ПРОФИЛЬ» (шире «PNG») переносил
+         «Контакты менеджера» в 2 строки. Поджимаем рамку карточки к краям + сужаем
+         gap → освобождаем горизонталь под заголовок в одну строку. Только narrow;
+         идёт ПОСЛЕ правила .fmt-badge в @media 500px → перебивает его по каскаду. */
+      .format-btn { padding: 14px 11px; gap: 11px; }
+      .fmt-profile .fmt-badge { padding: 3px 6px; letter-spacing: 0.1px; }
+      .profile-chevron { right: 11px; } /* v10.2.43: шеврон к краю на узком (паритет padding) */
     }
 
     /* v10.2.1: rate-валидация — предупреждение СПРАВА в поле (механизм
@@ -4228,6 +4278,9 @@
       <div class="fmt-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
       <div class="fmt-text"><div class="fmt-title">Контакты менеджера</div><div class="fmt-desc" id="profileCardDesc">Ваши данные в документе</div></div>
       <span class="fmt-badge">ПРОФИЛЬ</span>
+      <!-- v10.2.43: шеврон-индикатор «свернуть» — виден ТОЛЬКО в раскрытом виде (уголок
+           вверх), бейдж гаснет. Absolute → ноль влияния на ширину (узкий экран v10.2.42 цел). -->
+      <svg class="profile-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
     </button>
     <!-- v10.2.33: аккордеон-форма ВНУТРИ sheet (max-height + Apple Wallet curve),
          НЕ modal-поверх-modal (Apple HIG). Растёт под третьей карточкой. -->
@@ -4488,7 +4541,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.2.41';
+      const APP_VERSION = 'v10.2.43';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -8195,7 +8248,11 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           profileSaveBtn.classList.add('saved');
           const _ot = profileSaveBtn.textContent;
           profileSaveBtn.textContent = 'Сохранено';
-          setTimeout(() => { profileSaveBtn.classList.remove('saved'); profileSaveBtn.textContent = _ot; }, 1400);
+          setTimeout(() => {
+            profileSaveBtn.classList.remove('saved');
+            profileSaveBtn.textContent = _ot;
+            closeProfileForm(); // v10.2.43: автосворачивание — форма прибирается после сохранения
+          }, 1400);
           // форма остаётся открытой (раздел 9)
         });
       }
