@@ -5,29 +5,13 @@
 # Для всех роботов (Google и др.)
 # ============================================
 User-agent: *
-Allow: /
-
-# Старые папки — оставлены, но не индексируются
-Disallow: /calculator-lite/
-Disallow: /calculator-pro/
-
-# Личное (акция, презентация, dev-версии)
-Disallow: /promo/
-Disallow: /show/
-Disallow: /dev/
+Disallow: /
 
 # ============================================
 # Для Яндекса (отдельная секция)
 # ============================================
 User-agent: Yandex
-Allow: /
-
-Disallow: /calculator-lite/
-Disallow: /calculator-pro/
-
-Disallow: /promo/
-Disallow: /show/
-Disallow: /dev/
+Disallow: /
 
 # UTM-метки — убираем дубли URL
 Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&_openstat
